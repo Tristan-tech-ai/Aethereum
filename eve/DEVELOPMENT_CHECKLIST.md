@@ -4,26 +4,43 @@
 > **Timeline:** 8 Weeks (Competition)  
 > **Last Updated:** February 2026
 
+## 📌 Phases Overview
+- [ ] **Phase 0:** Pre-Development Setup
+- [ ] **Phase 1:** Infrastructure & Environment
+- [ ] **Phase 2:** Authentication & User Management
+- [ ] **Phase 3:** Content Upload & AI Analysis
+- [ ] **Phase 4:** Document Dungeon — Core Learning Flow
+- [ ] **Phase 5:** 3D City Viewer
+- [ ] **Phase 6:** Focus Coins Economy & Shop
+- [ ] **Phase 7:** Public City Profile & Social
+- [ ] **Phase 8:** WebSocket & Real-Time
+- [ ] **Phase 9:** Additional Learning Flows (P1)
+- [ ] **Phase 10:** Gamification & Engagement
+- [ ] **Phase 11:** Security & Anti-Cheating
+- [ ] **Phase 12:** Testing & QA
+- [ ] **Phase 13:** Deployment & Launch
+- [ ] **Post-Launch Checklist**
+
 ---
 
 ## Phase 0: Pre-Development Setup
 
 ### 0.1 Project Planning
-- [ ] Finalize team roles (Product Owner, Tech Lead, Frontend, Backend, 3D)
-- [ ] Set up communication channel (Discord/Slack)
-- [ ] Create project timeline with milestones per week
-- [ ] Review PRD with all team members
-- [ ] Identify P0 (MVP) features vs P1/P2
+- [✅] Finalize team roles (Product Owner, Tech Lead, Frontend, Backend, 3D)
+- [✅] Set up communication channel (Discord/Slack)
+- [✅] Create project timeline with milestones per week
+- [✅] Review PRD with all team members
+- [✅] Identify P0 (MVP) features vs P1/P2
 
 ### 0.2 Repository & Version Control
-- [ ] Create GitHub repository (monorepo or separate frontend/backend)
-- [ ] Set up branch strategy (`main`, `develop`, `feature/*`, `hotfix/*`)
-- [ ] Create `.gitignore` for Laravel + React
-- [ ] Write `README.md` with project overview & setup instructions
-- [ ] Set up PR template & code review rules
-- [ ] Enable branch protection on `main`
+- [✅] Create GitHub repository (monorepo or separate frontend/backend)
+- [✅] Set up branch strategy (`main`, `develop`, `feature/*`, `hotfix/*`)
+- [✅] Create `.gitignore` for Laravel + React
+- [✅] Write `README.md` with project overview & setup instructions
+- [✅] Set up PR template & code review rules
+- [✅] Enable branch protection on `main`
 
-### 0.3 Design Assets
+### 0.3 Design Assets (christian dan abi)
 - [ ] Finalize color palette & design tokens (Tailwind config)
 - [ ] Create/source icon set (Lucide React)
 - [ ] Import typography (Google Fonts: Inter/Outfit)
@@ -39,24 +56,32 @@
 - [ ] Source/create 10 decoration models (trees, benches, fountains)
 - [ ] Create logo & branding assets
 
-### 0.4 External Service Accounts
+### 0.4 External Service Accounts (tristan)
 - [ ] Google Cloud Console — Gemini 2.0 Flash API key
 - [ ] Google Cloud Console — OAuth 2.0 Client ID & Secret
 - [ ] Jina Reader API — account & API key
 - [ ] (Optional) Meshy.ai — account & API key for 3D generation
-- [ ] Vercel — account for frontend hosting
-- [ ] Railway.app — account for backend hosting + PostgreSQL + Redis
+- [✅] Vercel — account for frontend hosting
+- [✅] Railway.app — account for backend hosting + PostgreSQL + Redis
 - [ ] Email service (SendGrid/Mailgun) — for verification emails
 
 ---
 
 ## Phase 1: Infrastructure & Environment
 
+<<<<<<< HEAD
 ### 1.1 Backend Setup (Laravel)
 - [✅] Install Laravel 12 via Composer (`composer create-project laravel/laravel`)
 - [✅] Configure `.env` (APP_KEY, APP_URL, debug settings)
 - [✅] Install & configure PostgreSQL driver (`pdo_pgsql`)
 - [✅] Set `DB_CONNECTION=pgsql` and connect to local/Railway PostgreSQL
+=======
+### 1.1 Backend Setup (Laravel) (sanjaya)
+- [ ] Install Laravel 11 via Composer (`composer create-project laravel/laravel`)
+- [ ] Configure `.env` (APP_KEY, APP_URL, debug settings)
+- [ ] Install & configure PostgreSQL driver (`pdo_pgsql`)
+- [ ] Set `DB_CONNECTION=pgsql` and connect to local/Railway PostgreSQL
+>>>>>>> 942a73261812410a9243d9d6ee08f18aada7d8a5
 - [ ] Install & configure Redis (`predis/predis` or `phpredis`)
 - [ ] Set `CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis`, `SESSION_DRIVER=redis`
 - [ ] Install Laravel Sanctum (`composer require laravel/sanctum`)
@@ -69,7 +94,7 @@
 - [ ] Configure file storage (local for dev, S3-compatible for prod)
 - [ ] Set up queue worker (`php artisan queue:work`)
 
-### 1.2 Frontend Setup (React + Vite)
+### 1.2 Frontend Setup (React + Vite) (sanjaya)
 - [ ] Create Vite React project (`npm create vite@latest frontend -- --template react`)
 - [ ] Install core dependencies:
   - [ ] `react-router-dom` (v6+)
@@ -90,7 +115,7 @@
 - [ ] Create folder structure: `components/`, `pages/`, `stores/`, `services/`, `3d/`, `hooks/`, `contexts/`
 - [ ] Set up environment variables (`VITE_API_URL`, `VITE_WS_URL`)
 
-### 1.3 Database Schema
+### 1.3 Database Schema (sanjaya)
 - [ ] Create migration: `users` table (UUID PK, email, password, name, avatar, bio, gamification fields, city settings, OAuth, timestamps)
 - [ ] Create migration: `learning_contents` table (UUID, user FK, content info, AI analysis results, structured_sections JSONB, status, timestamps)
 - [ ] Create migration: `buildings` table (UUID, user FK, content FK, identity, level/progress, grid position, quality metrics, social, model ref, timestamps)
@@ -113,7 +138,7 @@
 - [ ] Create Model Factories for all tables (seeding & testing)
 - [ ] Create Database Seeders (demo data for competition)
 
-### 1.4 DevOps & CI/CD
+### 1.4 DevOps & CI/CD (tristan)
 - [ ] Create `Dockerfile` for Laravel backend
 - [ ] Create `docker-compose.yml` for local dev (PHP, PostgreSQL, Redis)
 - [ ] Set up GitHub Actions workflow (`.github/workflows/deploy.yml`)
@@ -126,9 +151,9 @@
 
 ---
 
-## Phase 2: Authentication & User Management
+## Phase 2: Authentication & User Management (tristan)
 
-### 2.1 Backend Auth
+### 2.1 Backend Auth 
 - [ ] Create `AuthController` with methods: `register`, `login`, `logout`, `user`
 - [ ] Implement email + password registration with validation
 - [ ] Auto-create `UserWallet` on registration (100 coin welcome bonus)
@@ -168,7 +193,7 @@
 
 ---
 
-## Phase 3: Content Upload & AI Analysis
+## Phase 3: Content Upload & AI Analysis (sanjaya)
 
 ### 3.1 Backend — Content Upload
 - [ ] Create `ContentController` with upload/url/list/show methods
@@ -233,7 +258,7 @@
 
 ---
 
-## Phase 4: Document Dungeon — Core Learning Flow
+## Phase 4: Document Dungeon — Core Learning Flow (tristan)
 
 ### 4.1 Backend — Learning Sessions
 - [ ] Create `LearningFlowService`
@@ -309,7 +334,7 @@
 
 ---
 
-## Phase 5: 3D City Viewer
+## Phase 5: 3D City Viewer (Tristan)
 
 ### 5.1 Core Three.js Scene
 - [ ] Build `CityScene` component with React Three Fiber Canvas
@@ -401,7 +426,7 @@
 
 ## Phase 6: Focus Coins Economy & Shop
 
-### 6.1 Backend — Economy
+### 6.1 Backend — Economy (sanjaya)
 - [ ] `GET /api/v1/wallet` — current balance, totals, daily limit info
 - [ ] `GET /api/v1/wallet/transactions` — paginated transaction history
 - [ ] `GET /api/v1/shop/decorations` — list available decorations with costs
@@ -413,7 +438,7 @@
 - [ ] Implement coin earning sources: focus session, quiz perfect score, daily login, streak bonus
 - [ ] Implement spending: decorations, land expansion, custom 3D generation
 
-### 6.2 Frontend — Economy
+### 6.2 Frontend — Economy (christian dan abi)
 - [ ] Build **Wallet Display** (header/navbar coin balance)
 - [ ] Build **Transaction History** page
 - [ ] Build **Decoration Shop** page
@@ -436,7 +461,7 @@
 
 ## Phase 7: Public City Profile & Social
 
-### 7.1 Backend — Public Profile
+### 7.1 Backend — Public Profile (Tristan)
 - [ ] `GET /api/v1/city/my-city` — authenticated user's full city data
 - [ ] `GET /api/v1/city/user/{user_id}` — public city (403 if private)
 - [ ] `POST /api/v1/buildings/{id}/relocate` — reposition building
@@ -447,7 +472,7 @@
 - [ ] City visit tracking (create `city_visits` record)
 - [ ] Generate shareable city link (`/city/{user_id}` or slug)
 
-### 7.2 Frontend — Public Profile
+### 7.2 Frontend — Public Profile (Christian)
 - [ ] Build **Public City View** page (shareable URL)
   - [ ] User profile header (name, avatar, bio, tier, stats)
   - [ ] 3D city viewer (read-only)
@@ -462,7 +487,7 @@
   - [ ] Snap to grid, collision detection
   - [ ] Save layout button
 
-### 7.3 Backend — Social Features (P1)
+### 7.3 Backend — Social Features (P1) (sanjaya)
 - [ ] **Focus Duels**
   - [ ] `POST /api/v1/duels/challenge` — send challenge
   - [ ] `POST /api/v1/duels/{id}/accept` — accept challenge
@@ -486,7 +511,7 @@
   - [ ] Materialized views for leaderboard performance
   - [ ] Scheduled refresh (hourly)
 
-### 7.4 Frontend — Social Features (P1)
+### 7.4 Frontend — Social Features (P1) (abi)
 - [ ] Build **Focus Duel** UI
   - [ ] Challenge friend modal
   - [ ] Pending duels list
@@ -512,7 +537,7 @@
 
 ## Phase 8: WebSocket & Real-Time
 
-### 8.1 Backend — Laravel Reverb
+### 8.1 Backend — Laravel Reverb (Tristan)
 - [ ] Configure Laravel Reverb WebSocket server
 - [ ] Define broadcasting channels:
   - [ ] `private:session.{sessionId}` — focus events
@@ -528,7 +553,7 @@
   - [ ] `DuelChallengeReceived`
 - [ ] Implement WebSocket authentication (via Sanctum)
 
-### 8.2 Frontend — Socket.io
+### 8.2 Frontend — Socket.io (Christian)
 - [ ] Set up Socket.io client connection with auth token
 - [ ] Implement auto-reconnection logic
 - [ ] Listen for real-time events:
@@ -543,7 +568,7 @@
 
 ---
 
-## Phase 9: Additional Learning Flows (P1)
+## Phase 9: Additional Learning Flows (P1) (tristan dan Christian)
 
 ### 9.1 Interactive Theater (YouTube)
 - [ ] YouTube embedded player with API controls
@@ -572,7 +597,7 @@
 
 ---
 
-## Phase 10: Gamification & Engagement
+## Phase 10: Gamification & Engagement (abi dan sanjaya)
 
 ### 10.1 Mastery Tier System (P1)
 - [ ] Define tier thresholds: Novice → Apprentice → Scholar → Expert → Master
@@ -596,7 +621,7 @@
 
 ---
 
-## Phase 11: Security & Anti-Cheating
+## Phase 11: Security & Anti-Cheating (tristan dan sanjaya)
 
 ### 11.1 Input Validation & Security
 - [ ] Server-side validation on all API endpoints (Laravel FormRequests)
@@ -626,7 +651,7 @@
 
 ## Phase 12: Testing & QA
 
-### 12.1 Backend Tests (PHPUnit)
+### 12.1 Backend Tests (PHPUnit) (Tristan dan Sanjaya)
 - [ ] **Unit Tests:**
   - [ ] `CoinEconomyServiceTest` — earn, spend, daily cap, insufficient balance
   - [ ] `BuildingConstructionServiceTest` — create, update, level-up, integrity
@@ -643,7 +668,7 @@
   - [ ] Social features (duel challenge → accept → complete)
   - [ ] Public city access (public vs private)
 
-### 12.2 Frontend Tests (Jest + React Testing Library)
+### 12.2 Frontend Tests (Jest + React Testing Library) (Christian dan abi)
 - [ ] Component tests:
   - [ ] FocusTimer — start, pause, tab detection, health
   - [ ] QuizBattle — answer selection, submit, scoring
@@ -655,20 +680,20 @@
   - [ ] Upload → library → start session
   - [ ] City rendering (Canvas)
 
-### 12.3 E2E Tests (Cypress)
+### 12.3 E2E Tests (Cypress) (Sanjaya)
 - [ ] Full learning flow (upload → learn → quiz → city)
 - [ ] Auth flow (register → login → profile)
 - [ ] Shop flow (view → purchase → place)
 - [ ] Public city flow (share link → visit → like → comment)
 
-### 12.4 Performance Testing
+### 12.4 Performance Testing (Tristan)
 - [ ] Lighthouse audit (target score >90)
 - [ ] 3D performance test on mobile (target 60 FPS)
 - [ ] API response time testing (<200ms for most endpoints)
 - [ ] AI response time testing (<10s for content analysis)
 - [ ] Load testing (100 concurrent users)
 
-### 12.5 Cross-Browser & Device Testing
+### 12.5 Cross-Browser & Device Testing (Sanjaya)
 - [ ] Chrome (Desktop + Mobile)
 - [ ] Firefox (Desktop)
 - [ ] Safari (Desktop + iOS)
@@ -678,7 +703,7 @@
 
 ---
 
-## Phase 13: Deployment & Launch
+## Phase 13: Deployment & Launch (barengan)
 
 ### 13.1 Pre-Launch Checklist
 - [ ] All P0 features working end-to-end
