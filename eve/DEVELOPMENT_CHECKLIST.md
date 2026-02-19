@@ -233,7 +233,7 @@
   - [ ] Generate quiz for each section of content
   - [ ] Store in `quizzes` table
 
-### 3.4 Frontend — Content Upload
+### 3.4 Frontend — Content Upload (Abi & Christian)
 - [ ] Build Upload page/modal with:
   - [ ] Drag-and-drop zone for files (PDF, image, PPTX)
   - [ ] URL input field (YouTube / web article)
@@ -290,7 +290,7 @@
   - [ ] Update `longest_streak` if exceeded
   - [ ] Reset streak if day missed
 
-### 4.3 Frontend — Document Dungeon Flow
+### 4.3 Frontend — Document Dungeon Flow (a & c)
 - [ ] Build **Quest Map** component
   - [ ] Visual room/section layout (5–7 rooms)
   - [ ] Room states: locked, current, completed
