@@ -53,10 +53,10 @@
 ## Phase 1: Infrastructure & Environment
 
 ### 1.1 Backend Setup (Laravel)
-- [ ] Install Laravel 11 via Composer (`composer create-project laravel/laravel`)
-- [ ] Configure `.env` (APP_KEY, APP_URL, debug settings)
-- [ ] Install & configure PostgreSQL driver (`pdo_pgsql`)
-- [ ] Set `DB_CONNECTION=pgsql` and connect to local/Railway PostgreSQL
+- [✅] Install Laravel 12 via Composer (`composer create-project laravel/laravel`)
+- [✅] Configure `.env` (APP_KEY, APP_URL, debug settings)
+- [✅] Install & configure PostgreSQL driver (`pdo_pgsql`)
+- [✅] Set `DB_CONNECTION=pgsql` and connect to local/Railway PostgreSQL
 - [ ] Install & configure Redis (`predis/predis` or `phpredis`)
 - [ ] Set `CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis`, `SESSION_DRIVER=redis`
 - [ ] Install Laravel Sanctum (`composer require laravel/sanctum`)
