@@ -8,21 +8,6 @@
 
 ---
 
-## 👥 Team Roles & Developers
-
-| Developer | Role | Tanggung Jawab Utama |
-|-----------|------|---------------------|
-| **Arief** | Tech Lead / Full-Stack | Arsitektur sistem, Backend services, Database schema, Code review, Deployment |
-| **Bima** | Backend Developer | API endpoints, AI integration (Gemini), Queue jobs, WebSocket (Reverb), Auth |
-| **Candra** | Frontend Developer | React components, UI/UX implementation, Heatmap, Knowledge Cards, Charts |
-| **Dinda** | Frontend Developer | Social Learning UI (Raids, Duels, Arena, Rooms), WebSocket client, Animations |
-| **Eka** | Product / QA | PRD management, Testing (Cypress E2E), Demo prep, Documentation, Design assets |
-
-> **Developer Assignment Legend:**  
-> `[Arief]` `[Bima]` `[Candra]` `[Dinda]` `[Eka]` — Primary responsible person  
-> Tasks tanpa label = shared responsibility atau sesuai konteks section
-
----
 
 ## Priority Legend
 
