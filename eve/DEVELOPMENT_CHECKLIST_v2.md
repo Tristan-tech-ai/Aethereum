@@ -89,23 +89,23 @@
 
 ## Phase 1: Infrastructure & Environment
 
-### 1.1 Backend Setup (Laravel 12) `[snajaya]`
-- [ ] Install Laravel 12 via Composer (`composer create-project laravel/laravel backend`)
-- [ ] Configure `.env` (APP_KEY, APP_URL, debug settings)
-- [ ] Install & configure PostgreSQL driver (`pdo_pgsql`)
-- [ ] Set `DB_CONNECTION=pgsql` dan connect ke local / Railway PostgreSQL
-- [ ] Install & configure Redis (`predis/predis`)
-- [ ] Set `CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis`, `SESSION_DRIVER=redis`
-- [ ] Install Laravel Sanctum (`composer require laravel/sanctum`)
-- [ ] Publish Sanctum config & migration
-- [ ] Install Laravel Reverb (`composer require laravel/reverb`) untuk WebSocket social modes
-- [ ] Install Socialite (`composer require laravel/socialite`) untuk Google OAuth
-- [ ] Configure CORS (`config/cors.php`) untuk frontend origin
-- [ ] Set up rate limiting middleware (60 req/min authenticated, 10/min guest)
-- [ ] Create base API response trait (`ApiResponse`) — success, error, paginated formats
-- [ ] Configure file storage (local untuk dev, S3-compatible untuk prod)
-- [ ] Set up queue worker (`php artisan queue:work`)
-- [ ] Create `HealthController` → `GET /api/health` (untuk deployment verification)
+### 1.1 Backend Setup (Laravel 12) `[Sanjaya]`
+- [✅] Install Laravel 12 via Composer (`composer create-project laravel/laravel backend`)
+- [✅] Configure `.env` (APP_KEY, APP_URL, debug settings)
+- [✅] Install & configure PostgreSQL driver (`pdo_pgsql`)
+- [✅] Set `DB_CONNECTION=pgsql` dan connect ke local / Railway PostgreSQL
+- [✅] Install & configure Redis (`predis/predis`)
+- [✅] Set `CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis`, `SESSION_DRIVER=redis`
+- [✅] Install Laravel Sanctum (`composer require laravel/sanctum`)
+- [✅] Publish Sanctum config & migration
+- [✅] Install Laravel Reverb (`composer require laravel/reverb`) untuk WebSocket social modes
+- [✅] Install Socialite (`composer require laravel/socialite`) untuk Google OAuth |catatan: GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET belum diisi pada env
+- [✅] Configure CORS (`config/cors.php`) untuk frontend origin
+- [✅] Set up rate limiting middleware (60 req/min authenticated, 10/min guest)
+- [✅] Create base API response trait (`ApiResponse`) — success, error, paginated formats
+- [✅] Configure file storage (local untuk dev, S3-compatible untuk prod)
+- [✅] Set up queue worker (`php artisan queue:work`)
+- [✅] Create `HealthController` → `GET /api/health` (untuk deployment verification)
 
 ### 1.2 Frontend Setup (React 18 + Vite) `[sanjaya]`
 - [ ] Create Vite React project (`npm create vite@latest frontend -- --template react`)

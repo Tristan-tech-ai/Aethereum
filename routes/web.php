@@ -1,17 +1,17 @@
 <?php
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
 Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
+    return response()->json([
+        'app' => 'Aethereum API',
+        'status' => 'Online',
+        'frontend' => 'Connected via Decoupled React',
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-require __DIR__.'/settings.php';
+Route::get('/test-redis', function () {
+    Cache::put('my_key', 'Hello Redis', 10);
+    return Cache::get('my_key');
+});
