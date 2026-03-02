@@ -63,7 +63,7 @@
 - [ ] Finalize color palette & design tokens (dark theme, violet primary) → update `tailwind.config.js`
 - [ ] Create icon set (Lucide React + custom emoji icons untuk subjects)
 - [ ] Import typography (Google Fonts: Inter for body, Outfit/Space Grotesk for headings)
-- [ ] Design wireframes di Figma untuk key screens:
+- [ ] Design wireframes di sini untuk key screens:
   - [ ] Landing / Onboarding
   - [ ] Dashboard / Home
   - [ ] Content Upload Modal
