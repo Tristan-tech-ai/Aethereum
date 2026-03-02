@@ -23,20 +23,20 @@
 | Phase | Fokus | Dev Utama | Week Target |
 |-------|-------|-----------|-------------|
 | Phase 0 | Pre-Development Setup | Semua | Week 0 |
-| Phase 1 | Infrastructure & Environment | Sanjaya, Tristan | Week 1 |
-| Phase 2 | Authentication & User Management | Bima, Candra | Week 1–2 |
-| Phase 3 | Content Upload & AI Analysis | Bima, Arief | Week 2 |
-| Phase 4 | Document Dungeon — Core Learning Flow | Bima, Candra | Week 3–4 |
-| **Phase 5** | **Knowledge Profile & Gamification System** | **Candra, Bima** | **Week 4–5** |
-| Phase 6 | Focus Coins Economy & Profile Shop | Bima, Candra | Week 5 |
-| Phase 7 | Public Profile, Social Discovery & Feed | Candra, Dinda | Week 5–6 |
-| Phase 8 | Social Learning Modes — Study Raid & Focus Duel | Bima, Dinda | Week 6 |
-| Phase 9 | Social Learning Modes — Quiz Arena, Relay, Room, Challenge | Bima, Dinda | Week 7 |
-| Phase 10 | Additional Learning Flows | Bima, Candra | Week 6–7 (if time) |
-| Phase 11 | WebSocket & Real-Time | Arief, Dinda | Week 6 |
-| Phase 12 | Security & Anti-Cheating | Arief, Bima | Week 7 |
-| Phase 13 | Testing & QA | Eka, Semua | Week 7–8 |
-| Phase 14 | Deployment & Competition Prep | Arief, Eka | Week 8 |
+| Phase 1 | Infrastructure & Environment | | Week 1 |
+| Phase 2 | Authentication & User Management | | Week 1–2 |
+| Phase 3 | Content Upload & AI Analysis | | Week 2 |
+| Phase 4 | Document Dungeon — Core Learning Flow | | Week 3–4 |
+| **Phase 5** | **Knowledge Profile & Gamification System** | | **Week 4–5** |
+| Phase 6 | Focus Coins Economy & Profile Shop | | Week 5 |
+| Phase 7 | Public Profile, Social Discovery & Feed | | Week 5–6 |
+| Phase 8 | Social Learning Modes — Study Raid & Focus Duel | | Week 6 |
+| Phase 9 | Social Learning Modes — Quiz Arena, Relay, Room, Challenge | | Week 7 |
+| Phase 10 | Additional Learning Flows | | Week 6–7 (if time) |
+| Phase 11 | WebSocket & Real-Time | | Week 6 |
+| Phase 12 | Security & Anti-Cheating | | Week 7 |
+| Phase 13 | Testing & QA | | Week 7–8 |
+| Phase 14 | Deployment & Competition Prep | | Week 8 |
 
 ---
 
@@ -168,11 +168,6 @@
 - [ ] **NEW** Create migration: `friendships` (requester FK, addressee FK, status)
 - [ ] **NEW** Create migration: `feed_events` (UUID, user FK, event_type, event_data JSONB, likes)
 - [ ] **NEW** Create migration: `feed_likes` (event FK, user FK)
-- [ ] ~~Create migration: `buildings`~~ ← REMOVED (replaced by knowledge_cards)
-- [ ] ~~Create migration: `decorations`~~ ← REMOVED
-- [ ] ~~Create migration: `city_visits`~~ ← REMOVED
-- [ ] ~~Create migration: `building_likes`~~ ← REMOVED
-- [ ] ~~Create migration: `building_comments`~~ ← REMOVED
 - [ ] Run all migrations (`php artisan migrate`)
 - [ ] Create database indexes (sesuai PRD v2.0 — idx_cards_pinned, idx_xp_events_date, dll)
 - [ ] Create database triggers (update_user_last_learning, reset_coin_limits)
