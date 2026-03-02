@@ -63,7 +63,7 @@
 - [ ] Finalize color palette & design tokens (dark theme, violet primary) → update `tailwind.config.js`
 - [ ] Create icon set (Lucide React + custom emoji icons untuk subjects)
 - [ ] Import typography (Google Fonts: Inter for body, Outfit/Space Grotesk for headings)
-- [ ] Design wireframes di Figma untuk key screens:
+- [ ] Design wireframes di sini untuk key screens:
   - [ ] Landing / Onboarding
   - [ ] Dashboard / Home
   - [ ] Content Upload Modal
@@ -108,26 +108,26 @@
 - [✅] Create `HealthController` → `GET /api/health` (untuk deployment verification)
 
 ### 1.2 Frontend Setup (React 18 + Vite) `[sanjaya]`
-- [ ] Create Vite React project (`npm create vite@latest frontend -- --template react`)
-- [ ] Install core dependencies:
-  - [ ] `react-router-dom` v6+
-  - [ ] `zustand` (state management)
-  - [ ] `axios` (HTTP client)
-  - [ ] `tailwindcss` + `postcss` + `autoprefixer`
-  - [ ] `recharts` (analytics charts & heatmap)
-  - [ ] `react-hook-form` (forms)
-  - [ ] `framer-motion` (animations)
-  - [ ] `lucide-react` (icons)
-  - [ ] `date-fns` (date utilities)
-  - [ ] `socket.io-client` (WebSocket untuk social modes)
-  - [ ] `react-markdown` (content rendering)
-  - [ ] `html2canvas` (generate shareable profile card PNG)
-  - [ ] ~~`@react-three/fiber`~~ ← REMOVED
-  - [ ] ~~`three`~~ ← REMOVED
-- [ ] Configure Tailwind CSS dengan custom design tokens (dark theme, violet palette)
-- [ ] Set up Axios instance dengan base URL, auth interceptor, 401 handler
-- [ ] Set up React Router dengan full route structure
-- [ ] Create folder structure:
+- [✅] Create Vite React project (`npm create vite@latest frontend -- --template react`)
+- [✅] Install core dependencies:
+  - [✅] `react-router-dom` v6+
+  - [✅] `zustand` (state management)
+  - [✅] `axios` (HTTP client)
+  - [✅] `tailwindcss` + `postcss` + `autoprefixer`
+  - [✅] `recharts` (analytics charts & heatmap)
+  - [✅] `react-hook-form` (forms)
+  - [✅] `framer-motion` (animations)
+  - [✅] `lucide-react` (icons)
+  - [✅] `date-fns` (date utilities)
+  - [✅] `socket.io-client` (WebSocket untuk social modes)
+  - [✅] `react-markdown` (content rendering)
+  - [✅] `html2canvas` (generate shareable profile card PNG)
+  - [✅] ~~`@react-three/fiber`~~ ← REMOVED
+  - [✅] ~~`three`~~ ← REMOVED
+- [✅] Configure Tailwind CSS dengan custom design tokens (dark theme, violet palette)
+- [✅] Set up Axios instance dengan base URL, auth interceptor, 401 handler
+- [✅] Set up React Router dengan full route structure
+- [✅] Create folder structure:
   ```
   src/
   ├─ components/
@@ -142,7 +142,7 @@
   ├─ hooks/            (useAuth, useProfile, useSocialLearning...)
   └─ contexts/
   ```
-- [ ] Set up environment variables (`VITE_API_URL`, `VITE_WS_URL`)
+- [✅] Set up environment variables (`VITE_API_URL`, `VITE_WS_URL`)
 
 ### 1.3 Database Schema `[tristan]`
 - [ ] Create migration: `users` (UUID PK, email, password, username, avatar, bio, xp, level, rank, streak fields, privacy settings, OAuth, timestamps)
