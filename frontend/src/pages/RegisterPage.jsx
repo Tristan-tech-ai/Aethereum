@@ -23,7 +23,7 @@ const RegisterPage = () => {
     password_confirmation: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const { register, getGoogleRedirectUrl, loading, error, fieldErrors, clearError } = useAuthStore();
+  const { register, loginWithGoogle, loading, error, fieldErrors, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (field) => (e) => {
@@ -38,17 +38,22 @@ const RegisterPage = () => {
       return;
     }
 
-    const result = await register(formData);
+    const result = await register({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    });
     if (result.success) {
-      navigate('/dashboard', { replace: true });
+      if (result.needsVerification) {
+        navigate('/login', { replace: true, state: { message: 'Please check your email to verify your account.' } });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
   };
 
-  const handleGoogleSignup = async () => {
-    const url = await getGoogleRedirectUrl();
-    if (url) {
-      window.location.href = url;
-    }
+  const handleGoogleSignup = () => {
+    loginWithGoogle();
   };
 
   return (

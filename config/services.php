@@ -41,4 +41,8 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'supabase' => [
+        'jwt_secret' => env('SUPABASE_JWT_SECRET'),
+    ],
+
 ];

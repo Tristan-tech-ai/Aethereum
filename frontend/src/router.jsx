@@ -32,8 +32,8 @@ const AppRouter = () => {
           <Route path="register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
           <Route path="forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
 
-          {/* Google OAuth callback (no guard — handles both cases) */}
-          <Route path="auth/google/callback" element={<GoogleCallbackPage />} />
+          {/* OAuth callback (Supabase redirects here after Google sign-in) */}
+          <Route path="auth/callback" element={<GoogleCallbackPage />} />
 
           <Route path="*" element={<NotFound />} />
         </Route>

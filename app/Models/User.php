@@ -40,6 +40,7 @@ class User extends Authenticatable
         'is_profile_public',
         'show_on_leaderboard',
         'google_id',
+        'supabase_id',
         'last_login_at',
     ];
 

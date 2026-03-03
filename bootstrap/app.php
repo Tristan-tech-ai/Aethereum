@@ -6,6 +6,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,7 +22,21 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             //
         ]);
+
+        // Force API routes to return JSON (not 302 redirect)
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->expectsJson()
+            ? null
+            : route('login')
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Always return JSON for API requests
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'status' => 'Error',
+                    'message' => 'Unauthenticated.',
+                ], 401);
+            }
+        });
     })->create();

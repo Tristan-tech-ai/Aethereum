@@ -6,7 +6,7 @@ import { useAuthStore } from '../../stores/authStore';
  * Redirects authenticated users away from auth pages (login, register).
  */
 const GuestRoute = ({ children }) => {
-  const { token, initialized } = useAuthStore();
+  const { session, initialized } = useAuthStore();
 
   if (!initialized) {
     return (
@@ -22,7 +22,7 @@ const GuestRoute = ({ children }) => {
     );
   }
 
-  if (token) {
+  if (session) {
     return <Navigate to="/dashboard" replace />;
   }
 

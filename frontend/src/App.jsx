@@ -4,17 +4,12 @@ import { LogOut, User, Settings, Coins } from 'lucide-react';
 import { useAuthStore } from './stores/authStore';
 
 function App() {
-  const { user, token, initialized, fetchUser, logout } = useAuthStore();
+  const { user, session, initialized, initialize, logout } = useAuthStore();
   const navigate = useNavigate();
 
-  // Auto-check auth on app load
+  // Initialize Supabase auth on app load
   useEffect(() => {
-    if (token && !initialized) {
-      fetchUser();
-    } else if (!token) {
-      // Mark as initialized even without token
-      useAuthStore.setState({ initialized: true });
-    }
+    initialize();
   }, []);
 
   const handleLogout = async () => {

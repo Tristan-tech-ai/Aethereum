@@ -18,7 +18,7 @@ const GoogleIcon = () => (
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const { login, getGoogleRedirectUrl, loading, error, clearError } = useAuthStore();
+  const { login, loginWithGoogle, loading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -29,11 +29,8 @@ const LoginPage = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    const url = await getGoogleRedirectUrl();
-    if (url) {
-      window.location.href = url;
-    }
+  const handleGoogleLogin = () => {
+    loginWithGoogle();
   };
 
   return (

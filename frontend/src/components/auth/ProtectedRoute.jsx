@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 
 const ProtectedRoute = ({ children }) => {
-  const { token, initialized } = useAuthStore();
+  const { session, initialized } = useAuthStore();
   const location = useLocation();
 
   // While checking auth state, show loading
@@ -21,7 +21,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!token) {
+  if (!session) {
     // Save attempted location for redirect after login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

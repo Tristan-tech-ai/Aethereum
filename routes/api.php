@@ -3,32 +3,25 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Middleware\SupabaseAuth;
 use Illuminate\Support\Facades\Route;
 
 // Health Check
 Route::get('/health', [HealthController::class, 'check']);
 
-// ─── Auth Routes (Public) ───
+// ─── Public Routes ───
 Route::prefix('v1/auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-
-    // Google OAuth
-    Route::get('/google/redirect', [AuthController::class, 'googleRedirect']);
-    Route::get('/google/callback', [AuthController::class, 'googleCallback']);
-
-    // Password Reset (public)
+    // Password Reset (public — still handled by Laravel)
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
 
-// ─── Protected Routes ───
-Route::middleware('auth:sanctum')->group(function () {
+// ─── Protected Routes (Supabase JWT) ───
+Route::middleware(SupabaseAuth::class)->group(function () {
 
-    // Auth
     Route::prefix('v1/auth')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
+        Route::post('/logout', [AuthController::class, 'logout']);
 
         // Email Verification
         Route::post('/email/resend', [AuthController::class, 'resendVerification']);
