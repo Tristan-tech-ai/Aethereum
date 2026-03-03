@@ -14,6 +14,10 @@ api.interceptors.request.use((config) => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+    // Don't override Content-Type for FormData (file uploads)
+    if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+    }
     return config;
 }, (error) => {
     return Promise.reject(error);
@@ -24,9 +28,11 @@ api.interceptors.response.use((response) => {
     return response;
 }, (error) => {
     if (error.response && error.response.status === 401) {
-        // Handle unauthorized error (e.g., redirect to login or clear token)
         localStorage.removeItem('token');
-        // window.location.href = '/login'; // Optional: auto-redirect
+        // Only redirect if not already on auth pages
+        if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+            window.location.href = '/login';
+        }
     }
     return Promise.reject(error);
 });

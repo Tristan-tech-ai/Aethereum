@@ -1,0 +1,283 @@
+import React, { useState, useRef } from 'react';
+import { User, Camera, Shield, ArrowLeft, Save, Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import Card from '../components/ui/Card';
+import { useAuthStore } from '../stores/authStore';
+
+const ProfileSettingsPage = () => {
+  const { user, updateProfile, uploadAvatar, updateSettings, loading, error, fieldErrors, clearError } = useAuthStore();
+  const fileInputRef = useRef(null);
+  const [activeTab, setActiveTab] = useState('profile');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Profile form
+  const [profileData, setProfileData] = useState({
+    name: user?.name || '',
+    username: user?.username || '',
+    bio: user?.bio || '',
+  });
+
+  // Settings form
+  const [settingsData, setSettingsData] = useState({
+    is_profile_public: user?.is_profile_public ?? true,
+    show_on_leaderboard: user?.show_on_leaderboard ?? false,
+    weekly_goal: user?.weekly_goal ?? 5,
+  });
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    setSaveSuccess(false);
+    const result = await updateProfile(profileData);
+    if (result.success) {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    }
+  };
+
+  const handleSettingsSubmit = async (e) => {
+    e.preventDefault();
+    setSaveSuccess(false);
+    const result = await updateSettings(settingsData);
+    if (result.success) {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    }
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate client-side
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      alert('Please upload a JPG, PNG, or WebP image');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be smaller than 5MB');
+      return;
+    }
+
+    await uploadAvatar(file);
+  };
+
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'privacy', label: 'Privacy & Settings', icon: Shield },
+  ];
+
+  return (
+    <div className="max-w-2xl mx-auto py-8 px-4">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <Link to="/profile" className="text-slate-400 hover:text-white transition-colors">
+          <ArrowLeft size={20} />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Profile Settings</h1>
+          <p className="text-slate-400 text-sm">Manage your profile and preferences</p>
+        </div>
+      </div>
+
+      {/* Avatar Section */}
+      <Card className="mb-6">
+        <div className="flex items-center gap-6">
+          <div className="relative group">
+            <div className="w-20 h-20 rounded-2xl bg-slate-800 overflow-hidden flex items-center justify-center">
+              {user?.avatar_url ? (
+                <img
+                  src={user.avatar_url.startsWith('http') ? user.avatar_url : `/storage/${user.avatar_url}`}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User size={32} className="text-slate-500" />
+              )}
+            </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            >
+              <Camera size={20} className="text-white" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+          </div>
+          <div>
+            <h3 className="text-white font-medium">{user?.name}</h3>
+            <p className="text-slate-400 text-sm">@{user?.username}</p>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-2 text-primary text-sm hover:text-primary-light transition-colors"
+            >
+              Change avatar
+            </button>
+          </div>
+        </div>
+      </Card>
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 bg-slate-900 p-1 rounded-xl border border-slate-800">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => { setActiveTab(tab.id); clearError(); setSaveSuccess(false); }}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              activeTab === tab.id
+                ? 'bg-primary text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <tab.icon size={16} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Success Banner */}
+      {saveSuccess && (
+        <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 text-green-500 text-sm rounded-xl flex items-center gap-2">
+          <Check size={16} />
+          Changes saved successfully!
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-xl">
+          {error}
+        </div>
+      )}
+
+      {/* Profile Tab */}
+      {activeTab === 'profile' && (
+        <Card>
+          <form onSubmit={handleProfileSubmit} className="space-y-5">
+            <Input
+              label="Display Name"
+              type="text"
+              value={profileData.name}
+              onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+              error={fieldErrors.name}
+              required
+            />
+
+            <Input
+              label="Username"
+              type="text"
+              value={profileData.username}
+              onChange={(e) => setProfileData({ ...profileData, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
+              error={fieldErrors.username}
+              required
+            />
+            <p className="text-xs text-slate-500 -mt-3">
+              Letters, numbers, and underscores only. This is your public @handle.
+            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">Bio</label>
+              <textarea
+                rows={3}
+                maxLength={500}
+                value={profileData.bio}
+                onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                placeholder="Tell others about yourself..."
+                className="w-full bg-slate-900 border border-slate-800 focus:border-primary focus:ring-primary text-slate-100 rounded-xl px-4 py-2.5 transition-all outline-none ring-offset-slate-950 focus:ring-2 resize-none"
+              />
+              <p className="text-xs text-slate-500 mt-1">{profileData.bio.length}/500</p>
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="submit" loading={loading}>
+                <Save size={16} className="mr-2" />
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {/* Privacy & Settings Tab */}
+      {activeTab === 'privacy' && (
+        <Card>
+          <form onSubmit={handleSettingsSubmit} className="space-y-6">
+            {/* Public Profile Toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-white font-medium">Public Profile</h3>
+                <p className="text-slate-400 text-sm">Allow others to view your profile and knowledge cards</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settingsData.is_profile_public}
+                  onChange={(e) => setSettingsData({ ...settingsData, is_profile_public: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-700 peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+              </label>
+            </div>
+
+            {/* Leaderboard Toggle */}
+            <div className="flex items-center justify-between border-t border-slate-800 pt-6">
+              <div>
+                <h3 className="text-white font-medium">Show on Leaderboard</h3>
+                <p className="text-slate-400 text-sm">Appear on weekly leaderboards (Focus, Knowledge, Streak, Quiz)</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settingsData.show_on_leaderboard}
+                  onChange={(e) => setSettingsData({ ...settingsData, show_on_leaderboard: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-700 peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+              </label>
+            </div>
+
+            {/* Weekly Goal */}
+            <div className="border-t border-slate-800 pt-6">
+              <h3 className="text-white font-medium mb-1">Weekly Learning Goal</h3>
+              <p className="text-slate-400 text-sm mb-4">How many days per week do you want to learn?</p>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => setSettingsData({ ...settingsData, weekly_goal: day })}
+                    className={`w-10 h-10 rounded-lg font-medium text-sm transition-all ${
+                      settingsData.weekly_goal === day
+                        ? 'bg-primary text-white'
+                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'
+                    }`}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                {settingsData.weekly_goal === 7 ? 'Every day — impressive!' : `${settingsData.weekly_goal} days per week`}
+              </p>
+            </div>
+
+            <div className="flex justify-end border-t border-slate-800 pt-6">
+              <Button type="submit" loading={loading}>
+                <Save size={16} className="mr-2" />
+                Save Settings
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default ProfileSettingsPage;

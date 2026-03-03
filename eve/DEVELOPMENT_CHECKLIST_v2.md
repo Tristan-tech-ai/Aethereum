@@ -77,13 +77,12 @@
 - [ ] ~~Source/create 3D building models~~ ← REMOVED
 
 ### 0.4 External Service Accounts `[tristan]`
-- [ ] Google Cloud Console — Gemini 2.0 Flash API key (`GEMINI_API_KEY`)
-- [ ] Google Cloud Console — OAuth 2.0 Client ID & Secret
-- [ ] Jina Reader API — account & API key (web scraping)
-- [ ] Vercel — account untuk frontend hosting
-- [ ] Railway.app — account untuk backend hosting + PostgreSQL + Redis
-- [ ] Email service (SendGrid / Mailgun) — verification emails
-- [ ] ~~Meshy.ai~~ ← REMOVED (no 3D model generation needed)
+- [✅] Google Cloud Console — Gemini 2.0 Flash API key (in .env.local — GEMINI_API_KEY)
+- [✅] Google Cloud Console — OAuth 2.0 Client ID & Secret (in .env — GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
+- [✅] Jina Reader API — account & API key (web scraping) (in .env — JINA_API_KEY)
+- [✅] Vercel — account untuk frontend hosting
+- [✅] Railway.app — account untuk backend hosting + PostgreSQL + Redis
+- [✅] Email service (resend) — verification emails (in .env — RESEND_API_KEY)
 
 ---
 
@@ -190,41 +189,41 @@
 ## Phase 2: Authentication & User Management
 
 ### 2.1 Backend Auth `[tristan]`
-- [ ] Create `AuthController` dengan methods: `register`, `login`, `logout`, `user`
-- [ ] Implement email + password registration dengan validation
-- [ ] Auto-create `UserWallet` on registration (100 coin welcome bonus)
-- [ ] Auto-generate unique `username` dari name (e.g., "Andi Pratama" → "andi_pratama")
-- [ ] Implement login dengan Sanctum token generation
-- [ ] Implement logout (revoke token)
-- [ ] Implement `GET /api/v1/auth/user` — return full profile + wallet + stats
-- [ ] Set up Google OAuth via Socialite (redirect + callback)
-- [ ] Implement email verification (P1)
-- [ ] Implement password reset flow (P1)
-- [ ] Create `ProfileController` — update name, bio, avatar, username, privacy settings, leaderboard opt-in toggle
-- [ ] Add avatar upload (resize + crop to 256×256)
-- [ ] Implement session persistence (7-day token expiry)
+- [✅] Create `AuthController` dengan methods: `register`, `login`, `logout`, `user`
+- [✅] Implement email + password registration dengan validation
+- [✅] Auto-create `UserWallet` on registration (100 coin welcome bonus)
+- [✅] Auto-generate unique `username` dari name (e.g., "Andi Pratama" → "andi_pratama")
+- [✅] Implement login dengan Sanctum token generation
+- [✅] Implement logout (revoke token)
+- [✅] Implement `GET /api/v1/auth/user` — return full profile + wallet + stats
+- [✅] Set up Google OAuth via Socialite (redirect + callback)
+- [✅] Implement email verification (P1)
+- [✅] Implement password reset flow (P1)
+- [✅] Create `ProfileController` — update name, bio, avatar, username, privacy settings, leaderboard opt-in toggle
+- [✅] Add avatar upload (resize + crop to 256×256)
+- [✅] Implement session persistence (7-day token expiry)
 
 ### 2.2 Frontend Auth `[christian]`
-- [ ] Create `authStore` (Zustand) dengan `user`, `token`, `login`, `register`, `logout`, `loading`
-- [ ] Create `api.js` — Axios instance dengan token injection & 401 handling
-- [ ] Build Login page (email + password form, Google OAuth button)
-- [ ] Build Register page (name, email, password, confirm password)
-- [ ] Build Google OAuth redirect handler
-- [ ] Implement protected routes (redirect ke login jika unauthenticated)
-- [ ] Store token di `localStorage`, auto-check auth on app load
-- [ ] Build Profile Settings page (name, username, bio, avatar upload, privacy toggles)
-- [ ] Loading states & error handling untuk semua auth flows
+- [✅] Create `authStore` (Zustand) dengan `user`, `token`, `login`, `register`, `logout`, `loading`
+- [✅] Create `api.js` — Axios instance dengan token injection & 401 handling
+- [✅] Build Login page (email + password form, Google OAuth button)
+- [✅] Build Register page (name, email, password, confirm password)
+- [✅] Build Google OAuth redirect handler
+- [✅] Implement protected routes (redirect ke login jika unauthenticated)
+- [✅] Store token di `localStorage`, auto-check auth on app load
+- [✅] Build Profile Settings page (name, username, bio, avatar upload, privacy toggles)
+- [✅] Loading states & error handling untuk semua auth flows
 
 ### 2.3 Auth API Routes `[tristan]`
-- [ ] `POST /api/v1/auth/register`
-- [ ] `POST /api/v1/auth/login`
-- [ ] `POST /api/v1/auth/logout`
-- [ ] `GET /api/v1/auth/user`
-- [ ] `GET /api/v1/auth/google/redirect`
-- [ ] `GET /api/v1/auth/google/callback`
-- [ ] `PUT /api/v1/auth/profile`
-- [ ] `POST /api/v1/auth/avatar`
-- [ ] `PATCH /api/v1/auth/settings` (privacy, leaderboard opt-in, weekly_goal)
+- [✅] `POST /api/v1/auth/register`
+- [✅] `POST /api/v1/auth/login`
+- [✅] `POST /api/v1/auth/logout`
+- [✅] `GET /api/v1/auth/user`
+- [✅] `GET /api/v1/auth/google/redirect`
+- [✅] `GET /api/v1/auth/google/callback`
+- [✅] `PUT /api/v1/auth/profile`
+- [✅] `POST /api/v1/auth/avatar`
+- [✅] `PATCH /api/v1/auth/settings` (privacy, leaderboard opt-in, weekly_goal)
 
 ---
 
