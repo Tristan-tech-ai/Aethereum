@@ -1,0 +1,79 @@
+services:
+  # Laravel backend
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aethereum-app
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor
+    environment:
+      APP_NAME: Aethereum
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: aethereum
+      DB_USERNAME: aethereum
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - aethereum
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:16-alpine
+    container_name: aethereum-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: aethereum
+      POSTGRES_USER: aethereum
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aethereum"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aethereum
+
+  # Redis cache & queue
+  redis:
+    image: redis:7-alpine
+    container_name: aethereum-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aethereum
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  aethereum:
+    driver: bridge

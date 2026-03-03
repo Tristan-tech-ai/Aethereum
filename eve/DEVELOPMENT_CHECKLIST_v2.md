@@ -145,43 +145,43 @@
 - [✅] Set up environment variables (`VITE_API_URL`, `VITE_WS_URL`)
 
 ### 1.3 Database Schema `[tristan]`
-- [ ] Create migration: `users` (UUID PK, email, password, username, avatar, bio, xp, level, rank, streak fields, privacy settings, OAuth, timestamps)
-- [ ] Create migration: `learning_contents` (UUID, user FK, content info, AI analysis JSONB, structured_sections JSONB, status)
-- [ ] Create migration: `learning_sessions` (UUID, user FK, content FK, session config, time tracking, focus metrics, quiz performance, rewards, status)
-- [ ] Create migration: `quizzes` + `quiz_attempts` (quiz questions JSONB, attempts, scoring)
-- [ ] Create migration: `user_wallets` + `coin_transactions` (balance, daily caps, transaction log)
-- [ ] **NEW** Create migration: `knowledge_cards` (UUID, user FK, content FK, session FK, title, subject, mastery %, tier, summary_snippet, keywords JSONB, is_pinned, is_collaborative, collaborators JSONB, decay fields)
-- [ ] **NEW** Create migration: `xp_events` (UUID, user FK, xp_amount, source, level_before, level_after, timestamps)
-- [ ] **NEW** Create migration: `achievements` (id, name, description, icon, trigger_condition JSONB)
-- [ ] **NEW** Create migration: `user_achievements` (user FK, achievement FK, awarded_at, is_featured)
-- [ ] Create migration: `study_raids` (UUID, creator FK, content FK, invite_code, status, results)
-- [ ] Create migration: `raid_participants` (raid FK, user FK, progress, quiz_score, rewards, status)
-- [ ] Create migration: `focus_duels` (UUID, challenger FK, opponent FK, duration, status, results)
-- [ ] **NEW** Create migration: `quiz_arenas` (UUID, host FK, content FK, room_code, config, status)
-- [ ] **NEW** Create migration: `arena_participants` (arena FK, user FK, score, rank, rewards)
-- [ ] **NEW** Create migration: `learning_relays` (UUID, creator FK, content FK, invite_code, status)
-- [ ] **NEW** Create migration: `relay_participants` (relay FK, user FK, section_index, summary, quiz_score)
-- [ ] **NEW** Create migration: `study_rooms` (UUID, creator FK, name, room_code, is_public, music_preset, pomodoro fields)
-- [ ] **NEW** Create migration: `study_room_members` (room FK, user FK, presence data, current_material)
-- [ ] **NEW** Create migration: `community_challenges` (UUID, title, challenge_type, goal_value, timing, rewards)
-- [ ] **NEW** Create migration: `challenge_contributions` (challenge FK, user FK, contribution_value, reward_claimed)
-- [ ] **NEW** Create migration: `friendships` (requester FK, addressee FK, status)
-- [ ] **NEW** Create migration: `feed_events` (UUID, user FK, event_type, event_data JSONB, likes)
-- [ ] **NEW** Create migration: `feed_likes` (event FK, user FK)
-- [ ] Run all migrations (`php artisan migrate`)
-- [ ] Create database indexes (sesuai PRD v2.0 — idx_cards_pinned, idx_xp_events_date, dll)
-- [ ] Create database triggers (update_user_last_learning, reset_coin_limits)
-- [ ] Create Eloquent Models dengan relationships untuk semua tables
-- [ ] Create Model Factories untuk semua tables (seeding & testing)
-- [ ] Create Database Seeders (impressive demo data: profiles level 30+, multiple cards, active raids)
+- [✅] Create migration: `users` (UUID PK, email, password, username, avatar, bio, xp, level, rank, streak fields, privacy settings, OAuth, timestamps)
+- [✅] Create migration: `learning_contents` (UUID, user FK, content info, AI analysis JSONB, structured_sections JSONB, status)
+- [✅] Create migration: `learning_sessions` (UUID, user FK, content FK, session config, time tracking, focus metrics, quiz performance, rewards, status)
+- [✅] Create migration: `quizzes` + `quiz_attempts` (quiz questions JSONB, attempts, scoring)
+- [✅] Create migration: `user_wallets` + `coin_transactions` (balance, daily caps, transaction log)
+- [✅] **NEW** Create migration: `knowledge_cards` (UUID, user FK, content FK, session FK, title, subject, mastery %, tier, summary_snippet, keywords JSONB, is_pinned, is_collaborative, collaborators JSONB, decay fields)
+- [✅] **NEW** Create migration: `xp_events` (UUID, user FK, xp_amount, source, level_before, level_after, timestamps)
+- [✅] **NEW** Create migration: `achievements` (id, name, description, icon, trigger_condition JSONB)
+- [✅] **NEW** Create migration: `user_achievements` (user FK, achievement FK, awarded_at, is_featured)
+- [✅] Create migration: `study_raids` (UUID, creator FK, content FK, invite_code, status, results)
+- [✅] Create migration: `raid_participants` (raid FK, user FK, progress, quiz_score, rewards, status)
+- [✅] Create migration: `focus_duels` (UUID, challenger FK, opponent FK, duration, status, results)
+- [✅] **NEW** Create migration: `quiz_arenas` (UUID, host FK, content FK, room_code, config, status)
+- [✅] **NEW** Create migration: `arena_participants` (arena FK, user FK, score, rank, rewards)
+- [✅] **NEW** Create migration: `learning_relays` (UUID, creator FK, content FK, invite_code, status)
+- [✅] **NEW** Create migration: `relay_participants` (relay FK, user FK, section_index, summary, quiz_score)
+- [✅] **NEW** Create migration: `study_rooms` (UUID, creator FK, name, room_code, is_public, music_preset, pomodoro fields)
+- [✅] **NEW** Create migration: `study_room_members` (room FK, user FK, presence data, current_material)
+- [✅] **NEW** Create migration: `community_challenges` (UUID, title, challenge_type, goal_value, timing, rewards)
+- [✅] **NEW** Create migration: `challenge_contributions` (challenge FK, user FK, contribution_value, reward_claimed)
+- [✅] **NEW** Create migration: `friendships` (requester FK, addressee FK, status)
+- [✅] **NEW** Create migration: `feed_events` (UUID, user FK, event_type, event_data JSONB, likes)
+- [✅] **NEW** Create migration: `feed_likes` (event FK, user FK)
+- [✅] Run all migrations (`php artisan migrate`)
+- [✅] Create database indexes (sesuai PRD v2.0 — idx_cards_pinned, idx_xp_events_date, dll)
+- [✅] Create database triggers (update_user_last_learning, reset_coin_limits)
+- [✅] Create Eloquent Models dengan relationships untuk semua tables
+- [✅] Create Model Factories untuk semua tables (seeding & testing)
+- [✅] Create Database Seeders (impressive demo data: profiles level 30+, multiple cards, active raids)
 
 ### 1.4 DevOps & CI/CD `[tristan]`
-- [ ] Create `Dockerfile` untuk Laravel backend (PHP 8.3-alpine)
-- [ ] Create `docker-compose.yml` untuk local dev (PHP, PostgreSQL, Redis)
-- [ ] Set up GitHub Actions (`.github/workflows/deploy.yml`):
-  - [ ] Frontend: `npm ci` → test → build → deploy to Vercel
-  - [ ] Backend: `composer install` → test → deploy to Railway
-- [ ] Create `vercel.json` (routes, caching config, SPA fallback)
+- [✅] Create `Dockerfile` untuk Laravel backend (PHP 8.3-alpine)
+- [✅] Create `docker-compose.yml` untuk local dev (PHP, PostgreSQL, Redis)
+- [✅] Set up GitHub Actions (`.github/workflows/deploy.yml`):
+  - [✅] Frontend: `npm ci` → test → build → deploy to Vercel
+  - [✅] Backend: `composer install` → test → deploy to Railway
+- [✅] Create `vercel.json` (routes, caching config, SPA fallback)
 - [ ] Set up environment variables pada Vercel & Railway
 - [ ] Verify auto-deploy on push to `main`
 
