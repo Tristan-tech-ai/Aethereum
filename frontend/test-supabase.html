@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Supabase Google OAuth</title>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const supabaseUrl = 'https://kbjxsfgumnddpkbkrswc.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtianhzZmd1bW5kZHBrYmtyc3djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0OTI1MTAsImV4cCI6MjA4NzA2ODUxMH0.6WLsBVRIimEx01569CVuKzEGM4KjoPtQyBEUJJNZmew';
+
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        window.testGoogleLogin = async () => {
+            console.log('Testing Google OAuth...');
+            const result = document.getElementById('result');
+            result.textContent = 'Testing...';
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/callback.html',
+                    },
+                });
+                
+                if (error) {
+                    console.error('Supabase auth error:', error);
+                    result.textContent = `ERROR: ${error.message}`;
+                    result.style.color = 'red';
+                } else {
+                    console.log('Success, redirecting...', data);
+                    result.textContent = 'Redirecting to Google...';
+                    result.style.color = 'green';
+                }
+            } catch (err) {
+                console.error('Caught error:', err);
+                result.textContent = `EXCEPTION: ${err.message}`;
+                result.style.color = 'red';
+            }
+        };
+
+        console.log('Supabase client initialized');
+    </script>
+</head>
+<body style="font-family: sans-serif; padding: 40px; background: #1a1a1a; color: #fff;">
+    <h1>Test Supabase Google OAuth</h1>
+    <button onclick="testGoogleLogin()" style="padding: 12px 24px; font-size: 16px; cursor: pointer; background: #4285F4; color: white; border: none; border-radius: 8px;">
+        Login with Google
+    </button>
+    <div id="result" style="margin-top: 20px; font-size: 14px;"></div>
+    <div style="margin-top: 40px; padding: 20px; background: #2a2a2a; border-radius: 8px;">
+        <h3>Check Browser Console (F12) for detailed errors</h3>
+        <p>Common errors:</p>
+        <ul>
+            <li><code>Provider "google" not enabled</code> → Enable Google in Supabase Dashboard</li>
+            <li><code>redirect_uri_mismatch</code> → Add redirect URI to Google Cloud Console</li>
+            <li><code>Invalid OAuth configuration</code> → Check Client ID/Secret in Supabase</li>
+        </ul>
+    </div>
+</body>
+</html>

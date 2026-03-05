@@ -27,6 +27,15 @@ const parseFieldErrors = (err) => {
     return fieldErrors;
 };
 
+const saveOAuthError = (message) => {
+    if (!message) return;
+    try {
+        localStorage.setItem('oauth_error', message);
+    } catch {
+        // ignore storage errors
+    }
+};
+
 export const useAuthStore = create((set, get) => ({
     user: null,
     session: null,
@@ -49,6 +58,7 @@ export const useAuthStore = create((set, get) => ({
             }
         } catch (err) {
             console.error('Auth initialization error:', err);
+            saveOAuthError(parseError(err));
         } finally {
             set({ initialized: true });
         }
@@ -83,6 +93,7 @@ export const useAuthStore = create((set, get) => ({
             set({ user: payload.user });
         } catch (err) {
             console.error('Failed to sync user with backend:', err);
+            saveOAuthError(parseError(err));
             await supabase.auth.signOut();
             set({ user: null, session: null });
         }
@@ -142,8 +153,13 @@ export const useAuthStore = create((set, get) => ({
             });
             if (error) throw error;
             // Browser will redirect to Google — no further code runs here
+            return { success: true };
         } catch (err) {
-            set({ error: parseError(err), loading: false });
+            const errorMsg = parseError(err);
+            set({ error: errorMsg, loading: false });
+            console.error('Google OAuth error:', err);
+            saveOAuthError(errorMsg);
+            return { success: false, error: errorMsg };
         }
     },
 

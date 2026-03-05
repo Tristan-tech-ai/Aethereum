@@ -9,6 +9,7 @@ use Closure;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -28,11 +29,31 @@ class SupabaseAuth
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
+        $decoded = null;
+
         try {
             $secret = config('services.supabase.jwt_secret');
-            $decoded = JWT::decode($token, new Key($secret, 'HS256'));
+            if ($secret) {
+                $decoded = JWT::decode($token, new Key($secret, 'HS256'));
+            }
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Invalid or expired token.'], 401);
+            // Fallback to Supabase user endpoint below.
+            $decoded = null;
+        }
+
+        if (!$decoded) {
+            $supabaseUser = $this->fetchSupabaseUser($token);
+
+            if (!$supabaseUser) {
+                return response()->json(['message' => 'Invalid or expired token.'], 401);
+            }
+
+            $decoded = (object) [
+                'sub' => $supabaseUser->id ?? null,
+                'email' => $supabaseUser->email ?? null,
+                'user_metadata' => (object) ($supabaseUser->user_metadata ?? []),
+                'email_confirmed_at' => $supabaseUser->email_confirmed_at ?? null,
+            ];
         }
 
         // Supabase JWT 'sub' claim is the user UUID
@@ -144,5 +165,30 @@ class SupabaseAuth
         }
 
         return $username;
+    }
+
+    private function fetchSupabaseUser(string $token): ?object
+    {
+        $supabaseUrl = config('services.supabase.url');
+        $anonKey = config('services.supabase.anon_key');
+
+        if (!$supabaseUrl || !$anonKey) {
+            return null;
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'apikey' => $anonKey,
+                'Authorization' => 'Bearer ' . $token,
+            ])->get(rtrim($supabaseUrl, '/') . '/auth/v1/user');
+
+            if (!$response->successful()) {
+                return null;
+            }
+
+            return (object) $response->json();
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

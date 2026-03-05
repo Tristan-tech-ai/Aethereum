@@ -14,6 +14,25 @@ const AuthCallbackPage = () => {
   const [waiting, setWaiting] = useState(true);
 
   useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const queryParams = new URLSearchParams(window.location.search);
+    const callbackError =
+      hashParams.get('error_description') ||
+      hashParams.get('error') ||
+      queryParams.get('error_description') ||
+      queryParams.get('error');
+
+    if (callbackError) {
+      try {
+        localStorage.setItem('oauth_error', callbackError);
+      } catch {
+        // ignore storage errors
+      }
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     if (!initialized) return;
 
     if (session) {
@@ -22,6 +41,11 @@ const AuthCallbackPage = () => {
       // Give Supabase a moment to process the hash fragment
       const timer = setTimeout(() => {
         setWaiting(false);
+        try {
+          localStorage.setItem('oauth_error', 'OAuth login failed or was cancelled');
+        } catch {
+          // ignore storage errors
+        }
         navigate('/login', { replace: true });
       }, 4000);
       return () => clearTimeout(timer);

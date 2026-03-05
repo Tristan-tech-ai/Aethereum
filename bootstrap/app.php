@@ -23,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
             //
         ]);
 
+        // Register custom middleware aliases
+        $middleware->alias([
+            'supabase.auth' => \App\Http\Middleware\SupabaseAuth::class,
+        ]);
+
         // Force API routes to return JSON (not 302 redirect)
         $middleware->redirectGuestsTo(fn (Request $request) => $request->expectsJson()
             ? null

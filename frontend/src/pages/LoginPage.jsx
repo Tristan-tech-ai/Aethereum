@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -18,8 +18,42 @@ const GoogleIcon = () => (
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [oauthErrorMessage, setOauthErrorMessage] = useState('');
   const { login, loginWithGoogle, loading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const oauthError = new URLSearchParams(location.search).get('oauth_error');
+    if (oauthError) {
+      setOauthErrorMessage(oauthError);
+      try {
+        localStorage.setItem('oauth_error', oauthError);
+      } catch {
+        // ignore storage errors
+      }
+      return;
+    }
+
+    try {
+      const savedOAuthError = localStorage.getItem('oauth_error');
+      if (savedOAuthError) {
+        setOauthErrorMessage(savedOAuthError);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [location.search]);
+
+  const clearAllErrors = () => {
+    clearError();
+    setOauthErrorMessage('');
+    try {
+      localStorage.removeItem('oauth_error');
+    } catch {
+      // ignore storage errors
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,8 +63,17 @@ const LoginPage = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    loginWithGoogle();
+  const handleGoogleLogin = async () => {
+    clearAllErrors();
+    const result = await loginWithGoogle();
+    if (!result?.success && result?.error) {
+      setOauthErrorMessage(result.error);
+      try {
+        localStorage.setItem('oauth_error', result.error);
+      } catch {
+        // ignore storage errors
+      }
+    }
   };
 
   return (
@@ -51,7 +94,7 @@ const LoginPage = () => {
               type="email"
               placeholder="name@company.com"
               value={formData.email}
-              onChange={(e) => { clearError(); setFormData({ ...formData, email: e.target.value }); }}
+              onChange={(e) => { clearAllErrors(); setFormData({ ...formData, email: e.target.value }); }}
               required
             />
 
@@ -61,7 +104,7 @@ const LoginPage = () => {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={formData.password}
-                onChange={(e) => { clearError(); setFormData({ ...formData, password: e.target.value }); }}
+                onChange={(e) => { clearAllErrors(); setFormData({ ...formData, password: e.target.value }); }}
                 required
               />
               <button
@@ -79,9 +122,9 @@ const LoginPage = () => {
               </Link>
             </div>
 
-            {error && (
+            {(oauthErrorMessage || error) && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-xl">
-                {error}
+                {oauthErrorMessage || error}
               </div>
             )}
 
