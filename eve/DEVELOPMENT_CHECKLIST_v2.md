@@ -230,18 +230,18 @@
 ## Phase 3: Content Upload & AI Analysis
 
 ### 3.1 Backend — Content Upload `[sanjaya]`
-- [ ] Create `ContentController` dengan upload / url / list / show / delete methods
-- [ ] `POST /api/v1/content/upload` — handle multipart (PDF, image, PPTX)
-  - [ ] Validate file type & size (max 20MB)
-  - [ ] Store file ke disk (local dev) / S3 (prod)
-  - [ ] Create `learning_contents` record dengan status `processing`
-  - [ ] Dispatch `AnalyzeContentJob` to queue
-- [ ] `POST /api/v1/content/url` — handle YouTube & web article URLs
-  - [ ] Validate URL format & detect content type
-  - [ ] Create record & dispatch job
-- [ ] `GET /api/v1/content/{id}` — return content dengan status (polling)
-- [ ] `GET /api/v1/content` — list user's contents (paginated, filterable by subject/type)
-- [ ] `DELETE /api/v1/content/{id}` — delete content + related files + cards
+- [✅] Create `ContentController` dengan upload / url / list / show / delete methods
+- [✅] `POST /api/v1/content/upload` — handle multipart (PDF, image, PPTX)
+  - [✅] Validate file type & size (max 20MB)
+  - [✅] Store file ke disk (local dev) / S3 (prod)
+  - [✅] Create `learning_contents` record dengan status `processing`
+  - [✅] Dispatch `AnalyzeContentJob` to queue
+- [✅] `POST /api/v1/content/url` — handle YouTube & web article URLs
+  - [✅] Validate URL format & detect content type
+  - [✅] Create record & dispatch job
+- [✅] `GET /api/v1/content/{id}` — return content dengan status (polling)
+- [✅] `GET /api/v1/content` — list user's contents (paginated, filterable by subject/type)
+- [✅] `DELETE /api/v1/content/{id}` — delete content + related files + cards
 
 ### 3.2 Backend — AI Services `[tristan]`
 - [ ] Create `GeminiService` — wrapper untuk Gemini 2.0 Flash API

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Middleware\SupabaseAuth;
@@ -32,5 +33,14 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::put('/profile', [ProfileController::class, 'update']);
         Route::post('/avatar', [ProfileController::class, 'uploadAvatar']);
         Route::patch('/settings', [ProfileController::class, 'updateSettings']);
+    });
+
+    // ─── Content ───
+    Route::prefix('v1/content')->group(function () {
+        Route::get('/', [ContentController::class, 'index']);
+        Route::post('/upload', [ContentController::class, 'upload']);
+        Route::post('/url', [ContentController::class, 'url']);
+        Route::get('/{id}', [ContentController::class, 'show']);
+        Route::delete('/{id}', [ContentController::class, 'destroy']);
     });
 });
