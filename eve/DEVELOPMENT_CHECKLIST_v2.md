@@ -63,15 +63,15 @@
 - [✅] Finalize color palette & design tokens (dark theme, violet primary) → update `tailwind.config.js`
 - [✅] Create icon set (Lucide React + custom emoji icons untuk subjects)
 - [✅] Import typography (Google Fonts: Inter for body, Outfit/Space Grotesk for headings)
-- [ ] Design wireframes di sini untuk key screens:
-  - [ ] Landing / Onboarding
-  - [ ] Dashboard / Home
-  - [ ] Content Upload Modal
-  - [ ] Document Dungeon (reading + quiz)
-  - [ ] **Knowledge Profile Page** (heatmap + cards + achievements) ← NEW
-  - [ ] **Knowledge Card Component** (semua tier: Bronze/Silver/Gold/Diamond) ← NEW
-  - [ ] **Social Hub** (raids, duels, rooms) ← NEW
-  - [ ] Public Profile Page (shareable)
+- [✅] Design wireframes di sini untuk key screens:
+  - [✅] Landing / Onboarding
+  - [✅] Dashboard / Home
+  - [✅] Content Upload Modal
+  - [✅] Document Dungeon (reading + quiz)
+  - [✅] **Knowledge Profile Page** (heatmap + cards + achievements) ← NEW
+  - [✅] **Knowledge Card Component** (semua tier: Bronze/Silver/Gold/Diamond) ← NEW
+  - [✅] **Social Hub** (raids, duels, rooms) ← NEW
+  - [✅] Public Profile Page (shareable)
 - [ ] Design Shareable Profile Card template (1200×630px)
 - [ ] Create logo, favicon, & OG image assets
 - [ ] ~~Source/create 3D building models~~ ← REMOVED

@@ -5,38 +5,50 @@ import RegisterPage from './pages/RegisterPage';
 import GoogleCallbackPage from './pages/GoogleCallbackPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfileSettingsPage from './pages/ProfileSettingsPage';
+import LandingPage from './pages/LandingPage';
+import DashboardPage from './pages/DashboardPage';
+import DocumentDungeonPage from './pages/DocumentDungeonPage';
+import KnowledgeProfilePage from './pages/KnowledgeProfilePage';
+import SocialHubPage from './pages/SocialHubPage';
+import PublicProfilePage from './pages/PublicProfilePage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import GuestRoute from './components/auth/GuestRoute';
 
-// Placeholder components
-const Dashboard = () => <div className="p-8"><h1 className="text-h2 font-heading text-text-primary">Dashboard</h1><p className="text-text-secondary mt-2">Welcome to Aethereum.</p></div>;
-const Profile = () => <div className="p-8"><h1 className="text-h2 font-heading text-text-primary">Profile</h1></div>;
-const Explore = () => <div className="p-8"><h1 className="text-h2 font-heading text-text-primary">Explore</h1></div>;
-const NotFound = () => <div className="p-8"><h1 className="text-h2 font-heading text-text-primary">404 - Not Found</h1></div>;
+// Placeholder
+const Explore = () => <div className="p-8"><h1 className="text-h2 font-heading text-text-primary">Explore</h1><p className="text-text-secondary mt-2">Discover new learning materials and trending learners.</p></div>;
+const NotFound = () => <div className="p-8 text-center mt-20"><h1 className="text-h1 font-heading text-text-primary mb-2">404</h1><p className="text-text-secondary">Page not found.</p></div>;
 
 const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
+          {/* Landing — Guest sees landing, authed redirects to dashboard */}
+          <Route index element={<GuestRoute><LandingPage /></GuestRoute>} />
 
           {/* Protected Routes */}
-          <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="profile" element={<ProtectedRoute><KnowledgeProfilePage /></ProtectedRoute>} />
           <Route path="profile/settings" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
+          <Route path="social" element={<ProtectedRoute><SocialHubPage /></ProtectedRoute>} />
           <Route path="explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
 
-          {/* Guest Routes (redirect to dashboard if already logged in) */}
+          {/* Public Profile (no auth required) */}
+          <Route path="u/:username" element={<PublicProfilePage />} />
+
+          {/* Guest Routes */}
           <Route path="login" element={<GuestRoute><LoginPage /></GuestRoute>} />
           <Route path="register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
           <Route path="forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
 
-          {/* OAuth callback (Supabase redirects here after Google sign-in) */}
+          {/* OAuth callback */}
           <Route path="auth/callback" element={<GoogleCallbackPage />} />
 
           <Route path="*" element={<NotFound />} />
         </Route>
+
+        {/* Document Dungeon — full-screen, outside App layout */}
+        <Route path="learn/:materialId" element={<ProtectedRoute><DocumentDungeonPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
