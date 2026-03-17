@@ -80,11 +80,11 @@ const LoginPage = () => {
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg-drd bg-primary/10 text-primary mb-4">
             <LogIn size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-slate-400">Enter your credentials to access your terminal</p>
+          <h1 className="text-h1 font-heading text-text-primary mb-2">Welcome Back</h1>
+          <p className="text-text-secondary">Enter your credentials to access your kingdom</p>
         </div>
 
         <Card>
@@ -110,20 +110,20 @@ const LoginPage = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[34px] text-slate-500 hover:text-slate-300"
+                className="absolute right-3 top-[38px] text-text-muted hover:text-text-secondary transition-colors duration-fast"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
             <div className="flex justify-end">
-              <Link to="/forgot-password" className="text-sm text-primary hover:text-primary-light transition-colors">
+              <Link to="/forgot-password" className="text-sm text-primary hover:text-primary-light transition-colors duration-fast">
                 Forgot password?
               </Link>
             </div>
 
             {(oauthErrorMessage || error) && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-xl">
+              <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-md-drd">
                 {oauthErrorMessage || error}
               </div>
             )}
@@ -135,15 +135,15 @@ const LoginPage = () => {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-800"></div>
+              <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-slate-900 text-slate-500">or continue with</span>
+              <span className="px-3 bg-dark-card text-text-muted">or continue with</span>
             </div>
           </div>
 
           <Button
-            variant="outline"
+            variant="secondary"
             className="w-full"
             onClick={handleGoogleLogin}
             disabled={loading}
@@ -152,10 +152,10 @@ const LoginPage = () => {
             Sign in with Google
           </Button>
 
-          <div className="mt-6 pt-6 border-t border-slate-800 text-center">
-            <p className="text-slate-400 text-sm">
+          <div className="mt-6 pt-6 border-t border-border text-center">
+            <p className="text-text-secondary text-sm">
               Don't have an account?{' '}
-              <Link to="/register" className="text-primary hover:text-primary-light font-medium transition-colors">
+              <Link to="/register" className="text-primary hover:text-primary-light font-medium transition-colors duration-fast">
                 Create new profile
               </Link>
             </p>

@@ -1,26 +1,41 @@
 import React from 'react';
 
-const Input = ({ 
-  label, 
-  error, 
-  type = 'text', 
-  className = '', 
-  ...props 
+const Input = ({
+  label,
+  error,
+  type = 'text',
+  className = '',
+  disabled = false,
+  ...props
 }) => {
   return (
     <div className={`w-full ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-slate-400 mb-1.5">
+        <label className={`block text-body-sm font-medium mb-3 transition-colors ${
+          error ? 'text-danger' : 'text-text-secondary peer-focus:text-primary'
+        }`}>
           {label}
         </label>
       )}
       <input
         type={type}
-        className={`w-full bg-slate-900 border ${error ? 'border-red-500 focus:ring-red-500' : 'border-slate-800 focus:border-primary focus:ring-primary'} text-slate-100 rounded-xl px-4 py-2.5 transition-all outline-none ring-offset-slate-950 focus:ring-2`}
+        disabled={disabled}
+        className={`
+          peer w-full h-11 bg-dark-secondary text-text-primary text-sm
+          rounded-[8px] px-4 py-3
+          transition-all duration-fast outline-none
+          placeholder:text-text-muted
+          ${disabled
+            ? 'bg-[#151520] border border-dark-card text-text-disabled cursor-not-allowed'
+            : error
+              ? 'border-2 border-danger focus:border-danger'
+              : 'border border-border hover:border-border-hover hover:bg-dark-card focus:border-2 focus:border-primary focus:bg-dark-card'
+          }
+        `}
         {...props}
       />
       {error && (
-        <p className="mt-1.5 text-xs text-red-500 font-medium">
+        <p className="mt-1.5 text-caption text-danger font-medium">
           {error}
         </p>
       )}

@@ -9,10 +9,10 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import GuestRoute from './components/auth/GuestRoute';
 
 // Placeholder components
-const Dashboard = () => <div className="p-8"><h1 className="text-2xl font-bold text-white">Dashboard</h1><p className="text-slate-400 mt-2">Welcome to Aethereum.</p></div>;
-const Profile = () => <div className="p-8"><h1 className="text-2xl font-bold text-white">Profile</h1></div>;
-const Explore = () => <div className="p-8"><h1 className="text-2xl font-bold text-white">Explore</h1></div>;
-const NotFound = () => <div className="p-8"><h1 className="text-2xl font-bold text-white">404 - Not Found</h1></div>;
+const Dashboard = () => <div className="p-8"><h1 className="text-h2 font-heading text-text-primary">Dashboard</h1><p className="text-text-secondary mt-2">Welcome to Aethereum.</p></div>;
+const Profile = () => <div className="p-8"><h1 className="text-h2 font-heading text-text-primary">Profile</h1></div>;
+const Explore = () => <div className="p-8"><h1 className="text-h2 font-heading text-text-primary">Explore</h1></div>;
+const NotFound = () => <div className="p-8"><h1 className="text-h2 font-heading text-text-primary">404 - Not Found</h1></div>;
 
 const AppRouter = () => {
   return (

@@ -1,8 +1,21 @@
 import React from 'react';
 
-const Card = ({ children, className = '', hover = false }) => {
+const Card = ({ children, className = '', hover = false, padding = 'default' }) => {
+  const paddings = {
+    none: '',
+    compact: 'p-4',
+    default: 'p-5',
+    spacious: 'p-6',
+  };
+
   return (
-    <div className={`bg-slate-900 border border-slate-800 rounded-2xl p-6 transition-all ${hover ? 'hover:border-slate-700 hover:shadow-xl hover:shadow-primary/5' : ''} ${className}`}>
+    <div className={`
+      bg-dark-card border border-border rounded-md-drd
+      transition-all duration-200 ease-in-out
+      ${paddings[padding]}
+      ${hover ? 'hover:-translate-y-0.5 hover:shadow-md-drd cursor-pointer' : ''}
+      ${className}
+    `}>
       {children}
     </div>
   );

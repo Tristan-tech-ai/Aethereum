@@ -60,11 +60,11 @@ const RegisterPage = () => {
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg-drd bg-primary/10 text-primary mb-4">
             <UserPlus size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Create Profile</h1>
-          <p className="text-slate-400">Join the Aethereum network and start your journey</p>
+          <h1 className="text-h1 font-heading text-text-primary mb-2">Create Profile</h1>
+          <p className="text-text-secondary">Join the Aethereum kingdom and start your journey</p>
         </div>
 
         <Card>
@@ -79,7 +79,7 @@ const RegisterPage = () => {
               required
             />
 
-            <p className="text-xs text-slate-500 -mt-2">
+            <p className="text-caption text-text-muted -mt-2">
               Your username will be auto-generated from your name
             </p>
 
@@ -106,7 +106,7 @@ const RegisterPage = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[34px] text-slate-500 hover:text-slate-300"
+                className="absolute right-3 top-[38px] text-text-muted hover:text-text-secondary transition-colors duration-fast"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -128,7 +128,7 @@ const RegisterPage = () => {
             />
 
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-xl">
+              <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-md-drd">
                 {error}
               </div>
             )}
@@ -140,15 +140,15 @@ const RegisterPage = () => {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-800"></div>
+              <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-slate-900 text-slate-500">or continue with</span>
+              <span className="px-3 bg-dark-card text-text-muted">or continue with</span>
             </div>
           </div>
 
           <Button
-            variant="outline"
+            variant="secondary"
             className="w-full"
             onClick={handleGoogleSignup}
             disabled={loading}
@@ -157,10 +157,10 @@ const RegisterPage = () => {
             Sign up with Google
           </Button>
 
-          <div className="mt-6 pt-6 border-t border-slate-800 text-center">
-            <p className="text-slate-400 text-sm">
+          <div className="mt-6 pt-6 border-t border-border text-center">
+            <p className="text-text-secondary text-sm">
               Already have a profile?{' '}
-              <Link to="/login" className="text-primary hover:text-primary-light font-medium transition-colors">
+              <Link to="/login" className="text-primary hover:text-primary-light font-medium transition-colors duration-fast">
                 Sign in instead
               </Link>
             </p>

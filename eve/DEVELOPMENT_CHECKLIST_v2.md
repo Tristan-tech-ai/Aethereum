@@ -60,9 +60,9 @@
 - [ ] Create issue labels: `bug`, `feature`, `p0`, `p1`, `backend`, `frontend`, `ai`, `social`
 
 ### 0.3 Design Assets `[christian dan abi]`
-- [ ] Finalize color palette & design tokens (dark theme, violet primary) → update `tailwind.config.js`
-- [ ] Create icon set (Lucide React + custom emoji icons untuk subjects)
-- [ ] Import typography (Google Fonts: Inter for body, Outfit/Space Grotesk for headings)
+- [✅] Finalize color palette & design tokens (dark theme, violet primary) → update `tailwind.config.js`
+- [✅] Create icon set (Lucide React + custom emoji icons untuk subjects)
+- [✅] Import typography (Google Fonts: Inter for body, Outfit/Space Grotesk for headings)
 - [ ] Design wireframes di sini untuk key screens:
   - [ ] Landing / Onboarding
   - [ ] Dashboard / Home

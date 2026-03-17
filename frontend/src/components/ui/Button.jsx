@@ -1,35 +1,38 @@
 import React from 'react';
 
-const Button = ({ 
-  children, 
-  type = 'button', 
-  variant = 'primary', 
-  size = 'md', 
-  className = '', 
-  loading = false, 
-  disabled = false, 
-  ...props 
+const Button = ({
+  children,
+  type = 'button',
+  variant = 'primary',
+  size = 'md',
+  className = '',
+  loading = false,
+  disabled = false,
+  ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
-  
+  const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-border-focus cursor-pointer';
+
   const variants = {
-    primary: 'bg-primary hover:bg-primary-dark text-white focus:ring-primary',
-    secondary: 'bg-slate-800 hover:bg-slate-700 text-slate-100 focus:ring-slate-700',
-    outline: 'border border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white focus:ring-slate-700',
-    ghost: 'hover:bg-slate-800 text-slate-400 hover:text-white focus:ring-slate-700',
+    primary: `bg-primary text-white hover:bg-primary-dark hover:shadow-glow-primary active:bg-[#5B21B6] ${disabled ? 'bg-disabled-bg text-disabled-text hover:bg-disabled-bg hover:shadow-none' : ''}`,
+    secondary: `bg-transparent text-primary-light border border-primary-light hover:bg-primary/10 active:bg-primary/20 ${disabled ? 'border-disabled-bg text-disabled-text hover:bg-transparent' : ''}`,
+    ghost: `bg-transparent text-text-secondary hover:bg-white/5 active:bg-white/10 ${disabled ? 'text-text-disabled hover:bg-transparent' : ''}`,
+    danger: `bg-danger text-white hover:bg-danger-dark active:bg-danger-darker ${disabled ? 'bg-disabled-bg text-disabled-text hover:bg-disabled-bg' : ''}`,
+    success: `bg-success text-white hover:bg-success-dark active:bg-success-darker ${disabled ? 'bg-disabled-bg text-disabled-text hover:bg-disabled-bg' : ''}`,
   };
-  
+
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm rounded-lg',
-    md: 'px-4 py-2 text-base rounded-xl',
-    lg: 'px-6 py-3 text-lg rounded-2xl',
+    sm: 'h-8 px-3 text-[13px] rounded-sm-drd gap-1.5',
+    md: 'h-10 px-4 text-sm rounded-[8px] gap-2',
+    lg: 'h-12 px-6 text-base rounded-md-drd gap-2',
   };
+
+  const isDisabled = disabled || loading;
 
   return (
     <button
       type={type}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
-      disabled={disabled || loading}
+      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${isDisabled ? 'pointer-events-none' : ''} ${className}`}
+      disabled={isDisabled}
       {...props}
     >
       {loading ? (
