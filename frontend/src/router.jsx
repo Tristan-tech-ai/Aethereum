@@ -11,6 +11,7 @@ import DocumentDungeonPage from './pages/DocumentDungeonPage';
 import KnowledgeProfilePage from './pages/KnowledgeProfilePage';
 import SocialHubPage from './pages/SocialHubPage';
 import PublicProfilePage from './pages/PublicProfilePage';
+import ChallengePage from './pages/ChallengePage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import GuestRoute from './components/auth/GuestRoute';
 
@@ -32,6 +33,7 @@ const AppRouter = () => {
           <Route path="profile/settings" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
           <Route path="social" element={<SocialHubPage />} /> {/* TODO: re-add ProtectedRoute after testing */}
           <Route path="explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+          <Route path="challenge" element={<ChallengePage />} /> {/* TODO: re-add ProtectedRoute */}
 
           {/* Public Profile (no auth required) */}
           <Route path="u/:username" element={<PublicProfilePage />} />

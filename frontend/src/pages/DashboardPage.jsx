@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, ArrowRight, Target, Clock, Users, Swords } from 'lucide-react';
+import ChallengeWidget from '../components/social/ChallengeWidget';
 import { useAuthStore } from '../stores/authStore';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -150,28 +151,7 @@ const DashboardPage = () => {
       {/* Weekly Challenge + Active Social */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Weekly Challenge */}
-        <Card>
-          <div className="flex items-center gap-2 mb-3">
-            <Target size={20} className="text-accent" />
-            <h3 className="text-h4 font-heading text-text-primary">Weekly Challenge</h3>
-            <Badge variant="warning">4 days left</Badge>
-          </div>
-          <h4 className="text-sm font-semibold text-text-primary mb-1">📖 Read-a-thon</h4>
-          <p className="text-caption text-text-secondary mb-3">
-            Community goal: Read 10,000 pages together this week!
-          </p>
-          {/* Progress bar */}
-          <div className="mb-2">
-            <div className="flex justify-between text-caption mb-1">
-              <span className="text-text-muted">Community Progress</span>
-              <span className="text-accent font-semibold">3,456 / 10,000 pages</span>
-            </div>
-            <div className="w-full h-3 bg-dark-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-accent to-warning rounded-full" style={{ width: '34.56%' }} />
-            </div>
-          </div>
-          <p className="text-caption text-text-muted">Your contribution: 45 pages 🎉</p>
-        </Card>
+        <ChallengeWidget />
 
         {/* Active Social */}
         <div className="space-y-4">

@@ -640,24 +640,24 @@
   - [ ] "Share Result" button
 
 ### 8.4 Frontend — Focus Duel UI `abi`
-- [ ] Build `ChallengeDuelModal`
-  - [ ] Select friend / enter username
-  - [ ] Choose duration: 25min / 50min / 90min
-  - [ ] Send challenge CTA
-- [ ] Build `PendingDuels` notification (in Social Hub)
-  - [ ] Accept / Decline buttons
-  - [ ] Challenger info + duration
-- [ ] Build `DuelInProgress` view
-  - [ ] My focus timer + health hearts
-  - [ ] Opponent status panel:
-    - [ ] Green: "Focused 💪" / Red: "Distracted! 💀"
-    - [ ] Distraction count: "Opponent switched tabs 3x"
-  - [ ] Real-time update via WebSocket
-- [ ] Build `DuelResults` screen
-  - [ ] Winner announcement (tasteful, not rubbing it in)
-  - [ ] Both scores displayed
-  - [ ] "Good Game!" mutual prompt
-  - [ ] XP + coins earned
+- [✅] Build `ChallengeDuelModal`
+  - [✅] Select friend / enter username
+  - [✅] Choose duration: 25min / 50min / 90min
+  - [✅] Send challenge CTA
+- [✅] Build `PendingDuels` notification (in Social Hub)
+  - [✅] Accept / Decline buttons
+  - [✅] Challenger info + duration
+- [✅] Build `DuelInProgress` view
+  - [✅] My focus timer + health hearts
+  - [✅] Opponent status panel:
+    - [✅] Green: "Focused 💪" / Red: "Distracted! 💀"
+    - [✅] Distraction count: "Opponent switched tabs 3x"
+  - [✅] Real-time update via WebSocket
+- [✅] Build `DuelResults` screen
+  - [✅] Winner announcement (tasteful, not rubbing it in)
+  - [✅] Both scores displayed
+  - [✅] "Good Game!" mutual prompt
+  - [✅] XP + coins earned
 
 ---
 
@@ -739,23 +739,23 @@
 - [ ] Build `RelayResults` (combined summary, individual scores, shared card reveal)
 
 ### 9.7 Frontend — Study Room UI `abi`
-- [ ] Build `StudyRoomBrowser` (list public rooms dengan capacity, subject tag, music type)
-- [ ] Build `StudyRoomView`
-  - [ ] Participant list (nama + current material + timer)
-  - [ ] Pomodoro timer (shared, shows phase: study/break)
-  - [ ] Emoji reaction bar (🔥❤️👍👊) — reactions float across screen briefly
-  - [ ] Music player (lo-fi stream or preset, mute toggle)
-  - [ ] My status update (input: "Currently studying...")
-  - [ ] Leave room button
+- [✅] Build `StudyRoomBrowser` (list public rooms dengan capacity, subject tag, music type)
+- [✅] Build `StudyRoomView`
+  - [✅] Participant list (nama + current material + timer)
+  - [✅] Pomodoro timer (shared, shows phase: study/break)
+  - [✅] Emoji reaction bar (🔥❤️👍👊) — reactions float across screen briefly
+  - [✅] Music player (lo-fi stream or preset, mute toggle)
+  - [✅] My status update (input: "Currently studying...")
+  - [✅] Leave room button
 
 ### 9.8 Frontend — Weekly Challenge UI `abi`
-- [ ] Build `ChallengeWidget` di Dashboard/Homepage
-  - [ ] Challenge title + description
-  - [ ] Community progress bar (X of Y goal)
-  - [ ] "Your contribution: Z pages / sessions / etc."
-  - [ ] Time remaining (Monday reset countdown)
-- [ ] Build `ChallengePage` (full detail, leaderboard of top contributors, rewards preview)
-- [ ] Build `ChallengeCompleteBanner` (celebration jika goal tercapai — broadcast ke semua active users)
+- [✅] Build `ChallengeWidget` di Dashboard/Homepage
+  - [✅] Challenge title + description
+  - [✅] Community progress bar (X of Y goal)
+  - [✅] "Your contribution: Z pages / sessions / etc."
+  - [✅] Time remaining (Monday reset countdown)
+- [✅] Build `ChallengePage` (full detail, leaderboard of top contributors, rewards preview)
+- [✅] Build `ChallengeCompleteBanner` (celebration jika goal tercapai — broadcast ke semua active users)
 
 ---
 

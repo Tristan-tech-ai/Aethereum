@@ -6,6 +6,12 @@ import Badge from '../components/ui/Badge';
 import Avatar from '../components/ui/Avatar';
 import FriendsList from '../components/social/FriendsList';
 import AddFriendModal from '../components/social/AddFriendModal';
+import ChallengeDuelModal from '../components/social/ChallengeDuelModal';
+import PendingDuels from '../components/social/PendingDuels';
+import DuelInProgress from '../components/social/DuelInProgress';
+import DuelResults from '../components/social/DuelResults';
+import StudyRoomBrowser from '../components/social/StudyRoomBrowser';
+import StudyRoomView from '../components/social/StudyRoomView';
 
 const tabs = [
   { key: 'raids', label: '⚔️ Study Raids', icon: Swords },
@@ -27,9 +33,9 @@ const pastRaids = [
   { id: 5, title: 'React Patterns', teamScore: 95, xp: '+80 XP', date: 'Mar 10' },
 ];
 
-const pendingDuels = [
-  { id: 1, challenger: 'Budi', duration: 25, time: '5 min ago' },
-  { id: 2, challenger: 'Maya', duration: 50, time: '1 hour ago' },
+const pendingDuelsData = [
+  { id: 1, challenger: 'Budi', duration: 25, time: '5 min ago', online: true, level: 24 },
+  { id: 2, challenger: 'Maya', duration: 50, time: '1 hour ago', online: false, level: 35 },
 ];
 
 const studyRooms = [
@@ -50,6 +56,13 @@ const feedEvents = [
 const SocialHubPage = () => {
   const [activeTab, setActiveTab] = useState('raids');
   const [showAddFriend, setShowAddFriend] = useState(false);
+  const [showChallenge, setShowChallenge] = useState(false);
+  const [duelPhase, setDuelPhase] = useState('idle'); // 'idle' | 'inProgress' | 'results'
+  const [duelOpponent, setDuelOpponent] = useState(null);
+  const [duelDuration, setDuelDuration] = useState(25);
+  const [pendingDuels, setPendingDuels] = useState(pendingDuelsData);
+  const [roomPhase, setRoomPhase] = useState('browse'); // 'browse' | 'inRoom'
+  const [activeRoom, setActiveRoom] = useState(null);
 
   return (
     <div className="px-4 lg:px-8 py-6 max-w-page mx-auto">
@@ -158,56 +171,49 @@ const SocialHubPage = () => {
       {/* ── Focus Duels ── */}
       {activeTab === 'duels' && (
         <div className="space-y-6">
-          {/* Challenge */}
-          <Card padding="spacious">
-            <h3 className="text-h4 font-heading text-text-primary mb-4">🥊 Challenge a Friend</h3>
-            <div className="flex flex-col sm:flex-row gap-4 items-end">
-              <div className="flex-1">
-                <label className="block text-body-sm font-medium text-text-secondary mb-2">Friend Username</label>
-                <input
-                  type="text"
-                  placeholder="@username"
-                  className="w-full h-11 bg-dark-secondary text-text-primary text-sm rounded-[8px] px-4 border border-border hover:border-border-hover focus:border-primary focus:outline-none transition-colors"
+          {duelPhase === 'idle' && (
+            <>
+              {/* Challenge CTA */}
+              <div className="flex items-center justify-between">
+                <h2 className="text-h3 font-heading text-text-primary">🥊 Focus Duels</h2>
+                <Button onClick={() => setShowChallenge(true)}>
+                  <Swords size={16} className="mr-1.5" /> Challenge
+                </Button>
+              </div>
+
+              {/* Pending Duels */}
+              <div>
+                <h3 className="text-h4 font-heading text-text-primary mb-3">Pending Challenges</h3>
+                <PendingDuels
+                  duels={pendingDuels}
+                  onAccept={(id) => {
+                    const duel = pendingDuels.find((d) => d.id === id);
+                    setDuelOpponent({ name: duel.challenger, level: duel.level || 20 });
+                    setDuelDuration(duel.duration);
+                    setPendingDuels((p) => p.filter((d) => d.id !== id));
+                    setDuelPhase('inProgress');
+                  }}
+                  onDecline={(id) => setPendingDuels((p) => p.filter((d) => d.id !== id))}
                 />
               </div>
-              <div>
-                <label className="block text-body-sm font-medium text-text-secondary mb-2">Duration</label>
-                <div className="flex gap-2">
-                  {[25, 50, 90].map((d) => (
-                    <button
-                      key={d}
-                      className="px-3 py-2 text-sm bg-dark-card border border-border rounded-sm-drd text-text-secondary hover:border-primary hover:text-primary-light transition-colors"
-                    >
-                      {d}m
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <Button>Send Challenge</Button>
-            </div>
-          </Card>
+            </>
+          )}
 
-          {/* Pending */}
-          <div>
-            <h3 className="text-h4 font-heading text-text-primary mb-3">Pending Challenges</h3>
-            <div className="space-y-3">
-              {pendingDuels.map((d) => (
-                <Card key={d.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar name={d.challenger} size="sm" />
-                    <div>
-                      <p className="text-sm text-text-primary font-medium">{d.challenger} challenged you!</p>
-                      <p className="text-caption text-text-muted">{d.duration} min · {d.time}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">Decline</Button>
-                    <Button variant="success" size="sm">Accept</Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
+          {duelPhase === 'inProgress' && (
+            <DuelInProgress
+              opponent={duelOpponent}
+              duration={duelDuration}
+              onComplete={() => setDuelPhase('results')}
+            />
+          )}
+
+          {duelPhase === 'results' && (
+            <DuelResults
+              opponent={duelOpponent}
+              onClose={() => { setDuelPhase('idle'); setDuelOpponent(null); }}
+              onRematch={() => setDuelPhase('inProgress')}
+            />
+          )}
         </div>
       )}
 
@@ -236,29 +242,26 @@ const SocialHubPage = () => {
 
       {/* ── Study Rooms ── */}
       {activeTab === 'rooms' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-h3 font-heading text-text-primary">Public Study Rooms</h2>
-            <Button><Plus size={16} className="mr-1.5" /> Create Room</Button>
-          </div>
+        <div>
+          {roomPhase === 'browse' && (
+            <StudyRoomBrowser
+              onJoin={(room) => {
+                setActiveRoom(room);
+                setRoomPhase('inRoom');
+              }}
+              onCreate={() => {}}
+            />
+          )}
 
-          {studyRooms.map((room) => (
-            <Card key={room.id} hover className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-md-drd bg-dark-secondary flex items-center justify-center shrink-0">
-                <BookOpen size={22} className="text-secondary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h4 className="text-sm font-semibold text-text-primary">{room.name}</h4>
-                  <Badge variant="success">LIVE</Badge>
-                </div>
-                <p className="text-caption text-text-muted">
-                  {room.members}/{room.max} people · {room.subject} · 🎵 {room.music}
-                </p>
-              </div>
-              <Button variant="secondary" size="sm">Join</Button>
-            </Card>
-          ))}
+          {roomPhase === 'inRoom' && activeRoom && (
+            <StudyRoomView
+              room={activeRoom}
+              onLeave={() => {
+                setRoomPhase('browse');
+                setActiveRoom(null);
+              }}
+            />
+          )}
         </div>
       )}
 
@@ -312,6 +315,18 @@ const SocialHubPage = () => {
 
       {/* Add Friend Modal */}
       <AddFriendModal isOpen={showAddFriend} onClose={() => setShowAddFriend(false)} />
+
+      {/* Challenge Duel Modal */}
+      <ChallengeDuelModal
+        isOpen={showChallenge}
+        onClose={() => setShowChallenge(false)}
+        onSendChallenge={({ friend, duration }) => {
+          setDuelOpponent({ name: friend.name, level: friend.level || 20 });
+          setDuelDuration(duration);
+          setActiveTab('duels');
+          setDuelPhase('inProgress');
+        }}
+      />
     </div>
   );
 };
