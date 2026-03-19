@@ -1,90 +1,124 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useHeatmapData } from '../../hooks/useHeatmapData';
 
-const HEATMAP_COLORS = [
-  'bg-heatmap-0', // none
-  'bg-heatmap-1', // low
-  'bg-heatmap-2', // medium
-  'bg-heatmap-3', // high
-  'bg-heatmap-4', // max
+const HEATMAP_LEVELS = [
+  { bg: 'var(--heatmap-0)', label: 'No activity' },
+  { bg: 'var(--heatmap-1)', label: 'Less than 30 min' },
+  { bg: 'var(--heatmap-2)', label: '30–60 min' },
+  { bg: 'var(--heatmap-3)', label: '60–120 min' },
+  { bg: 'var(--heatmap-4)', label: 'More than 120 min' },
 ];
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const DAYS = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
+const DAY_LABELS = [
+  { index: 0, label: '' },
+  { index: 1, label: 'Mon' },
+  { index: 2, label: '' },
+  { index: 3, label: 'Wed' },
+  { index: 4, label: '' },
+  { index: 5, label: 'Fri' },
+  { index: 6, label: '' },
+];
+
+const VIEW_OPTIONS = ['3M', '6M', '1Y'];
 
 /**
- * Generate demo heatmap data for a given number of weeks
+ * Format minutes as "Xh Ym"
  */
-const generateDemoData = (weeks) => {
-  const data = [];
-  const today = new Date();
-  const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - weeks * 7);
-
-  for (let w = 0; w < weeks; w++) {
-    const week = [];
-    for (let d = 0; d < 7; d++) {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + w * 7 + d);
-      // Generate weighted random - more likely to have low or no activity
-      const rand = Math.random();
-      let level = 0;
-      if (rand > 0.6) level = 1;
-      if (rand > 0.75) level = 2;
-      if (rand > 0.88) level = 3;
-      if (rand > 0.95) level = 4;
-
-      const sessions = level === 0 ? 0 : Math.ceil(level * 1.5);
-      const minutes = level === 0 ? 0 : level * 30 + Math.floor(Math.random() * 30);
-
-      week.push({
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        level,
-        sessions,
-        minutes,
-      });
-    }
-    data.push(week);
-  }
-  return data;
+const formatMinutes = (mins) => {
+  if (mins === 0) return '0m';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
 };
 
-const LearningHeatmap = ({ weeks = 52, className = '' }) => {
+/**
+ * Get responsive default view based on window width
+ */
+const getDefaultView = () => {
+  if (typeof window === 'undefined') return '1Y';
+  const w = window.innerWidth;
+  if (w < 768) return '3M';
+  if (w < 1024) return '6M';
+  return '1Y';
+};
+
+const LearningHeatmap = ({ className = '', rawData = null }) => {
+  const [view, setView] = useState(getDefaultView);
   const [tooltip, setTooltip] = useState(null);
-  const [view, setView] = useState('1Y');
+  const containerRef = useRef(null);
+  const tooltipRef = useRef(null);
 
-  const viewWeeks = view === '3M' ? 13 : view === '6M' ? 26 : 52;
-  const data = useMemo(() => generateDemoData(viewWeeks), [viewWeeks]);
+  const { grid, monthLabels, totalSessions, totalMinutes } = useHeatmapData({
+    viewMode: view,
+    rawData,
+  });
 
-  // Calculate month labels
-  const monthLabels = useMemo(() => {
-    const labels = [];
-    let lastMonth = -1;
-    data.forEach((week, i) => {
-      const date = new Date(week[0]?.date);
-      const month = date.getMonth();
-      if (month !== lastMonth) {
-        labels.push({ index: i, label: MONTHS[month] });
-        lastMonth = month;
-      }
+  // Position tooltip near the hovered cell
+  const handleCellHover = useCallback((e, day) => {
+    if (day.isFuture) return;
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) return;
+
+    const cellRect = e.currentTarget.getBoundingClientRect();
+    const x = cellRect.left - containerRect.left + cellRect.width / 2;
+    const y = cellRect.top - containerRect.top - 8;
+
+    setTooltip({
+      x,
+      y,
+      date: day.dateFormatted,
+      sessions: day.sessions,
+      minutes: day.minutes,
+      level: day.level,
     });
-    return labels;
-  }, [data]);
+  }, []);
+
+  const handleCellLeave = useCallback(() => {
+    setTooltip(null);
+  }, []);
+
+  // Adjust tooltip position to prevent overflow
+  useEffect(() => {
+    if (tooltip && tooltipRef.current && containerRef.current) {
+      const ttEl = tooltipRef.current;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const ttWidth = ttEl.offsetWidth;
+
+      // Center the tooltip horizontally, but clamp to container bounds
+      let left = tooltip.x - ttWidth / 2;
+      if (left < 0) left = 0;
+      if (left + ttWidth > containerRect.width) left = containerRect.width - ttWidth;
+
+      ttEl.style.left = `${left}px`;
+    }
+  }, [tooltip]);
+
+  const weeks = grid.length;
 
   return (
-    <div className={`${className}`}>
+    <div className={`relative ${className}`} ref={containerRef}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-h4 font-heading text-text-primary">Learning Activity</h3>
-        <div className="flex gap-1">
-          {['3M', '6M', '1Y'].map((v) => (
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-h4 font-heading text-text-primary">Learning Activity</h3>
+          <p className="text-caption text-text-muted mt-0.5">
+            {totalSessions} sessions · {formatMinutes(totalMinutes)} total
+          </p>
+        </div>
+        <div className="flex gap-1 bg-dark-secondary/50 rounded-full p-0.5">
+          {VIEW_OPTIONS.map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`px-2.5 py-1 text-caption font-semibold rounded-full transition-colors duration-fast ${
+              className={`px-3 py-1 text-caption font-semibold rounded-full transition-all duration-fast ${
                 view === v
-                  ? 'bg-primary/15 text-primary-light'
-                  : 'text-text-muted hover:text-text-secondary hover:bg-white/5'
+                  ? 'bg-primary/15 text-primary-light shadow-sm'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
+              aria-label={`Show ${v === '3M' ? '3 months' : v === '6M' ? '6 months' : '1 year'}`}
+              aria-pressed={view === v}
             >
               {v}
             </button>
@@ -92,63 +126,157 @@ const LearningHeatmap = ({ weeks = 52, className = '' }) => {
         </div>
       </div>
 
-      {/* Month Labels */}
-      <div className="flex ml-8 mb-1" style={{ gap: '3px' }}>
-        {data.map((_, i) => {
-          const label = monthLabels.find((m) => m.index === i);
-          return (
-            <div key={i} className="text-[10px] text-text-muted" style={{ width: '13px', textAlign: 'left' }}>
-              {label ? label.label : ''}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Grid */}
-      <div className="flex gap-0">
-        {/* Day labels */}
-        <div className="flex flex-col mr-1.5" style={{ gap: '3px' }}>
-          {DAYS.map((day, i) => (
-            <div key={i} className="text-[10px] text-text-muted leading-none" style={{ height: '13px', display: 'flex', alignItems: 'center' }}>
-              {day}
-            </div>
-          ))}
+      {/* Heatmap Grid Area */}
+      <div className="overflow-x-auto pb-1 -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {/* Month Labels */}
+        <div
+          className="grid mb-1.5"
+          style={{
+            gridTemplateColumns: `28px repeat(${weeks}, var(--heatmap-cell))`,
+            gap: `0 var(--heatmap-gap)`,
+          }}
+        >
+          {/* Empty cell for day label column */}
+          <div />
+          {Array.from({ length: weeks }, (_, i) => {
+            const monthLabel = monthLabels.find((m) => m.weekIndex === i);
+            return (
+              <div
+                key={i}
+                className="text-overline text-text-muted whitespace-nowrap overflow-hidden"
+                style={{ fontSize: '10px', letterSpacing: '0.02em', fontWeight: 500 }}
+              >
+                {monthLabel ? monthLabel.label : ''}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Heatmap cells */}
-        <div className="flex overflow-x-auto" style={{ gap: '3px' }}>
-          {data.map((week, wi) => (
-            <div key={wi} className="flex flex-col" style={{ gap: '3px' }}>
-              {week.map((day, di) => (
-                <div
-                  key={di}
-                  className={`rounded-[2px] ${HEATMAP_COLORS[day.level]} transition-transform duration-fast hover:scale-150 cursor-pointer`}
-                  style={{ width: '13px', height: '13px' }}
-                  onMouseEnter={() => setTooltip({ x: wi, y: di, ...day })}
-                  onMouseLeave={() => setTooltip(null)}
-                  aria-label={`${day.date}: ${day.sessions} sessions, ${day.minutes} minutes`}
-                />
-              ))}
-            </div>
+        {/* Main Grid: Day labels + Heatmap cells */}
+        <div
+          className="grid"
+          role="grid"
+          aria-label="Learning activity heatmap"
+          style={{
+            gridTemplateColumns: `28px repeat(${weeks}, var(--heatmap-cell))`,
+            gridTemplateRows: `repeat(7, var(--heatmap-cell))`,
+            gap: 'var(--heatmap-gap)',
+          }}
+        >
+          {/* Render row by row (day 0-6) for proper CSS grid fill */}
+          {Array.from({ length: 7 }, (_, dayIndex) => (
+            <React.Fragment key={`row-${dayIndex}`}>
+              {/* Day label */}
+              <div
+                className="flex items-center text-text-muted select-none"
+                style={{ fontSize: '10px', height: 'var(--heatmap-cell)' }}
+              >
+                {DAY_LABELS[dayIndex].label}
+              </div>
+
+              {/* Cells for this day across all weeks */}
+              {grid.map((week, weekIndex) => {
+                const day = week[dayIndex];
+                if (!day) return <div key={`${weekIndex}-${dayIndex}`} />;
+
+                return (
+                  <div
+                    key={`${weekIndex}-${dayIndex}`}
+                    role="gridcell"
+                    className="rounded-[2px] cursor-pointer heatmap-cell"
+                    style={{
+                      backgroundColor: day.isFuture
+                        ? 'var(--heatmap-0)'
+                        : `var(--heatmap-${day.level})`,
+                      width: 'var(--heatmap-cell)',
+                      height: 'var(--heatmap-cell)',
+                      opacity: day.isFuture ? 0.3 : 1,
+                      transition: 'transform 150ms ease-out, box-shadow 150ms ease-out',
+                    }}
+                    onMouseEnter={(e) => handleCellHover(e, day)}
+                    onMouseLeave={handleCellLeave}
+                    aria-label={
+                      day.isFuture
+                        ? `${day.dateAccessible}: No data yet`
+                        : `${day.dateAccessible}: ${day.sessions} session${day.sessions !== 1 ? 's' : ''}, ${formatMinutes(day.minutes)}`
+                    }
+                  />
+                );
+              })}
+            </React.Fragment>
           ))}
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-end gap-1.5 mt-3">
-        <span className="text-[10px] text-text-muted">Less</span>
-        {HEATMAP_COLORS.map((color, i) => (
-          <div key={i} className={`rounded-[2px] ${color}`} style={{ width: '13px', height: '13px' }} />
-        ))}
-        <span className="text-[10px] text-text-muted">More</span>
+      <div className="flex items-center justify-between mt-4">
+        <span className="text-caption text-text-muted hidden sm:inline">
+          Hover over a square to see details
+        </span>
+        <div className="flex items-center gap-1.5 ml-auto">
+          <span className="text-[10px] text-text-muted font-medium">Less</span>
+          {HEATMAP_LEVELS.map((lvl, i) => (
+            <div
+              key={i}
+              className="rounded-[2px]"
+              style={{
+                width: 'var(--heatmap-cell)',
+                height: 'var(--heatmap-cell)',
+                backgroundColor: lvl.bg,
+              }}
+              title={lvl.label}
+              aria-label={`Level ${i}: ${lvl.label}`}
+            />
+          ))}
+          <span className="text-[10px] text-text-muted font-medium">More</span>
+        </div>
       </div>
 
-      {/* Tooltip */}
+      {/* Floating Tooltip */}
       {tooltip && (
-        <div className="mt-2 px-3 py-2 bg-dark-elevated border border-border rounded-sm-drd text-caption text-text-secondary inline-block">
-          <span className="text-text-primary font-semibold">{tooltip.date}</span> — {tooltip.sessions} sessions, {Math.floor(tooltip.minutes / 60)}h {tooltip.minutes % 60}m
+        <div
+          ref={tooltipRef}
+          className="absolute pointer-events-none z-50 px-3 py-2 bg-dark-elevated border border-border rounded-sm-drd shadow-lg-drd"
+          style={{
+            top: `${tooltip.y}px`,
+            left: `${tooltip.x}px`,
+            transform: 'translateX(-50%) translateY(-100%)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <div className="text-caption text-text-primary font-semibold">
+            {tooltip.date}
+          </div>
+          <div className="text-[11px] text-text-secondary mt-0.5">
+            {tooltip.sessions === 0
+              ? 'No learning activity'
+              : `${tooltip.sessions} session${tooltip.sessions !== 1 ? 's' : ''} · ${formatMinutes(tooltip.minutes)}`}
+          </div>
         </div>
       )}
+
+      {/* Inline styles for hover effect + responsive cell sizing + reduced motion */}
+      <style>{`
+        .heatmap-cell:hover {
+          transform: scale(1.5);
+          box-shadow: 0 0 6px rgba(124, 58, 237, 0.25);
+          z-index: 10;
+          position: relative;
+        }
+
+        @media (max-width: 767px) {
+          :root {
+            --heatmap-cell: var(--heatmap-cell-mobile);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .heatmap-cell:hover {
+            transform: none !important;
+            box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.5) !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

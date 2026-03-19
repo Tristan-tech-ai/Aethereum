@@ -7,6 +7,16 @@
 :root {
     color-scheme: dark;
     --bg-overlay: rgba(0, 0, 0, 0.6);
+
+    /* Heatmap Colors — DRD §2.1 */
+    --heatmap-0: #1A1A2E;
+    --heatmap-1: #16213E;
+    --heatmap-2: #0F3460;
+    --heatmap-3: #533483;
+    --heatmap-4: #7C3AED;
+    --heatmap-cell: 13px;
+    --heatmap-cell-mobile: 10px;
+    --heatmap-gap: 3px;
 }
 
 body {
