@@ -11,6 +11,7 @@ import LearningHeatmap from '../components/profile/LearningHeatmap';
 import LevelBadge from '../components/profile/LevelBadge';
 import StreakDisplay from '../components/profile/StreakDisplay';
 import AchievementBadge from '../components/profile/AchievementBadge';
+import AchievementGrid from '../components/profile/AchievementGrid';
 
 // Demo data
 const pinnedCards = [
@@ -30,18 +31,19 @@ const allCards = [
 ];
 
 const achievements = [
-  { name: 'First Steps', emoji: '🚀', unlocked: true, unlockedDate: 'Jan 15', featured: false },
-  { name: 'Bookworm', emoji: '📖', unlocked: true, unlockedDate: 'Feb 1', featured: true },
-  { name: 'Hot Streak', emoji: '🔥', unlocked: true, unlockedDate: 'Feb 14', featured: true },
-  { name: 'Quiz Master', emoji: '💯', unlocked: true, unlockedDate: 'Mar 1', featured: true },
-  { name: 'Polymath', emoji: '🌍', unlocked: true, unlockedDate: 'Mar 10', featured: false },
-  { name: 'Raid Veteran', emoji: '⚔️', unlocked: true, unlockedDate: 'Mar 5', featured: false },
-  { name: 'Duel Champion', emoji: '🥊', unlocked: false, progress: 70 },
-  { name: 'Arena Hero', emoji: '🏟️', unlocked: false, progress: 40 },
-  { name: 'Knowledge Seeker', emoji: '🧠', unlocked: false, progress: 60 },
-  { name: 'Perfectionist', emoji: '💎', unlocked: false, progress: 20 },
-  { name: 'Social Learner', emoji: '🤝', unlocked: false, progress: null },
-  { name: 'Emperor', emoji: '👑', unlocked: false, progress: null },
+  { name: 'First Steps', emoji: '🚀', description: 'Complete your first learning session', category: 'learning', unlocked: true, unlockedDate: 'Jan 15', featured: false },
+  { name: 'Bookworm', emoji: '📖', description: 'Read 10 learning materials', category: 'learning', unlocked: true, unlockedDate: 'Feb 1', featured: true },
+  { name: 'Hot Streak', emoji: '🔥', description: 'Maintain a 7-day learning streak', category: 'streak', unlocked: true, unlockedDate: 'Feb 14', featured: true },
+  { name: 'Quiz Master', emoji: '💯', description: 'Score 100% on 5 quizzes', category: 'learning', unlocked: true, unlockedDate: 'Mar 1', featured: true },
+  { name: 'Polymath', emoji: '🌍', description: 'Study 5 different subjects', category: 'learning', unlocked: true, unlockedDate: 'Mar 10', featured: false },
+  { name: 'Raid Veteran', emoji: '⚔️', description: 'Complete 10 Study Raids', category: 'social', unlocked: true, unlockedDate: 'Mar 5', featured: false },
+  { name: 'Duel Champion', emoji: '🥊', description: 'Win 20 Focus Duels', category: 'social', unlocked: false, progress: 70 },
+  { name: 'Arena Hero', emoji: '🏟️', description: 'Win 10 Quiz Arena matches', category: 'social', unlocked: false, progress: 40 },
+  { name: 'Knowledge Seeker', emoji: '🧠', description: 'Earn 50 Knowledge Cards', category: 'learning', unlocked: false, progress: 60 },
+  { name: 'Perfectionist', emoji: '💎', description: 'Earn a Diamond-tier Knowledge Card', category: 'special', unlocked: false, progress: 20 },
+  { name: 'Social Learner', emoji: '🤝', description: 'Add 10 friends', category: 'social', unlocked: false, progress: null },
+  { name: 'Inferno', emoji: '🌋', description: 'Maintain a 30-day learning streak', category: 'streak', unlocked: false, progress: null },
+  { name: 'Emperor', emoji: '👑', description: 'Reach Level 50 — Supreme knowledge ruler', category: 'special', unlocked: false, progress: null },
 ];
 
 const xpEvents = [
@@ -225,11 +227,7 @@ const KnowledgeProfilePage = () => {
 
       {/* ── Achievements Tab ── */}
       {activeTab === 'achievements' && (
-        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4">
-          {achievements.map((a, i) => (
-            <AchievementBadge key={i} {...a} />
-          ))}
-        </div>
+        <AchievementGrid achievements={achievements} />
       )}
 
       {/* ── Analytics Tab ── */}

@@ -31,14 +31,14 @@ const pinnedCards = [
 ];
 
 const achievements = [
-  { name: 'First Steps', emoji: '🚀', unlocked: true, unlockedDate: 'Jan 15' },
-  { name: 'Bookworm', emoji: '📖', unlocked: true, unlockedDate: 'Feb 1', featured: true },
-  { name: 'Hot Streak', emoji: '🔥', unlocked: true, unlockedDate: 'Feb 14', featured: true },
-  { name: 'Quiz Master', emoji: '💯', unlocked: true, unlockedDate: 'Mar 1', featured: true },
-  { name: 'Polymath', emoji: '🌍', unlocked: true, unlockedDate: 'Mar 10' },
-  { name: 'Raid Veteran', emoji: '⚔️', unlocked: true, unlockedDate: 'Mar 5' },
-  { name: 'Duel Champion', emoji: '🥊', unlocked: false },
-  { name: 'Arena Hero', emoji: '🏟️', unlocked: false },
+  { name: 'First Steps', emoji: '🚀', description: 'Complete your first learning session', category: 'learning', unlocked: true, unlockedDate: 'Jan 15' },
+  { name: 'Bookworm', emoji: '📖', description: 'Read 10 learning materials', category: 'learning', unlocked: true, unlockedDate: 'Feb 1', featured: true },
+  { name: 'Hot Streak', emoji: '🔥', description: 'Maintain a 7-day learning streak', category: 'streak', unlocked: true, unlockedDate: 'Feb 14', featured: true },
+  { name: 'Quiz Master', emoji: '💯', description: 'Score 100% on 5 quizzes', category: 'learning', unlocked: true, unlockedDate: 'Mar 1', featured: true },
+  { name: 'Polymath', emoji: '🌍', description: 'Study 5 different subjects', category: 'learning', unlocked: true, unlockedDate: 'Mar 10' },
+  { name: 'Raid Veteran', emoji: '⚔️', description: 'Complete 10 Study Raids', category: 'social', unlocked: true, unlockedDate: 'Mar 5' },
+  { name: 'Duel Champion', emoji: '🥊', description: 'Win 20 Focus Duels', category: 'social', unlocked: false },
+  { name: 'Arena Hero', emoji: '🏟️', description: 'Win 10 Quiz Arena matches', category: 'social', unlocked: false },
 ];
 
 const PublicProfilePage = () => {

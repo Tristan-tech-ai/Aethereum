@@ -396,15 +396,15 @@
   - [ ] Scheduled weekly reset setiap Senin via artisan scheduler
 
 ### 5.2 Frontend — Learning Heatmap `abi`
-- [ ] Build `LearningHeatmap` component
-  - [ ] 52 columns (weeks) × 7 rows (days) CSS grid
-  - [ ] Color intensity: 5 levels (none → low → medium → high → max)
-  - [ ] Tooltip on hover: date, session count, total minutes
-  - [ ] View toggle: 3 months / 6 months / 1 year
-  - [ ] Responsive (collapsible on mobile)
-  - [ ] Legend (color scale)
-- [ ] Hook `useHeatmapData` — fetch & transform backend data ke 52×7 grid format
-- [ ] CSS variables untuk heat colors (matching brand dark theme)
+- [✅] Build `LearningHeatmap` component
+  - [✅] 52 columns (weeks) × 7 rows (days) CSS grid
+  - [✅] Color intensity: 5 levels (none → low → medium → high → max)
+  - [✅] Tooltip on hover: date, session count, total minutes
+  - [✅] View toggle: 3 months / 6 months / 1 year
+  - [✅] Responsive (collapsible on mobile)
+  - [✅] Legend (color scale)
+- [✅] Hook `useHeatmapData` — fetch & transform backend data ke 52×7 grid format
+- [✅] CSS variables untuk heat colors (matching brand dark theme)
 
 ### 5.3 Frontend — XP & Level System `christian`
 - [ ] Build `LevelBadge` component
@@ -465,15 +465,15 @@
 - [ ] Streak reminder logic: jika belum belajar hari ini, tampilkan warning di navbar
 
 ### 5.6 Frontend — Achievement Badges `abi`
-- [ ] Build `AchievementBadge` component
-  - [ ] Locked state (grayscale, blurred)
-  - [ ] Unlocked state (full color, glowing)
-  - [ ] Tooltip: achievement name + description + unlocked date
-- [ ] Build `AchievementGrid` — gallery semua badges (locked/unlocked)
-  - [ ] Filter by category (learning / social / streak / special)
-- [ ] Build `AchievementUnlockAnimation`
-  - [ ] Slide-in notification dari kanan: "Achievement Unlocked: Quiz Master! 💯"
-  - [ ] Auto-dismiss setelah 5s, click untuk detail
+- [✅] Build `AchievementBadge` component
+  - [✅] Locked state (grayscale, blurred)
+  - [✅] Unlocked state (full color, glowing)
+  - [✅] Tooltip: achievement name + description + unlocked date
+- [✅] Build `AchievementGrid` — gallery semua badges (locked/unlocked)
+  - [✅] Filter by category (learning / social / streak / special)
+- [✅] Build `AchievementUnlockAnimation`
+  - [✅] Slide-in notification dari kanan: "Achievement Unlocked: Quiz Master! 💯"
+  - [✅] Auto-dismiss setelah 5s, click untuk detail
 
 ### 5.7 Frontend — Learning Analytics Dashboard `tristan`
 - [ ] Build `AnalyticsDashboard` tab di Profile page:
@@ -572,13 +572,13 @@
 - [ ] Feed notification dot di navbar jika ada unread events
 
 ### 7.4 Frontend — Friends System `abi`
-- [ ] Build `FriendsList` page / sidebar
-  - [ ] Online indicator (green dot)
-  - [ ] "Currently learning: [material name]" status
-  - [ ] Mini-profile popover on hover
-  - [ ] Quick action buttons: Challenge Duel / Invite to Raid
-- [ ] Build `FriendRequest` notifications (badge on navbar)
-- [ ] Build `AddFriendModal` — search + send request
+- [✅] Build `FriendsList` page / sidebar
+  - [✅] Online indicator (green dot)
+  - [✅] "Currently learning: [material name]" status
+  - [✅] Mini-profile popover on hover
+  - [✅] Quick action buttons: Challenge Duel / Invite to Raid
+- [✅] Build `FriendRequest` notifications (badge on navbar)
+- [✅] Build `AddFriendModal` — search + send request
 
 ---
 

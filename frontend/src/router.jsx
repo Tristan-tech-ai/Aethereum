@@ -30,7 +30,7 @@ const AppRouter = () => {
           <Route path="dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="profile" element={<ProtectedRoute><KnowledgeProfilePage /></ProtectedRoute>} />
           <Route path="profile/settings" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
-          <Route path="social" element={<ProtectedRoute><SocialHubPage /></ProtectedRoute>} />
+          <Route path="social" element={<SocialHubPage />} /> {/* TODO: re-add ProtectedRoute after testing */}
           <Route path="explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
 
           {/* Public Profile (no auth required) */}

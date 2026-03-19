@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { LogOut, User, Settings, Coins, Bell } from 'lucide-react';
 import { useAuthStore } from './stores/authStore';
 import Avatar from './components/ui/Avatar';
+import FriendRequestNotification from './components/social/FriendRequestNotification';
 
 function App() {
   const { user, session, initialized, initialize, logout } = useAuthStore();
@@ -56,6 +57,9 @@ function App() {
               <button className="relative p-2 text-text-muted hover:text-text-primary transition-colors duration-fast" title="Notifications">
                 <Bell size={18} />
               </button>
+
+              {/* Friend Requests */}
+              <FriendRequestNotification />
 
               {/* User Menu */}
               <div className="flex items-center gap-3">

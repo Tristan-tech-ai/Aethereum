@@ -4,6 +4,8 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import Avatar from '../components/ui/Avatar';
+import FriendsList from '../components/social/FriendsList';
+import AddFriendModal from '../components/social/AddFriendModal';
 
 const tabs = [
   { key: 'raids', label: '⚔️ Study Raids', icon: Swords },
@@ -47,13 +49,19 @@ const feedEvents = [
 
 const SocialHubPage = () => {
   const [activeTab, setActiveTab] = useState('raids');
+  const [showAddFriend, setShowAddFriend] = useState(false);
 
   return (
     <div className="px-4 lg:px-8 py-6 max-w-page mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-h2 font-heading text-text-primary">Social Hub</h1>
-        <p className="text-body-sm text-text-secondary">Learn together, grow together</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-h2 font-heading text-text-primary">Social Hub</h1>
+          <p className="text-body-sm text-text-secondary">Learn together, grow together</p>
+        </div>
+        <Button onClick={() => setShowAddFriend(true)} variant="secondary" size="sm" className="hidden lg:flex">
+          <Plus size={14} className="mr-1.5" /> Add Friend
+        </Button>
       </div>
 
       {/* Tab Navigation */}
@@ -72,6 +80,10 @@ const SocialHubPage = () => {
           </button>
         ))}
       </div>
+      {/* Two-column layout: Main content + Friends sidebar */}
+      <div className="flex gap-6">
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
 
       {/* ── Study Raids ── */}
       {activeTab === 'raids' && (
@@ -289,6 +301,17 @@ const SocialHubPage = () => {
           ))}
         </div>
       )}
+
+        </div>{/* end main content */}
+
+        {/* Friends Sidebar */}
+        <div className="hidden lg:block w-72 shrink-0">
+          <FriendsList onAddFriend={() => setShowAddFriend(true)} />
+        </div>
+      </div>{/* end two-column */}
+
+      {/* Add Friend Modal */}
+      <AddFriendModal isOpen={showAddFriend} onClose={() => setShowAddFriend(false)} />
     </div>
   );
 };

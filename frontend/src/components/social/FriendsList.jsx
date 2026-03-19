@@ -1,0 +1,250 @@
+import React, { useState } from 'react';
+import { Swords, Users, MessageSquare, MoreHorizontal, Search } from 'lucide-react';
+import Avatar from '../ui/Avatar';
+import Badge from '../ui/Badge';
+
+// Demo friends data
+const demoFriends = [
+  { id: 1, name: 'Budi Santoso', username: 'budi_s', online: true, studying: 'Data Structures', level: 24, rank: 'Scholar' },
+  { id: 2, name: 'Siti Rahma', username: 'siti_r', online: true, studying: 'Organic Chemistry', level: 31, rank: 'Researcher' },
+  { id: 3, name: 'Arief Wicaksono', username: 'arief_w', online: true, studying: null, level: 18, rank: 'Learner' },
+  { id: 4, name: 'Maya Putri', username: 'maya_p', online: false, lastSeen: '2h ago', level: 35, rank: 'Expert' },
+  { id: 5, name: 'Dian Kusuma', username: 'dian_k', online: false, lastSeen: '5h ago', level: 22, rank: 'Scholar' },
+  { id: 6, name: 'Eka Pratama', username: 'eka_p', online: false, lastSeen: '1d ago', level: 15, rank: 'Learner' },
+  { id: 7, name: 'Fajar Nugroho', username: 'fajar_n', online: false, lastSeen: '2d ago', level: 28, rank: 'Scholar' },
+  { id: 8, name: 'Gita Lestari', username: 'gita_l', online: true, studying: 'Calculus II', level: 19, rank: 'Learner' },
+];
+
+const rankColors = {
+  Seedling: 'text-rank-seedling',
+  Learner: 'text-rank-learner',
+  Scholar: 'text-rank-scholar',
+  Researcher: 'text-rank-researcher',
+  Expert: 'text-rank-expert',
+  Sage: 'text-rank-sage',
+};
+
+/**
+ * Mini profile popover shown on hover
+ */
+const MiniProfilePopover = ({ friend, position = 'right' }) => {
+  const posClass = position === 'right'
+    ? 'left-full top-0 ml-2'
+    : 'right-full top-0 mr-2';
+
+  return (
+    <div className={`absolute ${posClass} z-50 w-64 pointer-events-none`}>
+      <div className="bg-dark-elevated border border-border rounded-md-drd shadow-lg-drd p-4 pointer-events-auto">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-3">
+          <Avatar name={friend.name} size="lg" online={friend.online} />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-text-primary truncate">{friend.name}</p>
+            <p className="text-caption text-text-muted">@{friend.username}</p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className={`text-caption font-medium ${rankColors[friend.rank] || 'text-text-muted'}`}>
+                Lv.{friend.level} · {friend.rank}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="mb-3 text-caption">
+          {friend.online ? (
+            friend.studying ? (
+              <div className="flex items-center gap-1.5 text-success">
+                <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
+                <span>Studying: <span className="text-text-primary font-medium">{friend.studying}</span></span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-success">
+                <span className="w-1.5 h-1.5 bg-success rounded-full" />
+                <span>Online</span>
+              </div>
+            )
+          ) : (
+            <span className="text-text-muted">Last seen {friend.lastSeen}</span>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex gap-2">
+          <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-caption font-medium text-primary-light bg-primary/10 hover:bg-primary/20 rounded-sm-drd transition-colors">
+            <Swords size={13} /> Duel
+          </button>
+          <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-caption font-medium text-secondary bg-secondary/10 hover:bg-secondary/20 rounded-sm-drd transition-colors">
+            <Users size={13} /> Raid
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Individual friend list item
+ */
+const FriendItem = ({ friend }) => {
+  const [showPopover, setShowPopover] = useState(false);
+
+  return (
+    <div
+      className="relative flex items-center gap-3 px-3 py-2.5 rounded-sm-drd hover:bg-white/[0.03] transition-colors group cursor-pointer"
+      onMouseEnter={() => setShowPopover(true)}
+      onMouseLeave={() => setShowPopover(false)}
+    >
+      <Avatar name={friend.name} size="sm" online={friend.online} />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-text-primary font-medium truncate">{friend.name}</p>
+        {friend.online && friend.studying ? (
+          <p className="text-[11px] text-success truncate">📖 {friend.studying}</p>
+        ) : friend.online ? (
+          <p className="text-[11px] text-success">Online</p>
+        ) : (
+          <p className="text-[11px] text-text-muted">{friend.lastSeen}</p>
+        )}
+      </div>
+
+      {/* Quick action on hover */}
+      <div className="hidden group-hover:flex items-center gap-1 shrink-0">
+        <button
+          className="p-1.5 text-text-muted hover:text-primary-light transition-colors rounded-sm-drd hover:bg-primary/10"
+          title="Challenge to Duel"
+        >
+          <Swords size={14} />
+        </button>
+        <button
+          className="p-1.5 text-text-muted hover:text-secondary transition-colors rounded-sm-drd hover:bg-secondary/10"
+          title="Invite to Raid"
+        >
+          <Users size={14} />
+        </button>
+      </div>
+
+      {/* Mini Profile Popover */}
+      {showPopover && <MiniProfilePopover friend={friend} />}
+    </div>
+  );
+};
+
+/**
+ * FriendsList — sidebar/collapsible panel showing all friends
+ */
+const FriendsList = ({
+  friends = demoFriends,
+  className = '',
+  collapsed = false,
+  onAddFriend,
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState('all'); // 'all' | 'online'
+
+  const onlineFriends = friends.filter((f) => f.online);
+  const offlineFriends = friends.filter((f) => !f.online);
+
+  const filteredOnline = onlineFriends.filter((f) =>
+    f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    f.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredOffline = filter === 'online'
+    ? []
+    : offlineFriends.filter((f) =>
+        f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        f.username.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+  if (collapsed) return null;
+
+  return (
+    <div className={`bg-dark-card border border-border rounded-md-drd overflow-hidden ${className}`}>
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-border-subtle">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-heading font-semibold text-text-primary flex items-center gap-2">
+            <Users size={16} className="text-text-muted" />
+            Friends
+            <span className="text-caption text-text-muted font-normal">({friends.length})</span>
+          </h3>
+          {onAddFriend && (
+            <button
+              onClick={onAddFriend}
+              className="p-1.5 text-text-muted hover:text-primary-light hover:bg-primary/10 rounded-sm-drd transition-colors"
+              title="Add Friend"
+            >
+              <Users size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Search friends..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-8 bg-dark-secondary text-text-primary text-caption rounded-sm-drd pl-8 pr-3 border border-border-subtle focus:border-primary focus:outline-none transition-colors"
+          />
+        </div>
+
+        {/* Filter */}
+        <div className="flex gap-1 mt-2">
+          {['all', 'online'].map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-2.5 py-0.5 text-[10px] font-semibold rounded-full transition-colors ${
+                filter === f
+                  ? 'bg-primary/15 text-primary-light'
+                  : 'text-text-muted hover:text-text-secondary'
+              }`}
+            >
+              {f === 'all' ? `All (${friends.length})` : `Online (${onlineFriends.length})`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Friends List */}
+      <div className="max-h-[400px] overflow-y-auto">
+        {/* Online section */}
+        {filteredOnline.length > 0 && (
+          <div>
+            <p className="px-4 py-1.5 text-overline text-success uppercase tracking-wider">
+              Online — {filteredOnline.length}
+            </p>
+            {filteredOnline.map((friend) => (
+              <FriendItem key={friend.id} friend={friend} />
+            ))}
+          </div>
+        )}
+
+        {/* Offline section */}
+        {filteredOffline.length > 0 && (
+          <div>
+            <p className="px-4 py-1.5 text-overline text-text-muted uppercase tracking-wider">
+              Offline — {filteredOffline.length}
+            </p>
+            {filteredOffline.map((friend) => (
+              <FriendItem key={friend.id} friend={friend} />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {filteredOnline.length === 0 && filteredOffline.length === 0 && (
+          <div className="text-center py-8 px-4">
+            <p className="text-2xl mb-2">👥</p>
+            <p className="text-caption text-text-muted">
+              {searchQuery ? 'No friends found' : 'No friends yet'}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default FriendsList;
