@@ -27,12 +27,12 @@ const AppRouter = () => {
           {/* Landing — Guest sees landing, authed redirects to dashboard */}
           <Route index element={<GuestRoute><LandingPage /></GuestRoute>} />
 
-          {/* Protected Routes */}
-          <Route path="dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="profile" element={<ProtectedRoute><KnowledgeProfilePage /></ProtectedRoute>} />
-          <Route path="profile/settings" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
+          {/* Protected Routes(Aslinya ada ProtectedRoute) */}
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="profile" element={<KnowledgeProfilePage />} />
+          <Route path="profile/settings" element={<ProfileSettingsPage />} />
           <Route path="social" element={<SocialHubPage />} /> {/* TODO: re-add ProtectedRoute after testing */}
-          <Route path="explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+          <Route path="explore" element={<Explore />} />
           <Route path="challenge" element={<ChallengePage />} /> {/* TODO: re-add ProtectedRoute */}
 
           {/* Public Profile (no auth required) */}

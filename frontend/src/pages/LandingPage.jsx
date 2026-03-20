@@ -45,7 +45,7 @@ const LandingPage = () => {
 
         <h1 className="text-display font-heading text-text-primary mb-4 max-w-3xl">
           <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-            AETHEREUM
+            NEXERA
           </span>
           <br />
           <span className="text-h1">Knowledge Empire</span>

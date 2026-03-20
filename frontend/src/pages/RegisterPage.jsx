@@ -64,7 +64,7 @@ const RegisterPage = () => {
             <UserPlus size={32} />
           </div>
           <h1 className="text-h1 font-heading text-text-primary mb-2">Create Profile</h1>
-          <p className="text-text-secondary">Join the Aethereum kingdom and start your journey</p>
+          <p className="text-text-secondary">Join the Nexera kingdom and start your journey</p>
         </div>
 
         <Card>

@@ -78,7 +78,7 @@ const SocialHubPage = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-1 border-b border-border mb-6 overflow-x-auto">
+      <div className="flex gap-1 border-b border-border mb-6 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -308,7 +308,7 @@ const SocialHubPage = () => {
         </div>{/* end main content */}
 
         {/* Friends Sidebar */}
-        <div className="hidden lg:block w-72 shrink-0">
+        <div className="hidden lg:block w-72 shrink-0 overflow-hidden">
           <FriendsList onAddFriend={() => setShowAddFriend(true)} />
         </div>
       </div>{/* end two-column */}
