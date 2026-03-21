@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
-import KnowledgeCard from "../profile/KnowledgeCard";
+import KnowledgeCard, { tierConfig } from "../profile/KnowledgeCard";
 
 /**
  * SessionComplete — Reward / completion screen after finishing all sections.
@@ -33,6 +33,9 @@ import KnowledgeCard from "../profile/KnowledgeCard";
  */
 
 const celebrationEasing = [0.34, 1.56, 0.64, 1];
+
+/* ─── Tier suspense order for the cycling animation ─── */
+const TIER_CYCLE = ["bronze", "silver", "gold", "diamond"];
 
 const AnimatedCounter = ({
     value,
@@ -64,6 +67,105 @@ const AnimatedCounter = ({
     );
 };
 
+/**
+ * TierSuspenseReveal — Cycles through tiers with increasing speed, then reveals actual tier.
+ * Builds suspense: Bronze? → Silver? → Gold? → Diamond? → ACTUAL TIER!
+ */
+const TierSuspenseReveal = ({ actualTier, onRevealComplete }) => {
+    const [cycleIdx, setCycleIdx] = useState(0);
+    const [revealed, setRevealed] = useState(false);
+    const [cycling, setCycling] = useState(true);
+
+    useEffect(() => {
+        if (!cycling) return;
+
+        // Cycle through tiers 2-3 full passes with decreasing interval
+        const totalCycles =
+            TIER_CYCLE.length * 2 + TIER_CYCLE.indexOf(actualTier);
+        let current = 0;
+        let baseInterval = 200;
+
+        const tick = () => {
+            current++;
+            setCycleIdx(current % TIER_CYCLE.length);
+
+            if (current >= totalCycles) {
+                // Stop on actual tier
+                setCycling(false);
+                setCycleIdx(TIER_CYCLE.indexOf(actualTier));
+                setTimeout(() => {
+                    setRevealed(true);
+                    onRevealComplete?.();
+                }, 400);
+                return;
+            }
+
+            // Accelerate then decelerate near the end
+            const remaining = totalCycles - current;
+            const interval =
+                remaining > 4
+                    ? baseInterval
+                    : baseInterval + (4 - remaining) * 80;
+            setTimeout(tick, interval);
+        };
+
+        const timer = setTimeout(tick, 300);
+        return () => clearTimeout(timer);
+    }, [actualTier, cycling, onRevealComplete]);
+
+    const currentTier = TIER_CYCLE[cycleIdx];
+    const config = tierConfig[currentTier] || tierConfig.bronze;
+    const tierEmoji = { bronze: "🥉", silver: "🥈", gold: "🥇", diamond: "💎" };
+    const tierLabel = {
+        bronze: "Bronze",
+        silver: "Silver",
+        gold: "Gold",
+        diamond: "Diamond",
+    };
+
+    return (
+        <motion.div
+            className="flex flex-col items-center gap-2"
+            animate={revealed ? { scale: [1, 1.15, 1] } : {}}
+            transition={{ duration: 0.6, ease: celebrationEasing }}
+        >
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={currentTier}
+                    initial={{ rotateY: 90, opacity: 0 }}
+                    animate={{ rotateY: 0, opacity: 1 }}
+                    exit={{ rotateY: -90, opacity: 0 }}
+                    transition={{ duration: cycling ? 0.12 : 0.4 }}
+                    className="text-5xl"
+                >
+                    {tierEmoji[currentTier]}
+                </motion.div>
+            </AnimatePresence>
+
+            <motion.span
+                className="text-h3 font-heading"
+                style={{ color: config.color }}
+                animate={revealed ? { scale: [1, 1.2, 1] } : {}}
+                transition={{ duration: 0.5, delay: 0.2 }}
+            >
+                {tierLabel[currentTier]}
+                {cycling ? "?" : "!"}
+            </motion.span>
+
+            {revealed && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-caption text-text-muted"
+                >
+                    Knowledge Card Earned
+                </motion.div>
+            )}
+        </motion.div>
+    );
+};
+
 const SessionComplete = ({
     rewards = null,
     knowledgeCard = null,
@@ -71,9 +173,10 @@ const SessionComplete = ({
     onContinueLearning,
     onShareProfile,
 }) => {
-    const [phase, setPhase] = useState("reveal"); // 'reveal' | 'card' | 'rewards'
+    const [phase, setPhase] = useState("suspense"); // 'suspense' | 'card' | 'rewards'
     const [showCard, setShowCard] = useState(false);
     const [showRewards, setShowRewards] = useState(false);
+    const [tierRevealed, setTierRevealed] = useState(false);
 
     const xpBreakdown = rewards?.xp_breakdown || [];
     const totalXP =
@@ -85,21 +188,18 @@ const SessionComplete = ({
     const cardData = knowledgeCard || {};
     const tier = cardData.tier || "bronze";
 
-    // Phase progression
-    useEffect(() => {
-        const t1 = setTimeout(() => {
+    // Phase: after tier suspense reveals → show card → show rewards
+    const handleTierRevealed = () => {
+        setTierRevealed(true);
+        setTimeout(() => {
             setShowCard(true);
             setPhase("card");
-        }, 800);
-        const t2 = setTimeout(() => {
+        }, 600);
+        setTimeout(() => {
             setShowRewards(true);
             setPhase("rewards");
-        }, 2200);
-        return () => {
-            clearTimeout(t1);
-            clearTimeout(t2);
-        };
-    }, []);
+        }, 2000);
+    };
 
     const tierEmoji = { bronze: "🥉", silver: "🥈", gold: "🥇", diamond: "💎" };
     const tierLabel = {
@@ -171,7 +271,22 @@ const SessionComplete = ({
                     </p>
                 </motion.div>
 
-                {/* Card reveal */}
+                {/* Tier suspense cycling reveal (DRD §7.6 — build suspense) */}
+                {!tierRevealed && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8, duration: 0.5 }}
+                        className="mb-8"
+                    >
+                        <TierSuspenseReveal
+                            actualTier={tier}
+                            onRevealComplete={handleTierRevealed}
+                        />
+                    </motion.div>
+                )}
+
+                {/* Card reveal (flips in after tier reveal) */}
                 <AnimatePresence>
                     {showCard && (
                         <motion.div

@@ -445,33 +445,33 @@
 
 ### 5.4 Frontend — Knowledge Cards `abi dan christian`
 
-- [ ] Build `KnowledgeCard` component (semua variants)
-    - [ ] **Bronze:** amber border, no glow
-    - [ ] **Silver:** gray border, subtle silver glow
-    - [ ] **Gold:** yellow border, animated shimmer glow (CSS keyframe)
-    - [ ] **Diamond:** gradient border (purple/blue/pink), sparkle particles (CSS)
-    - [ ] Card contents: subject icon, title, category, mastery %, tier badge, quiz/focus/time stats
-    - [ ] Hover: scale-105, deeper glow
-    - [ ] Click: expand to full card detail modal
-- [ ] Build `KnowledgeCardGrid` — 2/3/6 column responsive grid
-    - [ ] Pin card interaction (drag to pin, or context menu)
-    - [ ] Pin indicator (📌 icon on pinned cards)
-    - [ ] "View All" pagination / infinite scroll
-- [ ] Build `CardDetailModal`
-    - [ ] Full card info
-    - [ ] Full summary text
-    - [ ] Keywords chips
-    - [ ] Timeline (created date, last reviewed)
-    - [ ] "Review This Material" button (restart session)
-    - [ ] Like button + count
-- [ ] Build `SessionCompleteScreen` (reward display setelah session selesai)
-    - [ ] Animated card reveal (card flips in from nothing)
-    - [ ] Card tier reveal animation (Bronze → Silver → Gold → Diamond suspense)
-    - [ ] XP breakdown display
-    - [ ] Coins earned
-    - [ ] New achievements (jika ada)
-    - [ ] Streak update
-    - [ ] CTAs: "Share Profile" / "Continue Learning" / "View Profile"
+- [x] Build `KnowledgeCard` component (semua variants)
+    - [x] **Bronze:** amber border, no glow
+    - [x] **Silver:** gray border, subtle silver glow
+    - [x] **Gold:** yellow border, animated shimmer glow (CSS keyframe)
+    - [x] **Diamond:** gradient border (purple/blue/pink), sparkle particles (CSS)
+    - [x] Card contents: subject icon, title, category, mastery %, tier badge, quiz/focus/time stats
+    - [x] Hover: scale-105, deeper glow
+    - [x] Click: expand to full card detail modal
+- [x] Build `KnowledgeCardGrid` — 2/3/6 column responsive grid
+    - [x] Pin card interaction (drag to pin, or context menu)
+    - [x] Pin indicator (📌 icon on pinned cards)
+    - [x] "View All" pagination / infinite scroll
+- [x] Build `CardDetailModal`
+    - [x] Full card info
+    - [x] Full summary text
+    - [x] Keywords chips
+    - [x] Timeline (created date, last reviewed)
+    - [x] "Review This Material" button (restart session)
+    - [x] Like button + count
+- [x] Build `SessionCompleteScreen` (reward display setelah session selesai)
+    - [x] Animated card reveal (card flips in from nothing)
+    - [x] Card tier reveal animation (Bronze → Silver → Gold → Diamond suspense)
+    - [x] XP breakdown display
+    - [x] Coins earned
+    - [x] New achievements (jika ada)
+    - [x] Streak update
+    - [x] CTAs: "Share Profile" / "Continue Learning" / "View Profile"
 
 ### 5.5 Frontend — Streak System `christian`
 

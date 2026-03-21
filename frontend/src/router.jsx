@@ -91,13 +91,13 @@ const AppRouter = () => {
                     <Route path="*" element={<NotFound />} />
                 </Route>
 
-                {/* Document Dungeon — full-screen, outside App layout */}
+                {/* Document Dungeon — full-screen, outside App layout (aslinya ada protected route)*/}
                 <Route
                     path="learn/:materialId"
                     element={
-                        <ProtectedRoute>
+                        // <ProtectedRoute>
                             <DocumentDungeonPage />
-                        </ProtectedRoute>
+                        // </ProtectedRoute>
                     }
                 />
             </Routes>
