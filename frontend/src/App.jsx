@@ -40,7 +40,7 @@ function App() {
       )}
 
       {/* ── Main Column ── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto" style={{ overscrollBehaviorY: 'none' }}>
         {/* ── Top Bar ── */}
         <header className="h-16 bg-dark-secondary border-b border-border-subtle sticky top-0 z-10 shrink-0">
           <div className="h-full flex items-center justify-between px-4 lg:px-8">

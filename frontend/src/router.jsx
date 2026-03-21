@@ -30,7 +30,7 @@ const AppRouter = () => {
           {/* Protected Routes(Aslinya ada ProtectedRoute) */}
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="profile" element={<KnowledgeProfilePage />} />
-          <Route path="profile/settings" element={<ProfileSettingsPage />} />
+          <Route path="settings" element={<ProfileSettingsPage />} />
           <Route path="social" element={<SocialHubPage />} /> {/* TODO: re-add ProtectedRoute after testing */}
           <Route path="explore" element={<Explore />} />
           <Route path="challenge" element={<ChallengePage />} /> {/* TODO: re-add ProtectedRoute */}

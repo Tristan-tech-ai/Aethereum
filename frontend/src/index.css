@@ -19,6 +19,10 @@
     --heatmap-gap: 3px;
 }
 
+html, body {
+    overscroll-behavior: none;
+}
+
 body {
     @apply bg-dark-base text-text-primary font-body;
     margin: 0;

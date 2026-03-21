@@ -107,7 +107,7 @@ const KnowledgeProfilePage = () => {
 
             {/* Actions */}
             <div className="flex gap-3 flex-wrap">
-              <Link to="/profile/settings">
+              <Link to="/settings">
                 <Button variant="secondary" size="sm">
                   <Edit size={14} className="mr-1.5" /> Edit Profile
                 </Button>
@@ -115,7 +115,7 @@ const KnowledgeProfilePage = () => {
               <Button size="sm">
                 <Share2 size={14} className="mr-1.5" /> Share Profile
               </Button>
-              <Link to="/profile/settings">
+              <Link to="/settings">
                 <Button variant="ghost" size="sm">
                   <Settings size={14} />
                 </Button>

@@ -17,7 +17,6 @@ const navItems = [
   { to: '/explore', label: 'Explore', icon: Compass },
   { to: '/challenge', label: 'Challenge', icon: Swords },
   { to: '/library', label: 'Library', icon: BookOpen },
-  { to: '/profile/settings', label: 'Settings', icon: Settings },
 ];
 
 const Sidebar = ({ open, onClose }) => {
@@ -60,11 +59,12 @@ const Sidebar = ({ open, onClose }) => {
         </div>
 
         {/* Nav Links */}
-        <nav className="py-4 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
+              end={item.to === '/profile'}
               onClick={onClose}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-md-drd text-sm font-medium transition-all duration-fast ${
@@ -79,6 +79,24 @@ const Sidebar = ({ open, onClose }) => {
             </NavLink>
           ))}
         </nav>
+
+        {/* Settings — pinned to bottom */}
+        <div className="px-3 py-4 border-t border-border-subtle shrink-0">
+          <NavLink
+            to="/settings"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-md-drd text-sm font-medium transition-all duration-fast ${
+                isActive
+                  ? 'bg-primary/15 text-primary-light shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-white/[0.04]'
+              }`
+            }
+          >
+            <Settings size={18} />
+            <span>Settings</span>
+          </NavLink>
+        </div>
       </aside>
     </>
   );
