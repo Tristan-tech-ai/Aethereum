@@ -13,18 +13,9 @@ import SocialHubPage from "./pages/SocialHubPage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import ChallengePage from "./pages/ChallengePage";
 import ContentLibraryPage from "./pages/ContentLibraryPage";
+import ExplorePage from "./pages/ExplorePage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import GuestRoute from "./components/auth/GuestRoute";
-
-// Placeholder
-const Explore = () => (
-    <div className="p-8">
-        <h1 className="text-h2 font-heading text-text-primary">Explore</h1>
-        <p className="text-text-secondary mt-2">
-            Discover new learning materials and trending learners.
-        </p>
-    </div>
-);
 const NotFound = () => (
     <div className="p-8 text-center mt-20">
         <h1 className="text-h1 font-heading text-text-primary mb-2">404</h1>
@@ -53,7 +44,7 @@ const AppRouter = () => {
                     <Route path="social" element={<SocialHubPage />} />{" "}
                     {/* TODO: re-add ProtectedRoute after testing */}
                     <Route path="library" element={<ContentLibraryPage />} />
-                    <Route path="explore" element={<Explore />} />
+                    <Route path="explore" element={<ExplorePage />} />
                     <Route path="challenge" element={<ChallengePage />} />{" "}
                     {/* TODO: re-add ProtectedRoute */}
                     {/* Public Profile (no auth required) */}
@@ -96,7 +87,7 @@ const AppRouter = () => {
                     path="learn/:materialId"
                     element={
                         // <ProtectedRoute>
-                            <DocumentDungeonPage />
+                        <DocumentDungeonPage />
                         // </ProtectedRoute>
                     }
                 />

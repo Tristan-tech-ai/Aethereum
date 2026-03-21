@@ -575,16 +575,16 @@
 
 ### 7.2 Frontend — Explore Page `abi dan christian`
 
-- [ ] Build `ExplorePage`
-    - [ ] **Trending Learners** section — top 10 cards dengan XP earned this week
-    - [ ] **Rising Stars** section — new users, animated growth indicator
-    - [ ] **Hall of Sages** — showcase of elite users
-    - [ ] **Top by Subject** — tabs per subject dengan top 5 learners
-    - [ ] Search bar → navigate ke search results
-- [ ] Build `UserMiniCard` — compact user preview (avatar, username, level, rank, top subject)
-    - [ ] "Add Friend" button
-    - [ ] "Challenge to Duel" button
-    - [ ] Click → navigate to public profile
+- [✅] Build `ExplorePage`
+    - [✅] **Trending Learners** section — top 10 cards dengan XP earned this week
+    - [✅] **Rising Stars** section — new users, animated growth indicator
+    - [✅] **Hall of Sages** — showcase of elite users
+    - [✅] **Top by Subject** — tabs per subject dengan top 5 learners
+    - [✅] Search bar → navigate ke search results
+- [✅] Build `UserMiniCard` — compact user preview (avatar, username, level, rank, top subject)
+    - [✅] "Add Friend" button
+    - [✅] "Challenge to Duel" button
+    - [✅] Click → navigate to public profile
 
 ### 7.3 Frontend — Community Feed `christian`
 
