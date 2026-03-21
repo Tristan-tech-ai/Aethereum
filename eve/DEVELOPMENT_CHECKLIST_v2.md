@@ -475,16 +475,16 @@
 
 ### 5.5 Frontend — Streak System `christian`
 
-- [ ] Build `StreakDisplay` component
-    - [ ] Flame icon 🔥 + streak number
-    - [ ] Streak status: active / at-risk (belajar hari ini?) / broken
-    - [ ] Weekly goal progress bar (X/5 days this week)
-    - [ ] Streak freeze button (jika tersedia)
-- [ ] Build `StreakMilestoneModal` — celebration saat 7/30/90/365 hari
-    - [ ] Achievement badge reveal
-    - [ ] Coins reward display
-    - [ ] "Share your streak!" CTA
-- [ ] Streak reminder logic: jika belum belajar hari ini, tampilkan warning di navbar
+- [✅] Build `StreakDisplay` component
+    - [✅] Flame icon 🔥 + streak number
+    - [✅] Streak status: active / at-risk (belajar hari ini?) / broken
+    - [✅] Weekly goal progress bar (X/5 days this week)
+    - [✅] Streak freeze button (jika tersedia)
+- [✅] Build `StreakMilestoneModal` — celebration saat 7/30/90/365 hari
+    - [✅] Achievement badge reveal
+    - [✅] Coins reward display
+    - [✅] "Share your streak!" CTA
+- [✅] Streak reminder logic: jika belum belajar hari ini, tampilkan warning di navbar
 
 ### 5.6 Frontend — Achievement Badges `abi`
 
