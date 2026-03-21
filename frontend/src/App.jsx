@@ -120,13 +120,16 @@ function App() {
                                     compact
                                 />
 
-                                {/* Notifications */}
-                                <button
+                                {/* Notifications — feed dot */}
+                                <Link
+                                    to="/social"
                                     className="relative p-2 text-text-muted hover:text-text-primary transition-colors duration-fast"
                                     title="Notifications"
                                 >
                                     <Bell size={18} />
-                                </button>
+                                    {/* Unread feed dot */}
+                                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full ring-2 ring-dark-secondary" />
+                                </Link>
 
                                 {/* Friend Requests */}
                                 <FriendRequestNotification />

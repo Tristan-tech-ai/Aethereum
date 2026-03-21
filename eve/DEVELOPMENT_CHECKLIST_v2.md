@@ -588,18 +588,18 @@
 
 ### 7.3 Frontend — Community Feed `christian`
 
-- [ ] Build `CommunityFeed` component (used in Social Hub page)
-    - [ ] Feed timeline (reverse chrono)
-    - [ ] Per event type: custom icon + message template
-        - [ ] 🎓 Rank-up event
-        - [ ] 🏅 Achievement unlocked event
-        - [ ] 🔥 Streak milestone event
-        - [ ] ⚔️ Raid completed event
-        - [ ] 🎯 Challenge contributed event
-        - [ ] 💎 Diamond card earned event
-    - [ ] Like button per event (❤️ + count)
-    - [ ] Load more / infinite scroll
-- [ ] Feed notification dot di navbar jika ada unread events
+- [✅] Build `CommunityFeed` component (used in Social Hub page)
+    - [✅] Feed timeline (reverse chrono)
+    - [✅] Per event type: custom icon + message template
+        - [✅] 🎓 Rank-up event
+        - [✅] 🏅 Achievement unlocked event
+        - [✅] 🔥 Streak milestone event
+        - [✅] ⚔️ Raid completed event
+        - [✅] 🎯 Challenge contributed event
+        - [✅] 💎 Diamond card earned event
+    - [✅] Like button per event (❤️ + count)
+    - [✅] Load more / infinite scroll
+- [✅] Feed notification dot di navbar jika ada unread events
 
 ### 7.4 Frontend — Friends System `abi`
 
