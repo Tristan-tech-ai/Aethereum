@@ -353,33 +353,33 @@
 
 ### 4.3 Frontend — Document Dungeon Flow `christian dan abi`
 
-- [ ] Build **Quest Map** component
-    - [ ] Visual section layout (5–7 sections sebagai nodes)
-    - [ ] Section states: locked / current / completed
-    - [ ] Progress bar (sections completed / total)
-    - [ ] Section click → enter reading interface
-- [ ] Build **Reading Interface** component
-    - [ ] Clean markdown rendering (`react-markdown`)
-    - [ ] Focus timer display (countdown / countup)
-    - [ ] Focus health indicator (3 hearts — lose 1 per tab switch)
-    - [ ] Tab switch detection (`visibilitychange` event)
-    - [ ] Warning overlay on distraction
-    - [ ] "I'm Done Reading" button (visible after min reading time)
-    - [ ] Send focus events to backend periodically (every 30s)
-- [ ] Build **Quiz / Guardian Battle** component
-    - [ ] Question display dengan multiple choice options
-    - [ ] Question navigation (1/5, 2/5...)
-    - [ ] Timer per question (2 min)
-    - [ ] Answer selection dengan visual feedback
-    - [ ] Submit quiz → show results (pass/fail animation)
-    - [ ] Detailed feedback per wrong answer
-    - [ ] Retry button jika fail (cooldown 5 min)
-- [ ] Build **Summary Creation** component
-    - [ ] Textarea (min 100 chars)
-    - [ ] "Check with AI" button → AI feedback (completeness, accuracy, clarity)
-    - [ ] Missing concepts list
-    - [ ] "Submit & Complete" button (only jika AI approved)
-- [ ] Build **Session Complete / Reward** screen (see Phase 5.4)
+- [x] Build **Quest Map** component
+    - [x] Visual section layout (5–7 sections sebagai nodes)
+    - [x] Section states: locked / current / completed
+    - [x] Progress bar (sections completed / total)
+    - [x] Section click → enter reading interface
+- [x] Build **Reading Interface** component
+    - [x] Clean markdown rendering (`react-markdown`)
+    - [x] Focus timer display (countdown / countup)
+    - [x] Focus health indicator (3 hearts — lose 1 per tab switch)
+    - [x] Tab switch detection (`visibilitychange` event)
+    - [x] Warning overlay on distraction
+    - [x] "I'm Done Reading" button (visible after min reading time)
+    - [x] Send focus events to backend periodically (every 30s)
+- [x] Build **Quiz / Guardian Battle** component
+    - [x] Question display dengan multiple choice options
+    - [x] Question navigation (1/5, 2/5...)
+    - [x] Timer per question (2 min)
+    - [x] Answer selection dengan visual feedback
+    - [x] Submit quiz → show results (pass/fail animation)
+    - [x] Detailed feedback per wrong answer
+    - [x] Retry button jika fail (cooldown 5 min)
+- [x] Build **Summary Creation** component
+    - [x] Textarea (min 100 chars)
+    - [x] "Check with AI" button → AI feedback (completeness, accuracy, clarity)
+    - [x] Missing concepts list
+    - [x] "Submit & Complete" button (only jika AI approved)
+- [x] Build **Session Complete / Reward** screen (see Phase 5.4)
 
 ---
 
