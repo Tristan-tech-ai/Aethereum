@@ -427,21 +427,21 @@
 
 ### 5.3 Frontend — XP & Level System `christian`
 
-- [ ] Build `LevelBadge` component
-    - [ ] Circular progress ring (CSS or SVG)
-    - [ ] Current level number di tengah
-    - [ ] Rank name dan rank color sesuai level
-    - [ ] XP progress bar (current / next level)
-    - [ ] Rank icon (emoji) displayed prominently
-- [ ] Build `XPNotification` — animated popup saat XP diterima
-    - [ ] "+20 XP — Section Complete!"
-    - [ ] Floating animation, auto-dismiss 3s
-- [ ] Build `LevelUpCelebration` — full-screen animation saat level naik
-    - [ ] Confetti / particle burst (Framer Motion)
-    - [ ] New level number displayed
-    - [ ] Rank-up announcement jika rank berubah
-- [ ] Build `XPHistoryChart` — line chart (Recharts) XP per hari, 30/90 hari
-- [ ] Hook `useXPSystem` — real-time XP tracking, optimistic updates
+- [x] Build `LevelBadge` component
+    - [x] Circular progress ring (CSS or SVG)
+    - [x] Current level number di tengah
+    - [x] Rank name dan rank color sesuai level
+    - [x] XP progress bar (current / next level)
+    - [x] Rank icon (emoji) displayed prominently
+- [x] Build `XPNotification` — animated popup saat XP diterima
+    - [x] "+20 XP — Section Complete!"
+    - [x] Floating animation, auto-dismiss 3s
+- [x] Build `LevelUpCelebration` — full-screen animation saat level naik
+    - [x] Confetti / particle burst (Framer Motion)
+    - [x] New level number displayed
+    - [x] Rank-up announcement jika rank berubah
+- [x] Build `XPHistoryChart` — line chart (Recharts) XP per hari, 30/90 hari
+- [x] Hook `useXPSystem` — real-time XP tracking, optimistic updates
 
 ### 5.4 Frontend — Knowledge Cards `abi dan christian`
 
