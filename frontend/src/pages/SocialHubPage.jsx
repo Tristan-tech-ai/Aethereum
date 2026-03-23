@@ -22,6 +22,10 @@ import DuelResults from "../components/social/DuelResults";
 import StudyRoomBrowser from "../components/social/StudyRoomBrowser";
 import StudyRoomView from "../components/social/StudyRoomView";
 import CommunityFeed from "../components/social/CommunityFeed";
+import CreateRaidModal from "../components/social/CreateRaidModal";
+import RaidLobby from "../components/social/RaidLobby";
+import RaidInProgress from "../components/social/RaidInProgress";
+import RaidComplete from "../components/social/RaidComplete";
 
 const tabs = [
     { key: "raids", label: "⚔️ Study Raids", icon: Swords },
@@ -140,6 +144,11 @@ const SocialHubPage = () => {
     const [roomPhase, setRoomPhase] = useState("browse"); // 'browse' | 'inRoom'
     const [activeRoom, setActiveRoom] = useState(null);
 
+    // ── Study Raid state machine ──
+    const [showCreateRaid, setShowCreateRaid] = useState(false);
+    const [raidPhase, setRaidPhase] = useState("browse"); // 'browse' | 'lobby' | 'inProgress' | 'complete'
+    const [activeRaid, setActiveRaid] = useState(null);
+
     return (
         <div className="px-4 lg:px-8 py-6 max-w-page mx-auto">
             {/* Header */}
@@ -185,131 +194,202 @@ const SocialHubPage = () => {
                     {/* ── Study Raids ── */}
                     {activeTab === "raids" && (
                         <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-h3 font-heading text-text-primary">
-                                    Active Raids
-                                </h2>
-                                <Button>
-                                    <Plus size={16} className="mr-1.5" /> Create
-                                    Raid
-                                </Button>
-                            </div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                {activeRaids.map((raid) => (
-                                    <Card key={raid.id} hover>
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div>
-                                                <h4 className="text-sm font-semibold text-text-primary">
-                                                    {raid.title}
-                                                </h4>
-                                                <p className="text-caption text-text-muted">
-                                                    by @{raid.host} ·{" "}
-                                                    {raid.subject}
-                                                </p>
-                                            </div>
-                                            {raid.players.length >= raid.max ? (
-                                                <Badge variant="danger">
-                                                    FULL
-                                                </Badge>
-                                            ) : (
-                                                <Badge variant="success">
-                                                    OPEN
-                                                </Badge>
-                                            )}
-                                        </div>
-
-                                        {/* Avatars */}
-                                        <div className="flex items-center gap-1 mb-3">
-                                            {raid.players.map((p, i) => (
-                                                <Avatar
-                                                    key={i}
-                                                    name={p}
-                                                    size="xs"
-                                                />
-                                            ))}
-                                            <span className="text-caption text-text-muted ml-1">
-                                                {raid.players.length}/{raid.max}
-                                            </span>
-                                        </div>
-
-                                        {/* Progress */}
-                                        <div className="mb-3">
-                                            <div className="flex justify-between text-caption mb-1">
-                                                <span className="text-text-muted">
-                                                    Team Progress
-                                                </span>
-                                                <span className="text-text-secondary">
-                                                    {raid.progress}%
-                                                </span>
-                                            </div>
-                                            <div className="w-full h-2 bg-dark-secondary rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
-                                                    style={{
-                                                        width: `${raid.progress}%`,
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-
+                            {raidPhase === "browse" && (
+                                <>
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-h3 font-heading text-text-primary">
+                                            Active Raids
+                                        </h2>
                                         <Button
-                                            variant={
-                                                raid.players.length >= raid.max
-                                                    ? "ghost"
-                                                    : "secondary"
-                                            }
-                                            size="sm"
-                                            className="w-full"
-                                            disabled={
-                                                raid.players.length >= raid.max
+                                            onClick={() =>
+                                                setShowCreateRaid(true)
                                             }
                                         >
-                                            {raid.players.length >= raid.max
-                                                ? "Full"
-                                                : "Join Raid"}
+                                            <Plus
+                                                size={16}
+                                                className="mr-1.5"
+                                            />{" "}
+                                            Create Raid
                                         </Button>
-                                    </Card>
-                                ))}
-                            </div>
+                                    </div>
 
-                            {/* Past Raids */}
-                            <div>
-                                <h3 className="text-h4 font-heading text-text-primary mb-3">
-                                    Past Raids
-                                </h3>
-                                <Card>
-                                    <div className="space-y-0">
-                                        {pastRaids.map((r) => (
-                                            <div
-                                                key={r.id}
-                                                className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0"
-                                            >
-                                                <span className="text-sm text-text-primary">
-                                                    {r.title}
-                                                </span>
-                                                <div className="flex items-center gap-4">
-                                                    <Badge
-                                                        variant={
-                                                            r.teamScore >= 90
-                                                                ? "success"
-                                                                : "primary"
-                                                        }
-                                                    >
-                                                        {r.teamScore}%
-                                                    </Badge>
-                                                    <span className="text-caption text-success font-semibold">
-                                                        {r.xp}
-                                                    </span>
-                                                    <span className="text-caption text-text-muted">
-                                                        {r.date}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        {activeRaids.map((raid) => (
+                                            <Card key={raid.id} hover>
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div>
+                                                        <h4 className="text-sm font-semibold text-text-primary">
+                                                            {raid.title}
+                                                        </h4>
+                                                        <p className="text-caption text-text-muted">
+                                                            by @{raid.host} ·{" "}
+                                                            {raid.subject}
+                                                        </p>
+                                                    </div>
+                                                    {raid.players.length >=
+                                                    raid.max ? (
+                                                        <Badge variant="danger">
+                                                            FULL
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="success">
+                                                            OPEN
+                                                        </Badge>
+                                                    )}
+                                                </div>
+
+                                                {/* Avatars */}
+                                                <div className="flex items-center gap-1 mb-3">
+                                                    {raid.players.map(
+                                                        (p, i) => (
+                                                            <Avatar
+                                                                key={i}
+                                                                name={p}
+                                                                size="xs"
+                                                            />
+                                                        ),
+                                                    )}
+                                                    <span className="text-caption text-text-muted ml-1">
+                                                        {raid.players.length}/
+                                                        {raid.max}
                                                     </span>
                                                 </div>
-                                            </div>
+
+                                                {/* Progress */}
+                                                <div className="mb-3">
+                                                    <div className="flex justify-between text-caption mb-1">
+                                                        <span className="text-text-muted">
+                                                            Team Progress
+                                                        </span>
+                                                        <span className="text-text-secondary">
+                                                            {raid.progress}%
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full h-2 bg-dark-secondary rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+                                                            style={{
+                                                                width: `${raid.progress}%`,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <Button
+                                                    variant={
+                                                        raid.players.length >=
+                                                        raid.max
+                                                            ? "ghost"
+                                                            : "secondary"
+                                                    }
+                                                    size="sm"
+                                                    className="w-full"
+                                                    disabled={
+                                                        raid.players.length >=
+                                                        raid.max
+                                                    }
+                                                    onClick={() => {
+                                                        if (
+                                                            raid.players
+                                                                .length <
+                                                            raid.max
+                                                        ) {
+                                                            setActiveRaid({
+                                                                inviteCode:
+                                                                    "RAID" +
+                                                                    raid.id,
+                                                                contentTitle:
+                                                                    raid.title,
+                                                                contentSubject:
+                                                                    raid.subject,
+                                                                maxParticipants:
+                                                                    raid.max,
+                                                            });
+                                                            setRaidPhase(
+                                                                "lobby",
+                                                            );
+                                                        }
+                                                    }}
+                                                >
+                                                    {raid.players.length >=
+                                                    raid.max
+                                                        ? "Full"
+                                                        : "Join Raid"}
+                                                </Button>
+                                            </Card>
                                         ))}
                                     </div>
-                                </Card>
-                            </div>
+
+                                    {/* Past Raids */}
+                                    <div>
+                                        <h3 className="text-h4 font-heading text-text-primary mb-3">
+                                            Past Raids
+                                        </h3>
+                                        <Card>
+                                            <div className="space-y-0">
+                                                {pastRaids.map((r) => (
+                                                    <div
+                                                        key={r.id}
+                                                        className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0"
+                                                    >
+                                                        <span className="text-sm text-text-primary">
+                                                            {r.title}
+                                                        </span>
+                                                        <div className="flex items-center gap-4">
+                                                            <Badge
+                                                                variant={
+                                                                    r.teamScore >=
+                                                                    90
+                                                                        ? "success"
+                                                                        : "primary"
+                                                                }
+                                                            >
+                                                                {r.teamScore}%
+                                                            </Badge>
+                                                            <span className="text-caption text-success font-semibold">
+                                                                {r.xp}
+                                                            </span>
+                                                            <span className="text-caption text-text-muted">
+                                                                {r.date}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Card>
+                                    </div>
+                                </>
+                            )}
+
+                            {raidPhase === "lobby" && (
+                                <RaidLobby
+                                    raid={activeRaid}
+                                    isCreator={true}
+                                    onStart={() => setRaidPhase("inProgress")}
+                                    onLeave={() => {
+                                        setRaidPhase("browse");
+                                        setActiveRaid(null);
+                                    }}
+                                />
+                            )}
+
+                            {raidPhase === "inProgress" && (
+                                <RaidInProgress
+                                    raid={activeRaid}
+                                    onComplete={() => setRaidPhase("complete")}
+                                />
+                            )}
+
+                            {raidPhase === "complete" && (
+                                <RaidComplete
+                                    contentTitle={activeRaid?.contentTitle}
+                                    onClose={() => {
+                                        setRaidPhase("browse");
+                                        setActiveRaid(null);
+                                    }}
+                                    onPlayAgain={() => setRaidPhase("lobby")}
+                                />
+                            )}
                         </div>
                     )}
 
@@ -497,6 +577,21 @@ const SocialHubPage = () => {
                     setDuelDuration(duration);
                     setActiveTab("duels");
                     setDuelPhase("inProgress");
+                }}
+            />
+
+            {/* Create Raid Modal */}
+            <CreateRaidModal
+                isOpen={showCreateRaid}
+                onClose={() => setShowCreateRaid(false)}
+                onCreateRaid={({ content, maxParticipants, inviteCode }) => {
+                    setActiveRaid({
+                        inviteCode,
+                        contentTitle: content?.title || "Study Raid",
+                        contentSubject: content?.subject_category || "General",
+                        maxParticipants,
+                    });
+                    setRaidPhase("lobby");
                 }}
             />
         </div>

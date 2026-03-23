@@ -652,22 +652,22 @@
 
 ### 8.3 Frontend — Study Raid UI `christian`
 
-- [ ] Build `CreateRaidModal`
+- [✅] Build `CreateRaidModal`
     - [ ] Select content dari library
     - [ ] Set max participants (2–5)
     - [ ] Copy invite code / share link
-- [ ] Build `RaidLobby`
+- [✅] Build `RaidLobby`
     - [ ] List of participants dengan avatar + status
     - [ ] "Start Raid" button (creator, min 2 players)
     - [ ] Invite code display (copyable)
     - [ ] Leave button
-- [ ] Build `RaidInProgress` view
+- [✅] Build `RaidInProgress` view
     - [ ] **Shared progress bar** (team % completion)
     - [ ] **Individual progress per member** (nama + %)
     - [ ] Team chat sidebar (text only, persistent)
     - [ ] Timer (jika ada duration limit)
     - [ ] My learning content embedded (same reading interface as Document Dungeon)
-- [ ] Build `RaidComplete` screen
+- [✅] Build `RaidComplete` screen
     - [ ] Team score display
     - [ ] Individual scores + XP earned
     - [ ] Achievement check (>90% team score)
