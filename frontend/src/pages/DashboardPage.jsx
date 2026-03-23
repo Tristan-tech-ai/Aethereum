@@ -11,6 +11,7 @@ import KnowledgeCard from "../components/profile/KnowledgeCard";
 import LevelBadge from "../components/profile/LevelBadge";
 import StreakDisplay from "../components/profile/StreakDisplay";
 import ContentUploadModal from "../components/learning/ContentUploadModal";
+import HeroBanner from "../components/dashboard/HeroBanner";
 
 // Demo data
 const continueCards = [
@@ -113,6 +114,9 @@ const DashboardPage = () => {
 
     return (
         <div className="px-4 lg:px-8 py-6 space-y-8 max-w-page mx-auto">
+            {/* Hero Banner */}
+            <HeroBanner />
+
             {/* Welcome Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
