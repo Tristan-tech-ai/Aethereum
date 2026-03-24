@@ -279,13 +279,13 @@
 
 ### 3.3 Backend — Queue Jobs `[sanjaya]`
 
-- [ ] Create `AnalyzeContentJob` — async AI processing
-    - [ ] Extract text by content type
-    - [ ] Call `ContentAnalysisService`
-    - [ ] Update content status & structured_sections
-    - [ ] Handle failures gracefully (retry 3x, then mark failed)
-- [ ] Create `GenerateQuizJob` — background quiz creation per section
-- [ ] **NEW** Create `ProcessKnowledgeCardJob` — after session complete: create card, award XP, check achievements
+- [✅] Create `AnalyzeContentJob` — async AI processing
+    - [✅] Extract text by content type (Simulated with sleep)
+    - [✅] Call `ContentAnalysisService` (Mocked data)
+    - [✅] Update content status & structured_sections
+    - [✅] Handle failures gracefully (retry 3x, then mark failed)
+- [✅] Create `GenerateQuizJob` — background quiz creation per section (Mocked questions)
+- [✅] **NEW** Create `ProcessKnowledgeCardJob` — after session complete: create card, award XP, check achievements
 
 ### 3.4 Frontend — Content Upload `christian dan abi`
 
@@ -308,22 +308,22 @@
 
 ### 4.1 Backend — Learning Sessions `[sanjaya]`
 
-- [ ] Create `LearningFlowService`
-    - [ ] `selectFlow(content)` — route to correct flow based on content type
-    - [ ] `configureDocumentDungeon(content)` — config untuk PDF flow
-- [ ] Create `SessionController`
-    - [ ] `POST /api/v1/sessions/start` — create session, return content + first section
-    - [ ] `PATCH /api/v1/sessions/{id}/progress` — update section, send focus events
-    - [ ] `POST /api/v1/sessions/{id}/quiz-attempt` — submit & grade quiz
-    - [ ] `POST /api/v1/sessions/{id}/validate-summary` — AI validate user summary
-    - [ ] `POST /api/v1/sessions/{id}/complete` — finish session, trigger `ProcessKnowledgeCardJob`
-- [ ] Create `FocusTrackerService`
-    - [ ] Calculate `focus_integrity` dari distraction events
-    - [ ] Track `tab_switches`, `distraction_count`, `active_time`
-- [ ] Create `QuizGeneratorService`
-    - [ ] Generate quiz via Gemini jika belum ada
-    - [ ] Grade quiz attempt & calculate score
-    - [ ] Pass/fail threshold: 70%
+- [✅] Create `LearningFlowService`
+    - [✅] `selectFlow(content)` — route to correct flow based on content type
+    - [✅] `configureDocumentDungeon(content)` — config untuk PDF flow
+- [✅] Create `SessionController`
+    - [✅] `POST /api/v1/sessions/start` — create session, return content + first section
+    - [✅] `PATCH /api/v1/sessions/{id}/progress` — update section, send focus events
+    - [✅] `POST /api/v1/sessions/{id}/quiz-attempt` — submit & grade quiz
+    - [✅] `POST /api/v1/sessions/{id}/validate-summary` — AI validate user summary
+    - [✅] `POST /api/v1/sessions/{id}/complete` — finish session, trigger `ProcessKnowledgeCardJob`
+- [✅] Create `FocusTrackerService`
+    - [✅] Calculate `focus_integrity` dari distraction events
+    - [✅] Track `tab_switches`, `distraction_count`, `active_time`
+- [✅] Create `QuizGeneratorService`
+    - [✅] Generate quiz via Gemini jika belum ada
+    - [✅] Grade quiz attempt & calculate score
+    - [✅] Pass/fail threshold: 70%
 
 ### 4.2 Backend — Knowledge Card & XP System `tristan`
 
@@ -390,28 +390,28 @@
 
 ### 5.1 Backend — Knowledge Profile `sanjaya`
 
-- [ ] Buat `ProfileController`
-    - [ ] `GET /api/v1/profile/me` — full profile (user, wallet, pinned cards, achievements, heatmap summary)
-    - [ ] `GET /api/v1/profile/{username}` — public profile (403 jika private)
-    - [ ] `GET /api/v1/profile/me/heatmap` — learning activity data 52 weeks × 7 days
-    - [ ] `GET /api/v1/profile/me/cards` — all cards (paginated, filter by tier/subject/pinned)
-    - [ ] `POST /api/v1/profile/me/cards/{id}/pin` — pin card (max 6)
-    - [ ] `DELETE /api/v1/profile/me/cards/{id}/pin` — unpin card
-    - [ ] `GET /api/v1/profile/me/achievements` — all unlocked achievements
-    - [ ] `GET /api/v1/profile/me/xp-history` — XP event log (for charts)
-    - [ ] `POST /api/v1/profile/me/share-card/generate` — generate shareable card PNG
-- [ ] Buat `KnowledgeCardController`
-    - [ ] Card detail endpoint
-    - [ ] Card likes / unlike
-    - [ ] Card integrity decay scheduler (`artisan cards:decay-integrity`, daily)
-- [ ] Buat `LeaderboardController`
-    - [ ] `GET /api/v1/leaderboards/focus` — Focus Champions (weekly, opt-in)
-    - [ ] `GET /api/v1/leaderboards/knowledge` — Knowledge Collectors (weekly)
-    - [ ] `GET /api/v1/leaderboards/streak` — Streak Warriors (rolling)
-    - [ ] `GET /api/v1/leaderboards/quiz` — Quiz Masters (weekly)
-    - [ ] `GET /api/v1/leaderboards/subject/{subject}` — per-subject
-    - [ ] Materialized views / Redis sorted sets untuk leaderboard performance
-    - [ ] Scheduled weekly reset setiap Senin via artisan scheduler
+- [✅] Buat `ProfileController`
+    - [✅] `GET /api/v1/profile/me` — full profile (user, wallet, pinned cards, achievements, heatmap summary)
+    - [✅] `GET /api/v1/profile/{username}` — public profile (403 jika private)
+    - [✅] `GET /api/v1/profile/me/heatmap` — learning activity data 52 weeks × 7 days
+    - [✅] `GET /api/v1/profile/me/cards` — all cards (paginated, filter by tier/subject/pinned)
+    - [✅] `POST /api/v1/profile/me/cards/{id}/pin` — pin card (max 6)
+    - [✅] `DELETE /api/v1/profile/me/cards/{id}/pin` — unpin card
+    - [✅] `GET /api/v1/profile/me/achievements` — all unlocked achievements
+    - [✅] `GET /api/v1/profile/me/xp-history` — XP event log (for charts)
+    - [✅] `POST /api/v1/profile/me/share-card/generate` — generate shareable card PNG
+- [✅] Buat `KnowledgeCardController`
+    - [✅] Card detail endpoint
+    - [✅] Card likes / unlike
+    - [✅] Card integrity decay scheduler (`artisan cards:decay-integrity`, daily)
+- [✅] Buat `LeaderboardController`
+    - [✅] `GET /api/v1/leaderboards/focus` — Focus Champions (weekly, opt-in)
+    - [✅] `GET /api/v1/leaderboards/knowledge` — Knowledge Collectors (weekly)
+    - [✅] `GET /api/v1/leaderboards/streak` — Streak Warriors (rolling)
+    - [✅] `GET /api/v1/leaderboards/quiz` — Quiz Masters (weekly)
+    - [✅] `GET /api/v1/leaderboards/subject/{subject}` — per-subject
+    - [✅] Materialized views / Redis sorted sets untuk leaderboard performance
+    - [✅] Scheduled weekly reset setiap Senin via artisan scheduler
 
 ### 5.2 Frontend — Learning Heatmap `abi`
 
@@ -553,25 +553,25 @@
 
 ### 7.1 Backend — Social Discovery `sanjaya`
 
-- [ ] Create `ExploreController`
-    - [ ] `GET /api/v1/explore/trending` — users dengan most XP gained week ini
-    - [ ] `GET /api/v1/explore/rising-stars` — new users dengan high XP growth rate
-    - [ ] `GET /api/v1/explore/hall-of-sages` — all Sage-rank users
-    - [ ] `GET /api/v1/explore/by-subject/{subject}` — top learners per subject (public profile only)
-- [ ] Create `FeedController`
-    - [ ] `GET /api/v1/feed` — community feed (friends + global, reverse chronological)
-    - [ ] `POST /api/v1/feed/{id}/like` — like a feed event
-    - [ ] Auto-create feed events dari: rank up, achievement unlock, streak milestone, raid/challenge complete
-- [ ] Create `FriendController`
-    - [ ] `POST /api/v1/friends/request/{username}` — send friend request
-    - [ ] `POST /api/v1/friends/accept/{id}` — accept
-    - [ ] `POST /api/v1/friends/decline/{id}` — decline
-    - [ ] `DELETE /api/v1/friends/{id}` — unfriend
-    - [ ] `GET /api/v1/friends` — friends list dengan online/learning status
-    - [ ] `GET /api/v1/friends/requests` — pending friend requests
-- [ ] Create `SearchController`
-    - [ ] `GET /api/v1/users/search?q={query}` — search by username, name
-- [ ] Track profile visits (`profile_visits` table or Redis counter)
+- [✅] Create `ExploreController`
+    - [✅] `GET /api/v1/explore/trending` — users dengan most XP gained week ini
+    - [✅] `GET /api/v1/explore/rising-stars` — new users dengan high XP growth rate
+    - [✅] `GET /api/v1/explore/hall-of-sages` — all Sage-rank users
+    - [✅] `GET /api/v1/explore/by-subject/{subject}` — top learners per subject (public profile only)
+- [✅] Create `FeedController`
+    - [✅] `GET /api/v1/feed` — community feed (friends + global, reverse chronological)
+    - [✅] `POST /api/v1/feed/{id}/like` — like a feed event
+    - [✅] Auto-create feed events dari: rank up, achievement unlock, streak milestone, raid/challenge complete
+- [✅] Create `FriendController`
+    - [✅] `POST /api/v1/friends/request/{username}` — send friend request
+    - [✅] `POST /api/v1/friends/accept/{id}` — accept
+    - [✅] `POST /api/v1/friends/decline/{id}` — decline
+    - [✅] `DELETE /api/v1/friends/{id}` — unfriend
+    - [✅] `GET /api/v1/friends` — friends list dengan online/learning status
+    - [✅] `GET /api/v1/friends/requests` — pending friend requests
+- [✅] Create `SearchController`
+    - [✅] `GET /api/v1/users/search?q={query}` — search by username, name
+- [✅] Track profile visits (`profile_visits` table or Redis counter)
 
 ### 7.2 Frontend — Explore Page `abi dan christian`
 

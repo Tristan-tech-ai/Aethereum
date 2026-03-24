@@ -32,7 +32,6 @@ const Modal = ({
     if (isOpen) {
       previousFocusRef.current = document.activeElement;
       document.body.style.overflow = 'hidden';
-      document.addEventListener('keydown', handleKeyDown);
 
       // Focus the modal
       setTimeout(() => modalRef.current?.focus(), 100);
@@ -43,8 +42,15 @@ const Modal = ({
 
     return () => {
       document.body.style.overflow = '';
-      document.removeEventListener('keydown', handleKeyDown);
     };
+  }, [isOpen]);
+
+  // Key event listeners
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
   }, [isOpen, handleKeyDown]);
 
   if (!isOpen) return null;

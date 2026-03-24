@@ -345,8 +345,8 @@ const CommunityFeed = () => {
                 const res = await api.get("/api/v1/feed", {
                     params: { page: pageNum, per_page: PAGE_SIZE },
                 });
-                const data = res.data?.data || res.data || [];
-                const items = Array.isArray(data) ? data : data.data || [];
+                
+                const items = res.data?.data?.feed?.data || [];
 
                 if (items.length === 0 && pageNum === 1) {
                     // Got empty from API — use demo
@@ -405,11 +405,7 @@ const CommunityFeed = () => {
     /* Handle like */
     const handleLike = async (eventId, liked) => {
         try {
-            if (liked) {
-                await api.post(`/api/v1/feed/${eventId}/like`);
-            } else {
-                await api.delete(`/api/v1/feed/${eventId}/like`);
-            }
+            await api.post(`/api/v1/feed/${eventId}/like`);
         } catch {
             // Silently fail — optimistic UI already updated
         }

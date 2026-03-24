@@ -14,44 +14,64 @@ class AnalyzeContentJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 3;
-    public int $backoff = 60;
-
-    public function __construct(
-        public LearningContent $content
-    ) {}
+    public $learningContent;
 
     /**
-     * Execute the job.
-     *
-     * Placeholder — actual AI analysis will be implemented later.
-     * For now this just marks the content as ready.
+     * Create a new job instance.
      */
-    public function handle(): void
+    public function __construct(LearningContent $learningContent)
     {
-        Log::info("AnalyzeContentJob started for content: {$this->content->id}");
-
-        // TODO: Implement actual Gemini AI analysis here.
-        // For now, mark the content as ready so the rest of the pipeline works.
-        $this->content->update([
-            'status' => 'ready',
-        ]);
-
-        Log::info("AnalyzeContentJob completed for content: {$this->content->id}");
+        $this->learningContent = $learningContent;
     }
 
     /**
-     * Handle a job failure.
+     * Execute the job.
      */
-    public function failed(\Throwable $exception): void
+    public function handle(): void
     {
-        Log::error("AnalyzeContentJob failed for content: {$this->content->id}", [
-            'error' => $exception->getMessage(),
-        ]);
+        try {
+            Log::info("AnalyzeContentJob started for Content ID: {$this->learningContent->id}");
 
-        $this->content->update([
-            'status' => 'failed',
-            'error_message' => $exception->getMessage(),
-        ]);
+            // 1. Update status to processing
+            $this->learningContent->update(['status' => 'processing']);
+
+            // 2. Simulate AI processing latency
+            sleep(3); 
+
+            // 3. Mock data representing structured sections from an LLM
+            $mockStructuredSections = [
+                [
+                    'id' => 'sec_'.uniqid(),
+                    'title' => 'Pengenalan Konsep (Mock)',
+                    'content_text' => 'Ini adalah teks bagian pengenalan. Dalam versi asli, Gemini akan membaca PDF/URL dan merangkumnya menjadi paragraf-paragraf yang mudah dicerna di sini. Bagian ini penting untuk pondasi belajar.',
+                    'estimated_minutes' => 5,
+                ],
+                [
+                    'id' => 'sec_'.uniqid(),
+                    'title' => 'Studi Kasus & Teori (Mock)',
+                    'content_text' => 'Di sini berisi studi kasus lanjutan atau teori inti dari materi. Mocking ini memastikan UI frontend sudah bisa merender array JSON sections dengan mulus.',
+                    'estimated_minutes' => 8,
+                ],
+                [
+                    'id' => 'sec_'.uniqid(),
+                    'title' => 'Kesimpulan Pendek (Mock)',
+                    'content_text' => 'Bagian penutup dari materi. Anda telah menyelesaikan sesi belajar ini.',
+                    'estimated_minutes' => 3,
+                ],
+            ];
+
+            // 4. Save mock data and set status to ready
+            $this->learningContent->update([
+                'structured_sections' => $mockStructuredSections,
+                'status' => 'ready',
+            ]);
+
+            Log::info("AnalyzeContentJob completed successfully for Content ID: {$this->learningContent->id}");
+
+        } catch (\Throwable $e) {
+            Log::error("AnalyzeContentJob failed for Content ID: {$this->learningContent->id}. Error: " . $e->getMessage());
+            $this->learningContent->update(['status' => 'failed']);
+            throw $e;
+        }
     }
 }

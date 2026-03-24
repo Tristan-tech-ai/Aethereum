@@ -301,20 +301,20 @@ const ExplorePage = () => {
 
                 setTrendingUsers(
                     trendingRes.status === "fulfilled" &&
-                        trendingRes.value?.data?.data
-                        ? trendingRes.value.data.data
+                        trendingRes.value?.data?.data?.users
+                        ? trendingRes.value.data.data.users
                         : generateTrending(),
                 );
                 setRisingStars(
                     risingRes.status === "fulfilled" &&
-                        risingRes.value?.data?.data
-                        ? risingRes.value.data.data
+                        risingRes.value?.data?.data?.users
+                        ? risingRes.value.data.data.users
                         : generateRisingStars(),
                 );
                 setSages(
                     sagesRes.status === "fulfilled" &&
-                        sagesRes.value?.data?.data
-                        ? sagesRes.value.data.data
+                        sagesRes.value?.data?.data?.users
+                        ? sagesRes.value.data.data.users
                         : generateSages(),
                 );
             } catch {
@@ -343,10 +343,10 @@ const ExplorePage = () => {
                 const res = await api.get(
                     `/api/v1/explore/by-subject/${activeSubject}`,
                 );
-                if (res.data?.data) {
+                if (res.data?.data?.users) {
                     setSubjectLeaders((prev) => ({
                         ...prev,
-                        [activeSubject]: res.data.data,
+                        [activeSubject]: res.data.data.users,
                     }));
                     return;
                 }
@@ -373,7 +373,7 @@ const ExplorePage = () => {
                 const res = await api.get(`/api/v1/users/search`, {
                     params: { q: searchQuery },
                 });
-                setSearchResults(res.data?.data || []);
+                setSearchResults(res.data?.data?.users || []);
             } catch {
                 // Demo fallback
                 const q = searchQuery.toLowerCase();

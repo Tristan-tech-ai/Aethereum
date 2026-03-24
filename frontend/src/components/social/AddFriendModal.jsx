@@ -1,20 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { Search, UserPlus, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, UserPlus, Check, Loader2 } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
-
-// Demo searchable users
-const allUsers = [
-  { id: 101, name: 'Lina Kusuma', username: 'lina_k', level: 19, rank: 'Learner', isFriend: false },
-  { id: 102, name: 'Rani Putri', username: 'rani_p', level: 27, rank: 'Scholar', isFriend: false },
-  { id: 103, name: 'Hendra Wijaya', username: 'hendra_w', level: 34, rank: 'Researcher', isFriend: false },
-  { id: 104, name: 'Dewi Sari', username: 'dewi_s', level: 12, rank: 'Seedling', isFriend: false },
-  { id: 105, name: 'Budi Santoso', username: 'budi_s', level: 24, rank: 'Scholar', isFriend: true },
-  { id: 106, name: 'Yoga Pratama', username: 'yoga_p', level: 41, rank: 'Expert', isFriend: false },
-  { id: 107, name: 'Fitri Handayani', username: 'fitri_h', level: 8, rank: 'Seedling', isFriend: false },
-  { id: 108, name: 'Reza Mahendra', username: 'reza_m', level: 29, rank: 'Scholar', isFriend: false },
-];
+import api from '../../services/api';
 
 const rankColors = {
   Seedling: 'text-rank-seedling',
@@ -33,25 +22,25 @@ const UserItem = ({ user, onSendRequest, sentIds }) => {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors">
-      <Avatar name={user.name} size="md" />
+      <Avatar name={user.name} src={user.avatar_url} size="md" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-text-primary truncate">{user.name}</p>
         <p className="text-caption text-text-muted">
-          @{user.username} · <span className={rankColors[user.rank] || 'text-text-muted'}>Lv.{user.level} {user.rank}</span>
+          @{user.username} · <span className={rankColors[user.rank?.name || 'Learner'] || 'text-text-muted'}>Lv.{user.level || 1} {user.rank?.name || 'Learner'}</span>
         </p>
       </div>
       <div className="shrink-0">
-        {user.isFriend ? (
+        {user.is_friend || user.friendship_status === 'accepted' ? (
           <span className="flex items-center gap-1 text-caption text-success font-medium px-2.5 py-1 bg-success/10 rounded-full">
             <Check size={12} /> Friends
           </span>
-        ) : isSent ? (
+        ) : isSent || user.friendship_status === 'pending' ? (
           <span className="flex items-center gap-1 text-caption text-text-muted font-medium px-2.5 py-1 bg-dark-secondary rounded-full">
             <Check size={12} /> Sent
           </span>
         ) : (
           <button
-            onClick={() => onSendRequest(user.id)}
+            onClick={() => onSendRequest(user)}
             className="flex items-center gap-1 text-caption text-primary-light font-medium px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
           >
             <UserPlus size={12} /> Add
@@ -68,26 +57,46 @@ const UserItem = ({ user, onSendRequest, sentIds }) => {
 const AddFriendModal = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
   const [sentIds, setSentIds] = useState([]);
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
 
-  const results = useMemo(() => {
-    if (query.length < 2) return [];
-    const q = query.toLowerCase();
-    return allUsers.filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) ||
-        u.username.toLowerCase().includes(q)
-    );
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+
+    const t = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await api.get('/api/v1/users/search', { params: { q: query } });
+        setResults(res.data?.data?.users || []);
+      } catch (err) {
+        console.error(err);
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(t);
   }, [query]);
 
-  const handleSendRequest = (userId) => {
-    setSentIds((prev) => [...prev, userId]);
-    // In real app: API call to send friend request
+  const handleSendRequest = async (user) => {
+    setSentIds((prev) => [...prev, user.id]);
+    try {
+      await api.post(`/api/v1/friends/request/${user.username}`);
+    } catch {
+      // Revert optimistic update
+      setSentIds((prev) => prev.filter((id) => id !== user.id));
+    }
   };
 
   // Reset on close
   const handleClose = () => {
     setQuery('');
     setSentIds([]);
+    setResults([]);
     onClose();
   };
 
@@ -101,18 +110,22 @@ const AddFriendModal = ({ isOpen, onClose }) => {
           placeholder="Search by name or username..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          autoFocus
+          autoFocus={isOpen}
           className="w-full h-11 bg-dark-secondary text-text-primary text-sm rounded-[8px] pl-10 pr-4 border border-border hover:border-border-hover focus:border-primary focus:outline-none transition-colors"
         />
       </div>
 
       {/* Results */}
-      <div className="max-h-72 overflow-y-auto -mx-6 border-t border-border-subtle">
-        {query.length < 2 ? (
+      <div className="max-h-72 overflow-y-auto -mx-6 border-t border-border-subtle min-h-[160px]">
+        {query.trim().length < 2 ? (
           <div className="text-center py-10">
             <p className="text-3xl mb-3">🔍</p>
             <p className="text-body-sm text-text-secondary">Type at least 2 characters to search</p>
             <p className="text-caption text-text-muted mt-1">Find learners by name or username</p>
+          </div>
+        ) : searching ? (
+          <div className="flex justify-center items-center h-full py-12">
+            <Loader2 size={24} className="animate-spin text-primary" />
           </div>
         ) : results.length > 0 ? (
           results.map((user) => (

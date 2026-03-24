@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Swords, Users, MessageSquare, MoreHorizontal, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Swords, Users, MessageSquare, MoreHorizontal, Search, Loader2 } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
+import api from '../../services/api';
 
 // Demo friends data
 const demoFriends = [
@@ -9,10 +10,6 @@ const demoFriends = [
   { id: 2, name: 'Siti Rahma', username: 'siti_r', online: true, studying: 'Organic Chemistry', level: 31, rank: 'Researcher' },
   { id: 3, name: 'Arief Wicaksono', username: 'arief_w', online: true, studying: null, level: 18, rank: 'Learner' },
   { id: 4, name: 'Maya Putri', username: 'maya_p', online: false, lastSeen: '2h ago', level: 35, rank: 'Expert' },
-  { id: 5, name: 'Dian Kusuma', username: 'dian_k', online: false, lastSeen: '5h ago', level: 22, rank: 'Scholar' },
-  { id: 6, name: 'Eka Pratama', username: 'eka_p', online: false, lastSeen: '1d ago', level: 15, rank: 'Learner' },
-  { id: 7, name: 'Fajar Nugroho', username: 'fajar_n', online: false, lastSeen: '2d ago', level: 28, rank: 'Scholar' },
-  { id: 8, name: 'Gita Lestari', username: 'gita_l', online: true, studying: 'Calculus II', level: 19, rank: 'Learner' },
 ];
 
 const rankColors = {
@@ -37,7 +34,7 @@ const MiniProfilePopover = ({ friend, position = 'right' }) => {
       <div className="bg-dark-elevated border border-border rounded-md-drd shadow-lg-drd p-4 pointer-events-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-3">
-          <Avatar name={friend.name} size="lg" online={friend.online} />
+          <Avatar name={friend.name} size="lg" src={friend.avatar_url} online={friend.online ?? friend.is_learning_now} />
           <div className="min-w-0">
             <p className="text-sm font-semibold text-text-primary truncate">{friend.name}</p>
             <p className="text-caption text-text-muted">@{friend.username}</p>
@@ -51,7 +48,7 @@ const MiniProfilePopover = ({ friend, position = 'right' }) => {
 
         {/* Status */}
         <div className="mb-3 text-caption">
-          {friend.online ? (
+          {(friend.online || friend.is_learning_now) ? (
             friend.studying ? (
               <div className="flex items-center gap-1.5 text-success">
                 <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
@@ -64,7 +61,7 @@ const MiniProfilePopover = ({ friend, position = 'right' }) => {
               </div>
             )
           ) : (
-            <span className="text-text-muted">Last seen {friend.lastSeen}</span>
+            <span className="text-text-muted">Last seen {friend.lastSeen || 'recently'}</span>
           )}
         </div>
 
@@ -94,15 +91,15 @@ const FriendItem = ({ friend }) => {
       onMouseEnter={() => setShowPopover(true)}
       onMouseLeave={() => setShowPopover(false)}
     >
-      <Avatar name={friend.name} size="sm" online={friend.online} />
+      <Avatar name={friend.name} src={friend.avatar_url} size="sm" online={friend.online ?? friend.is_learning_now} />
       <div className="flex-1 min-w-0">
         <p className="text-sm text-text-primary font-medium truncate">{friend.name}</p>
-        {friend.online && friend.studying ? (
+        {(friend.online || friend.is_learning_now) && friend.studying ? (
           <p className="text-[11px] text-success truncate">📖 {friend.studying}</p>
-        ) : friend.online ? (
+        ) : (friend.online || friend.is_learning_now) ? (
           <p className="text-[11px] text-success">Online</p>
         ) : (
-          <p className="text-[11px] text-text-muted">{friend.lastSeen}</p>
+          <p className="text-[11px] text-text-muted">{friend.lastSeen || 'Offline'}</p>
         )}
       </div>
 
@@ -132,16 +129,38 @@ const FriendItem = ({ friend }) => {
  * FriendsList — sidebar/collapsible panel showing all friends
  */
 const FriendsList = ({
-  friends = demoFriends,
   className = '',
   collapsed = false,
   onAddFriend,
 }) => {
+  const [friends, setFriends] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all'); // 'all' | 'online'
+  const [loading, setLoading] = useState(true);
 
-  const onlineFriends = friends.filter((f) => f.online);
-  const offlineFriends = friends.filter((f) => !f.online);
+  useEffect(() => {
+      const fetchFriends = async () => {
+          try {
+              const res = await api.get('/api/v1/friends');
+              if (res.data?.data?.friends) {
+                  setFriends(res.data.data.friends);
+              } else {
+                  setFriends(demoFriends);
+              }
+          } catch {
+              setFriends(demoFriends);
+          } finally {
+              setLoading(false);
+          }
+      };
+      
+      // Delay fetching slightly if UI is animating
+      const t = setTimeout(fetchFriends, 100);
+      return () => clearTimeout(t);
+  }, []);
+
+  const onlineFriends = friends.filter((f) => f.online || f.is_learning_now);
+  const offlineFriends = friends.filter((f) => !f.online && !f.is_learning_now);
 
   const filteredOnline = onlineFriends.filter((f) =>
     f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -154,7 +173,13 @@ const FriendsList = ({
         f.username.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
-  if (collapsed) return null;
+  if (loading) {
+    return (
+      <div className={`bg-dark-card border border-border rounded-md-drd overflow-hidden p-6 flex justify-center ${className}`}>
+        <Loader2 size={24} className="animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className={`bg-dark-card border border-border rounded-md-drd overflow-hidden ${className}`}>

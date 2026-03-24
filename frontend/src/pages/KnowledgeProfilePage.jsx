@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Settings, Share2, Edit } from "lucide-react";
+import { Settings, Share2, Edit, Loader2 } from "lucide-react";
 import { useAuthStore } from "../stores/authStore";
+import api from "../services/api";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
@@ -253,14 +254,69 @@ const KnowledgeProfilePage = () => {
     const [cardFilter, setCardFilter] = useState("all");
     const [selectedCard, setSelectedCard] = useState(null);
 
+    const [profileData, setProfileData] = useState(null);
+    const [cardsData, setCardsData] = useState({ pinned: pinnedCards, all: allCards });
+    const [achievementsData, setAchievementsData] = useState(achievements);
+    const [xpEventsData, setXpEventsData] = useState(xpEvents);
+    const [loading, setLoading] = useState(true);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [profRes, cardsRes, achRes, xpRes] = await Promise.allSettled([
+                    api.get('/api/v1/profile/me'),
+                    api.get('/api/v1/profile/me/cards'),
+                    api.get('/api/v1/profile/me/achievements'),
+                    api.get('/api/v1/profile/me/xp-history')
+                ]);
+
+                if (profRes.status === 'fulfilled' && profRes.value.data?.data?.user) {
+                    setProfileData(profRes.value.data.data);
+                }
+                if (cardsRes.status === 'fulfilled' && cardsRes.value.data?.data) {
+                    setCardsData({
+                        pinned: cardsRes.value.data.data.pinned_cards || [],
+                        all: cardsRes.value.data.data.all_cards || []
+                    });
+                }
+                if (achRes.status === 'fulfilled' && achRes.value.data?.data?.achievements) {
+                    setAchievementsData(achRes.value.data.data.achievements);
+                }
+                if (xpRes.status === 'fulfilled' && xpRes.value.data?.data?.events) {
+                    const mappedEvents = xpRes.value.data.data.events.map(e => ({
+                        action: e.message || e.event_type || e.action,
+                        xp: e.amount ? `+${e.amount} XP` : '+0 XP',
+                        time: new Date(e.created_at).toLocaleDateString(),
+                        icon: "⚡"
+                    }));
+                    setXpEventsData(mappedEvents);
+                }
+            } catch (err) {
+                console.error("Using fallback data");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
     const tabs = ["Overview", "Cards", "Achievements", "Analytics"];
-    const name = user?.name || "Andi Pratama";
-    const username = user?.username || "andi_pratama";
+    const name = profileData?.user?.name || user?.name || "Andi Pratama";
+    const username = profileData?.user?.username || user?.username || "andi_pratama";
+    const avatarUrl = profileData?.user?.avatar_url || user?.avatar_url;
 
     const filteredCards =
         cardFilter === "all"
-            ? allCards
-            : allCards.filter((c) => c.tier === cardFilter);
+            ? cardsData.all
+            : cardsData.all.filter((c) => c.tier === cardFilter);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader2 size={32} className="animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="px-4 lg:px-8 py-6 max-w-page mx-auto">
@@ -270,10 +326,10 @@ const KnowledgeProfilePage = () => {
                 <div className="flex flex-col sm:flex-row items-start gap-5 flex-1">
                     <Avatar
                         src={
-                            user?.avatar_url
-                                ? user.avatar_url.startsWith("http")
-                                    ? user.avatar_url
-                                    : `/storage/${user.avatar_url}`
+                            avatarUrl
+                                ? avatarUrl.startsWith("http")
+                                    ? avatarUrl
+                                    : `/storage/${avatarUrl}`
                                 : null
                         }
                         name={name}
@@ -287,7 +343,7 @@ const KnowledgeProfilePage = () => {
                             @{username}
                         </p>
                         <p className="text-body-sm text-text-secondary mb-3">
-                            {user?.bio ||
+                            {profileData?.user?.bio || user?.bio ||
                                 "CS student building my Knowledge Empire 🏰"}
                         </p>
 
@@ -295,7 +351,7 @@ const KnowledgeProfilePage = () => {
                         <div className="flex flex-wrap gap-4 mb-4">
                             <div className="text-center">
                                 <p className="text-h4 font-bold text-text-primary">
-                                    42
+                                    {profileData?.stats?.total_cards ?? cardsData.all.length}
                                 </p>
                                 <p className="text-caption text-text-muted">
                                     Cards
@@ -303,7 +359,7 @@ const KnowledgeProfilePage = () => {
                             </div>
                             <div className="text-center">
                                 <p className="text-h4 font-bold text-text-primary">
-                                    87
+                                    {profileData?.stats?.total_study_time_hours ?? 87}
                                 </p>
                                 <p className="text-caption text-text-muted">
                                     Hours
@@ -311,15 +367,15 @@ const KnowledgeProfilePage = () => {
                             </div>
                             <div className="text-center">
                                 <p className="text-h4 font-bold text-text-primary">
-                                    38
+                                    {profileData?.stats?.total_achievements ?? achievementsData.length}
                                 </p>
                                 <p className="text-caption text-text-muted">
-                                    Materials
+                                    Awards
                                 </p>
                             </div>
                             <div className="text-center">
                                 <p className="text-h4 font-bold text-text-primary">
-                                    89%
+                                    {profileData?.stats?.average_mastery ? Math.round(profileData.stats.average_mastery) + '%' : '89%'}
                                 </p>
                                 <p className="text-caption text-text-muted">
                                     Avg Mastery
@@ -398,7 +454,7 @@ const KnowledgeProfilePage = () => {
                             📌 Pinned Cards
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {pinnedCards.map((c, i) => (
+                            {cardsData.pinned.map((c, i) => (
                                 <KnowledgeCard
                                     key={i}
                                     {...c}
@@ -414,7 +470,7 @@ const KnowledgeProfilePage = () => {
                             🏅 Featured Achievements
                         </h3>
                         <div className="flex gap-6 flex-wrap">
-                            {achievements
+                            {achievementsData
                                 .filter((a) => a.featured)
                                 .map((a, i) => (
                                     <AchievementBadge
@@ -432,7 +488,7 @@ const KnowledgeProfilePage = () => {
                             ⚡ Recent XP Events
                         </h3>
                         <div className="space-y-3">
-                            {xpEvents.map((e, i) => (
+                            {xpEventsData.map((e, i) => (
                                 <div
                                     key={i}
                                     className="flex items-center justify-between py-1.5 border-b border-border-subtle last:border-0"
@@ -502,7 +558,7 @@ const KnowledgeProfilePage = () => {
 
             {/* ── Achievements Tab ── */}
             {activeTab === "achievements" && (
-                <AchievementGrid achievements={achievements} />
+                <AchievementGrid achievements={achievementsData} />
             )}
 
             {/* ── Analytics Tab ── */}
