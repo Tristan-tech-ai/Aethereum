@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Upload, Brain, Crown, Sparkles, Users, Zap, ArrowRight, ChevronDown, BookOpen, Target, Trophy, GraduationCap, Menu, X } from 'lucide-react';
+import { Upload, Brain, Crown, Sparkles, Users, Zap, ArrowRight, ChevronDown, BookOpen, Target, Trophy, Menu, X } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Orb from '../components/ui/Orb';
@@ -78,16 +78,13 @@ const LandingPage = () => {
       {/* ===== GLASSMORPHISM NAVBAR ===== */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-dark-base/70 backdrop-blur-xl border-b border-white/10 shadow-lg'
-          : 'bg-transparent'
+          ? 'bg-dark-base/80 backdrop-blur-xl border-b border-white/10 shadow-lg'
+          : 'bg-dark-base/50 backdrop-blur-md border-b border-white/5'
       }`}>
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md-drd bg-gradient-to-br from-primary to-primary-light flex items-center justify-center">
-              <GraduationCap size={18} className="text-white" />
-            </div>
-            <span className="font-heading font-black text-text-primary text-lg tracking-tight">NEXERA</span>
+            <img src="/nexera_logo.svg" alt="Nexera" className="h-8 w-auto" />
           </div>
 
           {/* Desktop Nav Links */}
@@ -161,14 +158,6 @@ const LandingPage = () => {
 
         {/* Hero Content */}
         <div className="relative z-10 flex flex-col items-center text-center max-w-4xl mx-auto">
-          {/* Badge */}
-          <div className="mb-6 animate-fade-in">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 text-primary-light text-caption font-semibold rounded-full">
-              <Sparkles size={14} className="text-accent" />
-              FICPACT CUP 2026 — Interactive Edutainment
-            </span>
-          </div>
-
           {/* Title */}
           <h1 className="font-heading mb-2">
             <span
