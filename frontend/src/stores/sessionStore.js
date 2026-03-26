@@ -74,13 +74,13 @@ export const useSessionStore = create((set, get) => ({
         const cachedContent = useContentStore.getState().currentContent;
         if (cachedContent?.id === contentId && cachedContent?.structured_sections?.length > 0) {
             const sections = cachedContent.structured_sections;
-            const sectionStates = sections.map((_, i) => i === 0 ? "current" : "locked");
+            // Start fresh optimistically; background call will restore real state
             set({
                 session: { id: `pending-${Date.now()}`, status: "active", content_id: contentId },
                 content: cachedContent,
                 sections,
                 currentSectionIndex: 0,
-                sectionStates,
+                sectionStates: sections.map((_, i) => i === 0 ? "current" : "locked"),
                 view: "quest-map",
                 loading: false,
                 focusTimer: 0, totalFocusTime: 0, lives: 3,
@@ -90,11 +90,22 @@ export const useSessionStore = create((set, get) => ({
                 summaryText: "", summaryScore: null, summaryFeedback: null,
                 summaryApproved: false, rewards: null, knowledgeCard: null, readingDone: false,
             });
-            // Create real session in background — update session id when ready
+            // Create/resume real session in background — restore full state when ready
             api.post("/v1/sessions/start", { content_id: contentId })
                 .then((res) => {
                     const data = res.data.data ?? res.data;
-                    if (data.session) set({ session: data.session });
+                    if (data.session) {
+                        const s = data.session;
+                        const secs = data.content?.structured_sections || sections;
+                        set({
+                            session: s,
+                            currentSectionIndex: s.current_section ?? 0,
+                            sectionStates: buildSectionStates(secs, s),
+                            totalFocusTime: s.total_focus_time ?? 0,
+                            focusIntegrity: s.focus_integrity ?? 100,
+                            tabSwitches: s.tab_switches ?? 0,
+                        });
+                    }
                 })
                 .catch(() => { /* keep using local session id — non-critical */ });
             return;
@@ -109,27 +120,24 @@ export const useSessionStore = create((set, get) => ({
 
             const sections =
                 data.content?.structured_sections || data.sections || [];
-            const sectionStates = sections.map((_, i) =>
-                i === 0 ? "current" : "locked",
-            );
+            const s = data.session || { id: data.session_id, status: "active" };
+            const currentSectionIndex = s.current_section ?? 0;
+            const sectionStates = buildSectionStates(sections, s);
 
             set({
-                session: data.session || {
-                    id: data.session_id,
-                    status: "active",
-                },
+                session: s,
                 content: data.content || null,
                 sections,
-                currentSectionIndex: 0,
+                currentSectionIndex,
                 sectionStates,
                 view: "quest-map",
                 loading: false,
                 focusTimer: 0,
-                totalFocusTime: 0,
+                totalFocusTime: s.total_focus_time ?? 0,
                 lives: 3,
-                tabSwitches: 0,
+                tabSwitches: s.tab_switches ?? 0,
                 distractionCount: 0,
-                focusIntegrity: 100,
+                focusIntegrity: s.focus_integrity ?? 100,
                 quizQuestions: [],
                 quizAttempts: 0,
                 quizScore: null,
@@ -149,9 +157,6 @@ export const useSessionStore = create((set, get) => ({
                 const contentRes = await api.get(`/v1/content/${contentId}`);
                 const contentData = contentRes.data.data ?? contentRes.data;
                 const sections = contentData.structured_sections || [];
-                const sectionStates = sections.map((_, i) =>
-                    i === 0 ? "current" : "locked",
-                );
 
                 set({
                     session: {
@@ -162,7 +167,7 @@ export const useSessionStore = create((set, get) => ({
                     content: contentData,
                     sections,
                     currentSectionIndex: 0,
-                    sectionStates,
+                    sectionStates: sections.map((_, i) => i === 0 ? "current" : "locked"),
                     view: "quest-map",
                     loading: false,
                     focusTimer: 0,
@@ -386,22 +391,23 @@ export const useSessionStore = create((set, get) => ({
     proceedAfterQuiz: () => {
         const { currentSectionIndex, sections, sectionStates } = get();
         const isLast = currentSectionIndex === sections.length - 1;
+        const nextIndex = currentSectionIndex + 1;
 
         if (isLast) {
-            // Last section → summary
             set({ view: "summary" });
         } else {
-            // Unlock next section and go back to quest map
             const newStates = [...sectionStates];
             newStates[currentSectionIndex] = "completed";
-            if (currentSectionIndex + 1 < newStates.length) {
-                newStates[currentSectionIndex + 1] = "current";
+            if (nextIndex < newStates.length) {
+                newStates[nextIndex] = "current";
             }
-
             set({
                 sectionStates: newStates,
+                currentSectionIndex: nextIndex,
                 view: "quest-map",
             });
+            // Auto-save: backend marks old section as completed when current_section advances
+            setTimeout(() => get().reportProgress(), 100);
         }
     },
 
@@ -412,16 +418,17 @@ export const useSessionStore = create((set, get) => ({
         newStates[currentSectionIndex] = "completed";
 
         const isLast = currentSectionIndex === sections.length - 1;
-        if (!isLast && currentSectionIndex + 1 < newStates.length) {
-            newStates[currentSectionIndex + 1] = "current";
+        const nextIndex = currentSectionIndex + 1;
+        if (!isLast && nextIndex < newStates.length) {
+            newStates[nextIndex] = "current";
         }
 
-        set({ sectionStates: newStates });
-
         if (isLast) {
-            set({ view: "summary" });
+            set({ sectionStates: newStates, view: "summary" });
         } else {
-            set({ view: "quest-map" });
+            set({ sectionStates: newStates, currentSectionIndex: nextIndex, view: "quest-map" });
+            // Auto-save: backend marks old section as completed when current_section advances
+            setTimeout(() => get().reportProgress(), 100);
         }
     },
 
@@ -635,6 +642,23 @@ export const useSessionStore = create((set, get) => ({
         });
     },
 }));
+
+// ─── Helper: Reconstruct sectionStates from backend session data ──────────
+/**
+ * Build the sectionStates array from backend session data.
+ * Correctly marks sections as 'completed', 'current', or 'locked'
+ * so resumed sessions start from the right position.
+ */
+function buildSectionStates(sections, sessionData) {
+    const completedSet = new Set(sessionData?.progress_data?.sections_completed ?? []);
+    const currentIdx = sessionData?.current_section ?? 0;
+    return sections.map((_, i) => {
+        if (completedSet.has(i)) return "completed";
+        if (i === currentIdx) return "current";
+        if (i < currentIdx) return "completed"; // fallback for any missed completions
+        return "locked";
+    });
+}
 
 // ─── Helper: Generate fallback quiz from content ─────────────
 function generateFallbackQuiz(content, sectionTitle) {

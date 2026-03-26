@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSessionStore } from "../stores/sessionStore";
+import { getAuthToken } from "../services/api";
 import QuestMap from "../components/learning/QuestMap";
 import ReadingView from "../components/learning/ReadingView";
 import QuizBattle from "../components/learning/QuizBattle";
@@ -91,13 +92,42 @@ const DocumentDungeonPage = () => {
         };
     }, [materialId]);
 
+    // ── Save progress on browser close/refresh ──
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            const state = useSessionStore.getState();
+            const { session, currentSectionIndex, focusTimer, tabSwitches } = state;
+            if (!session?.id || session.id.startsWith("local-") || session.id.startsWith("pending-")) return;
+
+            const token = getAuthToken();
+            if (!token) return;
+
+            // Use fetch with keepalive=true so the request survives page unload
+            fetch(`${import.meta.env.VITE_API_URL}/v1/sessions/${session.id}/progress`, {
+                method: "PATCH",
+                keepalive: true,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    current_section: currentSectionIndex,
+                    active_time: focusTimer,
+                }),
+            });
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, []);
+
     // ── Handlers ──
     const handleExit = useCallback(() => {
         if (view === "complete") {
             navigate("/library");
         } else {
             const confirm = window.confirm(
-                "Are you sure you want to exit? Your progress in this section will be lost.",
+                "Exit this session? Your completed sections are saved and you can resume anytime.",
             );
             if (confirm) {
                 reportProgress();

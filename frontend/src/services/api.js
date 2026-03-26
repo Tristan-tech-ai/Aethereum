@@ -53,6 +53,7 @@ const refreshAccessToken = async () => {
 };
 
 // Request interceptor — attach Supabase JWT as Bearer token
+export const getAuthToken = () => currentAccessToken;
 api.interceptors.request.use(async (config) => {
     try {
         // Wait for the first auth event (INITIAL_SESSION) so we have a token.
