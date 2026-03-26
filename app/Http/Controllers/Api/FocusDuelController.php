@@ -176,7 +176,8 @@ class FocusDuelController extends Controller
             })
             ->with(['challenger:id,name,username,avatar_url', 'opponent:id,name,username,avatar_url'])
             ->latest()
-            ->paginate(10);
+            ->limit(20)
+            ->get();
 
         return $this->success(['duels' => $duels]);
     }

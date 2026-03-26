@@ -197,7 +197,8 @@ class StudyRaidController extends Controller
         $raids = StudyRaid::whereHas('participants', fn ($q) => $q->where('user_id', $user->id))
             ->with(['content:id,title,subject', 'creator:id,name,username,avatar_url'])
             ->latest()
-            ->paginate(10);
+            ->limit(20)
+            ->get();
 
         return $this->success(['raids' => $raids]);
     }
