@@ -21,7 +21,6 @@ const timeFilters = ["This Week", "This Month", "All Time"];
 
 const categoryFilters = [
     { key: "xp",      label: "XP Earned",       icon: Zap,      endpoint: "quiz"      },
-    { key: "streak",  label: "Streak",           streakImg: true, endpoint: "streak"  },
     { key: "hours",   label: "Study Hours",      icon: Clock,    endpoint: "focus"    },
     { key: "courses", label: "Cards Collected",  icon: BookOpen, endpoint: "knowledge" },
 ];
@@ -205,9 +204,7 @@ const LeaderboardPage = () => {
                                 category === c.key ? "bg-primary/10 border-primary/30 text-primary-light" : "border-border/40 text-text-secondary hover:text-text-primary hover:border-border-hover"
                             }`}
                         >
-                            {c.streakImg
-                                ? <img src={getStreakStage(0).image} alt="streak" className="w-3.5 h-3.5 object-contain" />
-                                : <c.icon size={13} />}
+                            <c.icon size={13} />
                             {c.label}
                         </button>
                     ))}
