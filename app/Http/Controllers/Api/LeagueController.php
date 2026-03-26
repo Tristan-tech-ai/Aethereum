@@ -101,7 +101,8 @@ class LeagueController extends Controller
             $block = LeagueBlock::where('season_id', $season->id)
                 ->where('tier', $tier)
                 ->withCount('memberships')
-                ->having('memberships_count', '<', self::BLOCK_SIZE)
+                ->get()
+                ->where('memberships_count', '<', self::BLOCK_SIZE)
                 ->first();
 
             if (! $block) {
