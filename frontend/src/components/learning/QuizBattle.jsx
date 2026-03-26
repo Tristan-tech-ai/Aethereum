@@ -162,6 +162,25 @@ const QuizBattle = ({
               ? "bg-warning"
               : "bg-danger";
 
+    // ── LOADING: questions not yet loaded ──
+    if (phase === "battle" && questions.length === 0) {
+        return (
+            <div className="max-w-[500px] mx-auto px-4 md:px-6 py-12 text-center">
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="mb-4 inline-block"
+                >
+                    <Swords size={40} className="text-primary" />
+                </motion.div>
+                <h2 className="text-h3 font-heading text-text-primary mb-2">
+                    Preparing Guardian Battle...
+                </h2>
+                <p className="text-text-muted text-sm">Loading quiz questions</p>
+            </div>
+        );
+    }
+
     // ── BATTLE PHASE ──
     if (phase === "battle" && questions.length > 0) {
         const q = questions[currentQ];
