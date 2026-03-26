@@ -76,22 +76,23 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-dark-base overflow-x-hidden">
       {/* ===== GLASSMORPHISM NAVBAR ===== */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? 'shadow-[0_4px_30px_rgba(0,0,0,0.5)]'
-            : ''
-        }`}
-        style={{
-          background: scrolled
-            ? 'rgba(13, 8, 32, 0.85)'
-            : 'rgba(13, 8, 32, 0.55)',
-          backdropFilter: 'blur(16px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-        }}
-      >
-        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+      <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
+        <nav
+          className={`max-w-5xl mx-auto rounded-2xl transition-all duration-300 ${
+            scrolled
+              ? 'shadow-[0_4px_30px_rgba(0,0,0,0.5)]'
+              : ''
+          }`}
+          style={{
+            background: scrolled
+              ? 'rgba(13, 8, 32, 0.85)'
+              : 'rgba(13, 8, 32, 0.55)',
+            backdropFilter: 'blur(16px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <div className="px-5 h-14 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
             <div
@@ -142,12 +143,12 @@ const LandingPage = () => {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div
-            className="md:hidden px-5 pb-5 flex flex-col gap-2"
+            className="md:hidden px-5 pb-5 pt-2 flex flex-col gap-2 rounded-b-2xl"
             style={{
               background: 'rgba(13, 8, 32, 0.95)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
-              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              borderTop: '1px solid rgba(255,255,255,0.05)',
             }}
           >
             <button onClick={scrollToFeatures} className="text-left py-2.5 text-[15px] text-text-muted hover:text-text-primary transition-colors">Features</button>
@@ -163,7 +164,8 @@ const LandingPage = () => {
             </div>
           </div>
         )}
-      </nav>
+        </nav>
+      </div>
 
       {/* ===== HERO SECTION ===== */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4">
