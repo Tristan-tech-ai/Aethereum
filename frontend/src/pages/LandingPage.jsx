@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Upload, Brain, Crown, Sparkles, Users, Zap, ArrowRight, ChevronDown, BookOpen, Target, Trophy } from 'lucide-react';
+import { Upload, Brain, Crown, Sparkles, Users, Zap, ArrowRight, ChevronDown, BookOpen, Target, Trophy, GraduationCap, Menu, X } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Orb from '../components/ui/Orb';
@@ -59,19 +59,91 @@ const stats = [
 
 const LandingPage = () => {
   const featuresRef = useRef(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const scrollToFeatures = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setMobileMenuOpen(false);
   };
 
   return (
-    <div className="min-h-screen bg-dark-base overflow-hidden">
+    <div className="min-h-screen bg-dark-base overflow-x-hidden">
+      {/* ===== GLASSMORPHISM NAVBAR ===== */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-dark-base/70 backdrop-blur-xl border-b border-white/10 shadow-lg'
+          : 'bg-transparent'
+      }`}>
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-md-drd bg-gradient-to-br from-primary to-primary-light flex items-center justify-center">
+              <GraduationCap size={18} className="text-white" />
+            </div>
+            <span className="font-heading font-black text-text-primary text-lg tracking-tight">NEXERA</span>
+          </div>
+
+          {/* Desktop Nav Links */}
+          <div className="hidden md:flex items-center gap-8 text-body-sm font-medium text-text-secondary">
+            <button onClick={scrollToFeatures} className="hover:text-text-primary transition-colors cursor-pointer">Features</button>
+            <a href="#how-it-works" className="hover:text-text-primary transition-colors">How It Works</a>
+            <a href="#social" className="hover:text-text-primary transition-colors">Social</a>
+          </div>
+
+          {/* Desktop CTAs */}
+          <div className="hidden md:flex items-center gap-3">
+            <Link to="/login">
+              <button className="text-body-sm font-medium text-text-secondary hover:text-text-primary transition-colors px-4 py-2">
+                Sign In
+              </button>
+            </Link>
+            <Link to="/register">
+              <Button size="sm" className="shadow-glow-primary">
+                Get Started
+              </Button>
+            </Link>
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden p-2 text-text-secondary hover:text-text-primary transition-colors"
+            onClick={() => setMobileMenuOpen(v => !v)}
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-dark-base/90 backdrop-blur-xl border-b border-white/10 px-4 pb-4 flex flex-col gap-3">
+            <button onClick={scrollToFeatures} className="text-left py-2 text-body text-text-secondary hover:text-text-primary transition-colors">Features</button>
+            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2 text-body text-text-secondary hover:text-text-primary transition-colors">How It Works</a>
+            <a href="#social" onClick={() => setMobileMenuOpen(false)} className="py-2 text-body text-text-secondary hover:text-text-primary transition-colors">Social</a>
+            <div className="flex gap-3 pt-2 border-t border-white/10">
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1">
+                <Button variant="secondary" size="sm" className="w-full">Sign In</Button>
+              </Link>
+              <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="flex-1">
+                <Button size="sm" className="w-full">Get Started</Button>
+              </Link>
+            </div>
+          </div>
+        )}
+      </nav>
+
       {/* ===== HERO SECTION ===== */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4">
-        {/* Orb Background */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        {/* Orb Background — no pointer-events-none so hover works */}
+        <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-[700px] h-[700px] md:w-[900px] md:h-[900px] opacity-40 blur-sm">
-            <Orb hue={270} hoverIntensity={0.2} rotateOnHover forceHoverState={false} />
+            <Orb hue={270} hoverIntensity={0.3} rotateOnHover forceHoverState={false} />
           </div>
         </div>
 
@@ -158,7 +230,7 @@ const LandingPage = () => {
       </section>
 
       {/* ===== HOW IT WORKS ===== */}
-      <section className="relative px-4 py-24 bg-dark-secondary/30">
+      <section id="how-it-works" className="relative px-4 py-24 bg-dark-secondary/30">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <span className="text-caption text-primary-light uppercase tracking-widest font-semibold">How It Works</span>
@@ -230,7 +302,7 @@ const LandingPage = () => {
       </section>
 
       {/* ===== SOCIAL PROOF / MODES ===== */}
-      <section className="px-4 py-24 bg-dark-secondary/30">
+      <section id="social" className="px-4 py-24 bg-dark-secondary/30">
         <div className="max-w-5xl mx-auto text-center">
           <span className="text-caption text-secondary uppercase tracking-widest font-semibold">Social Learning</span>
           <h2 className="text-h1 md:text-display font-heading text-text-primary mt-3 mb-4">

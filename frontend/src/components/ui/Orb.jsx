@@ -233,6 +233,8 @@ export default function Orb({
     let currentRot = 0;
     const rotationSpeed = 0.3;
 
+    // Use window-level listener so orb responds to mouse even when
+    // the container has pointer-events:none or is behind other content
     const handleMouseMove = e => {
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -252,12 +254,7 @@ export default function Orb({
       }
     };
 
-    const handleMouseLeave = () => {
-      targetHover = 0;
-    };
-
-    container.addEventListener('mousemove', handleMouseMove);
-    container.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('mousemove', handleMouseMove);
 
     let rafId;
     const update = t => {
@@ -284,8 +281,7 @@ export default function Orb({
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resize);
-      container.removeEventListener('mousemove', handleMouseMove);
-      container.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('mousemove', handleMouseMove);
       if (container.contains(gl.canvas)) {
         container.removeChild(gl.canvas);
       }
