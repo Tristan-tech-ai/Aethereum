@@ -24,9 +24,9 @@ class FriendController extends Controller
 
         // Check if existing request
         $existing = Friendship::where(function($q) use ($user, $targetUser) {
-            $q->where('user_id', $user->id)->where('friend_id', $targetUser->id);
+            $q->where('requester_id', $user->id)->where('addressee_id', $targetUser->id);
         })->orWhere(function($q) use ($user, $targetUser) {
-            $q->where('user_id', $targetUser->id)->where('friend_id', $user->id);
+            $q->where('requester_id', $targetUser->id)->where('addressee_id', $user->id);
         })->first();
 
         if ($existing) {
@@ -34,8 +34,8 @@ class FriendController extends Controller
         }
 
         $friendship = Friendship::create([
-            'user_id' => $user->id,
-            'friend_id' => $targetUser->id,
+            'requester_id' => $user->id,
+            'addressee_id' => $targetUser->id,
             'status' => 'pending',
         ]);
 
@@ -46,9 +46,9 @@ class FriendController extends Controller
     {
         $user = $request->user();
         
-        // Find friendship where the current user is the "friend" receiving the request
+        // Find friendship where the current user is the addressee receiving the request
         $friendship = Friendship::where('id', $id)
-            ->where('friend_id', $user->id)
+            ->where('addressee_id', $user->id)
             ->where('status', 'pending')
             ->firstOrFail();
 
@@ -62,7 +62,7 @@ class FriendController extends Controller
         $user = $request->user();
         
         $friendship = Friendship::where('id', $id)
-            ->where('friend_id', $user->id)
+            ->where('addressee_id', $user->id)
             ->where('status', 'pending')
             ->firstOrFail();
 
@@ -79,7 +79,7 @@ class FriendController extends Controller
         $friendship = Friendship::where('id', $id)
             ->where('status', 'accepted')
             ->where(function($q) use ($user) {
-                $q->where('user_id', $user->id)->orWhere('friend_id', $user->id);
+                $q->where('requester_id', $user->id)->orWhere('addressee_id', $user->id);
             })
             ->firstOrFail();
 
@@ -95,13 +95,13 @@ class FriendController extends Controller
         // Get friends mapping
         $friendships = Friendship::where('status', 'accepted')
             ->where(function($q) use ($user) {
-                $q->where('user_id', $user->id)->orWhere('friend_id', $user->id);
+                $q->where('requester_id', $user->id)->orWhere('addressee_id', $user->id);
             })
-            ->with(['user', 'friend'])
+            ->with(['requester', 'addressee'])
             ->get();
 
         $friends = $friendships->map(function ($f) use ($user) {
-            return $f->user_id === $user->id ? $f->friend : $f->user;
+            return $f->requester_id === $user->id ? $f->addressee : $f->requester;
         })->filter()->map(function ($friend) {
             return [
                 'id' => $friend->id,
@@ -122,15 +122,15 @@ class FriendController extends Controller
         $user = $request->user();
 
         // Requests sent TO me
-        $incoming = Friendship::where('friend_id', $user->id)
+        $incoming = Friendship::where('addressee_id', $user->id)
             ->where('status', 'pending')
-            ->with('user:id,name,username,avatar_url,level')
+            ->with('requester:id,name,username,avatar_url,level')
             ->get();
 
-        // Requests sent BY me (optional, if frontend needs it)
-        $outgoing = Friendship::where('user_id', $user->id)
+        // Requests sent BY me
+        $outgoing = Friendship::where('requester_id', $user->id)
             ->where('status', 'pending')
-            ->with('friend:id,name,username,avatar_url,level')
+            ->with('addressee:id,name,username,avatar_url,level')
             ->get();
 
         return $this->success([

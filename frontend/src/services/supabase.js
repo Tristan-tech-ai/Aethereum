@@ -10,5 +10,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Create client with fallback empty strings to prevent crash
 export const supabase = createClient(
     supabaseUrl || 'https://placeholder.supabase.co',
-    supabaseAnonKey || 'placeholder-key'
+    supabaseAnonKey || 'placeholder-key',
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+        },
+    }
 );

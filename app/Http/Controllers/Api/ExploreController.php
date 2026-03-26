@@ -27,7 +27,7 @@ class ExploreController extends Controller
             })
             ->withSum(['xpEvents as weekly_xp' => function ($query) use ($startOfWeek) {
                 $query->where('created_at', '>=', $startOfWeek);
-            }], 'amount')
+            }], 'xp_amount')
             ->orderByDesc('weekly_xp')
             ->limit(10)
             ->get(['id', 'name', 'username', 'avatar_url', 'level', 'rank']);
@@ -64,10 +64,10 @@ class ExploreController extends Controller
         // Assumes public profile
         $users = User::where('is_profile_public', true)
             ->whereHas('knowledgeCards', function ($query) use ($subject) {
-                $query->where('subject', $subject);
+                $query->where('subject_category', $subject);
             })
             ->withCount(['knowledgeCards as subject_cards_count' => function ($query) use ($subject) {
-                $query->where('subject', $subject);
+                $query->where('subject_category', $subject);
             }])
             ->orderByDesc('subject_cards_count')
             ->limit(10)

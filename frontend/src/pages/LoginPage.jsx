@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogIn, Eye, EyeOff } from 'lucide-react';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import Card from '../components/ui/Card';
+import { Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 const GoogleIcon = () => (
-  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+  <svg className="w-5 h-5" viewBox="0 0 24 24">
     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -27,32 +24,19 @@ const LoginPage = () => {
     const oauthError = new URLSearchParams(location.search).get('oauth_error');
     if (oauthError) {
       setOauthErrorMessage(oauthError);
-      try {
-        localStorage.setItem('oauth_error', oauthError);
-      } catch {
-        // ignore storage errors
-      }
+      try { localStorage.setItem('oauth_error', oauthError); } catch {}
       return;
     }
-
     try {
-      const savedOAuthError = localStorage.getItem('oauth_error');
-      if (savedOAuthError) {
-        setOauthErrorMessage(savedOAuthError);
-      }
-    } catch {
-      // ignore storage errors
-    }
+      const saved = localStorage.getItem('oauth_error');
+      if (saved) { setOauthErrorMessage(saved); }
+    } catch {}
   }, [location.search]);
 
   const clearAllErrors = () => {
     clearError();
     setOauthErrorMessage('');
-    try {
-      localStorage.removeItem('oauth_error');
-    } catch {
-      // ignore storage errors
-    }
+    try { localStorage.removeItem('oauth_error'); } catch {}
   };
 
   const handleSubmit = async (e) => {
@@ -68,99 +52,130 @@ const LoginPage = () => {
     const result = await loginWithGoogle();
     if (!result?.success && result?.error) {
       setOauthErrorMessage(result.error);
-      try {
-        localStorage.setItem('oauth_error', result.error);
-      } catch {
-        // ignore storage errors
-      }
     }
   };
 
+  const displayError = oauthErrorMessage || error;
+
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-[420px]">
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg-drd bg-primary/10 text-primary mb-4">
-            <LogIn size={32} />
-          </div>
-          <h1 className="text-h1 font-heading text-text-primary mb-2">Welcome Back</h1>
-          <p className="text-text-secondary">Enter your credentials to access your kingdom</p>
+          <Link to="/" className="inline-flex items-center gap-2 mb-6">
+            <img src="/nexera_logo.svg" alt="Nexera" className="h-10 w-10" />
+            <span className="text-xl font-bold font-heading bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+              NEXERA
+            </span>
+          </Link>
+          <h1 className="text-h2 font-heading text-text-primary mb-1">Welcome back</h1>
+          <p className="text-body-sm text-text-muted">Sign in to continue your journey</p>
         </div>
 
-        <Card>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="name@company.com"
-              value={formData.email}
-              onChange={(e) => { clearAllErrors(); setFormData({ ...formData, email: e.target.value }); }}
-              required
-            />
+        {/* Card */}
+        <div className="bg-dark-card border border-border rounded-lg-drd p-6 space-y-5">
+          {/* Google Button */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full h-11 flex items-center justify-center gap-2.5
+              bg-white text-[#1f1f1f] font-medium text-sm rounded-[8px]
+              hover:bg-gray-100 active:bg-gray-200
+              transition-colors duration-fast
+              disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <GoogleIcon />
+            Continue with Google
+          </button>
 
-            <div className="relative">
-              <Input
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) => { clearAllErrors(); setFormData({ ...formData, password: e.target.value }); }}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[38px] text-text-muted hover:text-text-secondary transition-colors duration-fast"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-
-            <div className="flex justify-end">
-              <Link to="/forgot-password" className="text-sm text-primary hover:text-primary-light transition-colors duration-fast">
-                Forgot password?
-              </Link>
-            </div>
-
-            {(oauthErrorMessage || error) && (
-              <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-md-drd">
-                {oauthErrorMessage || error}
-              </div>
-            )}
-
-            <Button type="submit" className="w-full" loading={loading}>
-              Sign In
-            </Button>
-          </form>
-
-          <div className="relative my-6">
+          {/* Divider */}
+          <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-dark-card text-text-muted">or continue with</span>
+            <div className="relative flex justify-center">
+              <span className="px-3 bg-dark-card text-text-muted text-caption">or</span>
             </div>
           </div>
 
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={handleGoogleLogin}
-            disabled={loading}
-          >
-            <GoogleIcon />
-            Sign in with Google
-          </Button>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-body-sm font-medium text-text-secondary mb-1.5">Email</label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={(e) => { clearAllErrors(); setFormData({ ...formData, email: e.target.value }); }}
+                required
+                className="w-full h-11 bg-dark-secondary text-text-primary text-sm rounded-[8px] px-4
+                  border border-border hover:border-border-hover focus:border-primary focus:ring-1 focus:ring-primary
+                  outline-none transition-all duration-fast placeholder:text-text-muted"
+              />
+            </div>
 
-          <div className="mt-6 pt-6 border-t border-border text-center">
-            <p className="text-text-secondary text-sm">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-primary hover:text-primary-light font-medium transition-colors duration-fast">
-                Create new profile
-              </Link>
-            </p>
-          </div>
-        </Card>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-body-sm font-medium text-text-secondary">Password</label>
+                <Link to="/forgot-password" className="text-caption text-primary hover:text-primary-light transition-colors">
+                  Forgot?
+                </Link>
+              </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => { clearAllErrors(); setFormData({ ...formData, password: e.target.value }); }}
+                  required
+                  className="w-full h-11 bg-dark-secondary text-text-primary text-sm rounded-[8px] px-4 pr-10
+                    border border-border hover:border-border-hover focus:border-primary focus:ring-1 focus:ring-primary
+                    outline-none transition-all duration-fast placeholder:text-text-muted"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors cursor-pointer"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {displayError && (
+              <div className="p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-[8px]">
+                {displayError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 bg-primary text-white font-medium text-sm rounded-[8px]
+                hover:bg-primary-dark hover:shadow-glow-primary active:bg-[#5B21B6]
+                transition-all duration-fast cursor-pointer
+                disabled:opacity-50 disabled:cursor-not-allowed
+                flex items-center justify-center gap-2"
+            >
+              {loading && (
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
+              Sign In
+            </button>
+          </form>
+        </div>
+
+        {/* Footer link */}
+        <p className="text-center text-body-sm text-text-muted mt-6">
+          Don't have an account?{' '}
+          <Link to="/register" className="text-primary hover:text-primary-light font-medium transition-colors">
+            Create one
+          </Link>
+        </p>
       </div>
     </div>
   );

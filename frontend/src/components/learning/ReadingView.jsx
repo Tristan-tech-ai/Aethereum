@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Eye, EyeOff, Clock, Zap, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import Button from "../ui/Button";
+
 
 /**
  * ReadingView — Clean markdown reading interface with focus tracking.
@@ -36,15 +37,13 @@ const ReadingView = ({
     const timerRef = useRef(null);
     const progressRef = useRef(null);
     const [showWarning, setShowWarning] = useState(false);
-    const [heartLost, setHeartLost] = useState(false);
     const [redFlash, setRedFlash] = useState(false);
     const prevLivesRef = useRef(lives);
-    const contentRef = useRef(null);
 
     const sectionTitle =
         section?.title || section?.heading || `Section ${sectionIndex + 1}`;
     const sectionContent =
-        section?.content || section?.body || section?.text || "";
+        section?.content || section?.content_text || section?.body || section?.text || "";
 
     // ── Focus timer ──
     useEffect(() => {
@@ -69,8 +68,7 @@ const ReadingView = ({
             setShowWarning(true);
         } else {
             onTabReturn?.();
-            // Keep warning for a moment
-            setTimeout(() => setShowWarning(false), 2000);
+            // Warning stays until user dismisses it with OK button
         }
     }, [onTabSwitch, onTabReturn]);
 
@@ -86,13 +84,15 @@ const ReadingView = ({
     // ── Heart loss animation ──
     useEffect(() => {
         if (lives < prevLivesRef.current) {
-            setHeartLost(true);
             setRedFlash(true);
-            setTimeout(() => setHeartLost(false), 600);
             setTimeout(() => setRedFlash(false), 400);
         }
         prevLivesRef.current = lives;
     }, [lives]);
+
+    const handleDoneReading = useCallback(() => {
+        onDoneReading?.();
+    }, [onDoneReading]);
 
     const formatTime = (s) => {
         const m = Math.floor(s / 60);
@@ -142,9 +142,15 @@ const ReadingView = ({
                             <p className="text-text-secondary text-sm mb-1">
                                 Tab switching costs you a life heart.
                             </p>
-                            <p className="text-text-muted text-caption">
+                            <p className="text-text-muted text-caption mb-6">
                                 Stay focused to maintain your integrity score.
                             </p>
+                            <button
+                                onClick={() => setShowWarning(false)}
+                                className="px-6 py-2 bg-danger hover:bg-danger/80 text-white text-sm font-semibold rounded-lg transition-colors"
+                            >
+                                OK, Noted
+                            </button>
                         </motion.div>
                     </motion.div>
                 )}
@@ -152,7 +158,6 @@ const ReadingView = ({
 
             {/* Reading content */}
             <div
-                ref={contentRef}
                 className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border-subtle scrollbar-track-transparent"
             >
                 <div className="max-w-[720px] mx-auto px-6 py-8 md:px-8">
@@ -298,85 +303,17 @@ const ReadingView = ({
 
             {/* Bottom action bar */}
             <div className="shrink-0 h-16 bg-dark-secondary border-t border-border-subtle flex items-center justify-between px-4 md:px-6">
-                {/* Left: Focus stats (mobile-compact) */}
-                <div className="flex items-center gap-3 md:gap-4">
-                    {/* Timer */}
-                    <div className="flex items-center gap-1.5">
-                        <Clock size={14} className="text-text-muted" />
-                        <span
-                            className="text-sm font-mono text-text-secondary"
-                            aria-live="polite"
-                        >
-                            {formatTime(focusTimer)}
-                        </span>
-                    </div>
+                <div />
 
-                    {/* Focus integrity */}
-                    <div className="hidden sm:flex items-center gap-1.5">
-                        <Zap
-                            size={14}
-                            className={
-                                focusIntegrity >= 90
-                                    ? "text-success"
-                                    : focusIntegrity >= 60
-                                      ? "text-warning"
-                                      : "text-danger"
-                            }
-                        />
-                        <span
-                            className={`text-caption font-semibold ${
-                                focusIntegrity >= 90
-                                    ? "text-success"
-                                    : focusIntegrity >= 60
-                                      ? "text-warning"
-                                      : "text-danger"
-                            }`}
-                        >
-                            {focusIntegrity}%
-                        </span>
-                    </div>
-
-                    {/* Hearts */}
-                    <div className="flex gap-0.5">
-                        {[1, 2, 3].map((h) => (
-                            <motion.span
-                                key={h}
-                                animate={
-                                    heartLost && h === lives + 1
-                                        ? {
-                                              scale: [1, 0.3, 0],
-                                              opacity: [1, 0.5, 0],
-                                          }
-                                        : {}
-                                }
-                                transition={{ duration: 0.5 }}
-                                className="text-base"
-                            >
-                                {h <= lives ? (
-                                    <Heart
-                                        size={16}
-                                        className="text-danger fill-danger"
-                                    />
-                                ) : (
-                                    <Heart
-                                        size={16}
-                                        className="text-text-disabled opacity-30"
-                                    />
-                                )}
-                            </motion.span>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Right: Done reading button */}
-                <div className="flex items-center gap-2">
+                {/* Right: Done button */}
+                <div className="flex items-center gap-3">
                     {!readingDone && timeUntilReady > 0 && (
                         <span className="text-caption text-text-muted hidden sm:inline">
                             {timeUntilReady}s until ready
                         </span>
                     )}
                     <Button
-                        onClick={onDoneReading}
+                        onClick={handleDoneReading}
                         disabled={!readingDone}
                         size="sm"
                     >

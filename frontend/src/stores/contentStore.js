@@ -31,6 +31,7 @@ export const useContentStore = create((set, get) => ({
     uploadProgress: 0,
     error: null,
     pagination: { current_page: 1, last_page: 1, total: 0 },
+    lastFetched: null,
     filters: {
         status: "",
         content_type: "",
@@ -57,10 +58,21 @@ export const useContentStore = create((set, get) => ({
     },
 
     // ─── Fetch list ──────────────────────────
-    fetchContents: async (page = 1) => {
-        set({ loading: true, error: null });
+    fetchContents: async (page = 1, force = false) => {
+        const { contents, lastFetched, filters } = get();
+        
+        const isFresh = lastFetched && Date.now() - lastFetched < 60000;
+        let background = false;
+
+        // Smart Caching / Stale-while-revalidate
+        if (page === 1 && contents.length > 0 && !force) {
+            if (isFresh) return contents; 
+            background = true; // Fetch in background while showing stale data
+        }
+
+        if (!background) set({ loading: true, error: null });
+
         try {
-            const { filters } = get();
             const params = { page };
             if (filters.status) params.status = filters.status;
             if (filters.content_type)
@@ -76,15 +88,16 @@ export const useContentStore = create((set, get) => ({
                 : (payload.data ?? []);
             const meta = payload.meta ?? payload;
 
-            set({
-                contents: items,
+            set((s) => ({
+                contents: page === 1 ? items : [...s.contents, ...items],
                 pagination: {
                     current_page: meta.current_page ?? 1,
                     last_page: meta.last_page ?? 1,
                     total: meta.total ?? items.length,
                 },
+                lastFetched: page === 1 ? Date.now() : s.lastFetched,
                 loading: false,
-            });
+            }));
 
             // Auto-start polling for any "processing" items
             items
@@ -100,14 +113,19 @@ export const useContentStore = create((set, get) => ({
 
     // ─── Fetch single ────────────────────────
     fetchContent: async (id) => {
-        set({ loading: true, error: null });
+        // Return cached data instantly if IDs match and content is already ready.
+        // Re-fetch if still processing so the page gets fresh data.
+        const cached = get().currentContent;
+        if (cached && String(cached.id) === String(id) && cached.status !== "processing") {
+            return cached;
+        }
         try {
             const res = await api.get(`/v1/content/${id}`);
             const content = res.data.data ?? res.data;
-            set({ currentContent: content, loading: false });
+            set({ currentContent: content });
             return content;
         } catch (err) {
-            set({ error: parseError(err), loading: false });
+            set({ error: parseError(err) });
             return null;
         }
     },

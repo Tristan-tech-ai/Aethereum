@@ -83,10 +83,10 @@ class LeaderboardController extends Controller
         // Simple fallback query for demonstration
         $users = User::where('show_on_leaderboard', true)
             ->whereHas('knowledgeCards', function ($query) use ($subject) {
-                $query->where('subject', $subject);
+                $query->where('subject_category', $subject);
             })
             ->withCount(['knowledgeCards as subject_cards_count' => function ($query) use ($subject) {
-                $query->where('subject', $subject);
+                $query->where('subject_category', $subject);
             }])
             ->orderBy('subject_cards_count', 'desc')
             ->limit(50)

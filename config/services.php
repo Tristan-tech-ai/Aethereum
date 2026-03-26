@@ -47,4 +47,17 @@ return [
         'jwt_secret' => env('SUPABASE_JWT_SECRET'),
     ],
 
+    'gemini' => [
+        'api_key'  => env('GEMINI_API_KEY'),
+        'model'    => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+        'base_url' => 'https://generativelanguage.googleapis.com/v1beta',
+        'fallback_models' => array_filter(array_map('trim', explode(',',
+            env('GEMINI_FALLBACK_MODELS', 'gemini-2.5-flash,gemini-2.5-flash-lite,gemini-2.0-flash,gemini-3.1-flash-lite-preview,gemini-3-flash-preview')
+        ))),
+    ],
+
+    'jina' => [
+        'api_key' => env('JINA_API_KEY'),
+    ],
+
 ];

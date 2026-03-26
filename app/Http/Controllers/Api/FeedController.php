@@ -16,29 +16,27 @@ class FeedController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $perPage = max(5, min(30, (int) $request->input('per_page', 15)));
 
-        // Get friend IDs
-        $friendIds = DB::table('friendships')
-            ->where('status', 'accepted')
-            ->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('friend_id', $user->id);
-            })
-            ->get()
-            ->map(function ($friendship) use ($user) {
-                return $friendship->user_id === $user->id ? $friendship->friend_id : $friendship->user_id;
-            })
-            ->toArray();
+        $audienceUserIds = $this->audienceUserIds($user->id);
 
-        // Add self to see own events
-        $friendIds[] = $user->id;
-
-        // Fetch feed events for friends, self, and prominent global events (optional)
-        // For now, we mix friends + self. In a real app, global events could be mixed in by checking 'is_global' etc.
         $feed = FeedEvent::with('user:id,name,username,avatar_url,level')
-            ->whereIn('user_id', $friendIds)
+            ->whereIn('user_id', $audienceUserIds)
+            ->where('is_public', true)
             ->latest()
-            ->paginate(15);
+            ->paginate($perPage);
+
+        $eventIds = $feed->getCollection()->pluck('id')->all();
+        $likedIds = DB::table('feed_likes')
+            ->where('user_id', $user->id)
+            ->whereIn('event_id', $eventIds)
+            ->pluck('event_id')
+            ->flip();
+
+        $feed->getCollection()->transform(function (FeedEvent $event) use ($likedIds) {
+            $event->liked_by_me = $likedIds->has($event->id);
+            return $event;
+        });
 
         return $this->success(['feed' => $feed], 'Feed retrieved successfully');
     }
@@ -48,29 +46,57 @@ class FeedController extends Controller
         $user = $request->user();
         $feedEvent = FeedEvent::findOrFail($id);
 
+        $audienceUserIds = $this->audienceUserIds($user->id);
+        if (!in_array($feedEvent->user_id, $audienceUserIds, true) || !$feedEvent->is_public) {
+            return $this->error('You cannot interact with this feed event', 403);
+        }
+
         $existingLike = DB::table('feed_likes')
-            ->where('feed_event_id', $feedEvent->id)
+            ->where('event_id', $feedEvent->id)
             ->where('user_id', $user->id)
             ->first();
 
         if ($existingLike) {
-            DB::table('feed_likes')->where('id', $existingLike->id)->delete();
-            $feedEvent->decrement('likes_count');
+            DB::table('feed_likes')
+                ->where('event_id', $feedEvent->id)
+                ->where('user_id', $user->id)
+                ->delete();
+            $feedEvent->decrement('likes');
             $action = 'unliked';
         } else {
             DB::table('feed_likes')->insert([
-                'feed_event_id' => $feedEvent->id,
+                'event_id' => $feedEvent->id,
                 'user_id' => $user->id,
-                'created_at' => now(),
             ]);
-            $feedEvent->increment('likes_count');
+            $feedEvent->increment('likes');
             $action = 'liked';
         }
 
         return $this->success([
             'action' => $action,
             'feed_event_id' => $feedEvent->id,
-            'likes_count' => $feedEvent->fresh()->likes_count
+            'likes' => $feedEvent->fresh()->likes
         ], "Feed event $action successfully");
+    }
+
+    private function audienceUserIds(string $userId): array
+    {
+        $friendIds = DB::table('friendships')
+            ->where('status', 'accepted')
+            ->where(function ($q) use ($userId) {
+                $q->where('requester_id', $userId)
+                    ->orWhere('addressee_id', $userId);
+            })
+            ->get()
+            ->map(function ($friendship) use ($userId) {
+                return $friendship->requester_id === $userId
+                    ? $friendship->addressee_id
+                    : $friendship->requester_id;
+            })
+            ->toArray();
+
+        $friendIds[] = $userId;
+
+        return array_values(array_unique($friendIds));
     }
 }

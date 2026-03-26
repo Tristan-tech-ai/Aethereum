@@ -1,10 +1,10 @@
 # AETHEREUM — Design Requirement Document (DRD)
 
-**Version:** 1.0  
-**Last Updated:** March 2026  
-**Project:** AETHEREUM: Knowledge Empire  
+**Version:** 2.0  
+**Last Updated:** March 25, 2026  
+**Project:** AETHEREUM: Knowledge Empire (Nexera)  
 **Competition:** FICPACT CUP 2026  
-**Tech Stack:** Laravel 12 + React 18 + PostgreSQL + Redis + Recharts  
+**Tech Stack:** Laravel 12 + React 19 + PostgreSQL + Supabase Auth + Recharts 3 + Tailwind CSS 4  
 **Reference:** [PRD v2.0](file:///c:/Users/adiii/Herd/Aetherium/eve/AETHEREUM_PRD_MERGED_v2.md)
 
 ---
@@ -35,20 +35,23 @@
 
 ### 1.1 Core Design Vision
 
-> **"Premium Dark Gaming meets Scholarly Elegance"**  
-> AETHEREUM harus terasa seperti perpaduan antara **Discord's dark sleekness**, **GitHub's data-driven profile**, dan **Duolingo's gamified engagement** — tetapi dengan identitas visual unik bertemakan kerajaan pengetahuan.
+> **"Calm Premium Dark meets Scholarly Elegance"**  
+> Nexera harus terasa seperti perpaduan antara **Discord's dark sleekness**, **GitHub's data-driven profile**, dan **Duolingo's gamified engagement** — tetapi dengan identitas visual unik: **calm blue-purple palette** bertemakan kerajaan pengetahuan. Warnanya biru dan ungu yang tenang — sophisticated, bukan mencolok.
 
 ### 1.2 Design Principles
 
 | # | Principle | Deskripsi | Implementasi |
 |---|-----------|-----------|--------------|
 | 1 | **Dark-First Premium** | Dark mode sebagai default; terasa mahal, bukan murahan | Background `#0F0F1A`, bukan pure black. Subtle gradients. |
-| 2 | **Data as Art** | Data belajar divisualisasikan secara indah | Heatmap, charts, progress rings sebagai centerpiece |
-| 3 | **Gamified, Not Childish** | Gamifikasi dewasa, bukan kartun anak-anak | Refined glow effects, bukan confetti berlebihan |
+| 2 | **Data as Art** | Data belajar divisualisasikan secara indah | Recharts bar/area charts, SVG donut, progress rings sebagai centerpiece |
+| 3 | **Gamified, Not Childish** | Gamifikasi dewasa, bukan kartun anak-anak | Lucide icons (bukan emoji), refined glow effects, clean stat cards |
 | 4 | **Feedback-Rich** | Setiap aksi mendapat visual feedback | Micro-animations, haptic-like transitions, toast notifications |
 | 5 | **Progressive Disclosure** | Tampilkan info secara bertahap, kurangi cognitive load | Expandable cards, tab navigation, modal untuk detail |
-| 6 | **Social Proof Everywhere** | Tunjukkan aktivitas komunitas untuk FOMO positif | Live counters, activity feed, "X users learning now" |
+| 6 | **Social Proof Everywhere** | Tunjukkan aktivitas komunitas untuk FOMO positif | Live counters, leaderboard widget, "X users studying now" |
 | 7 | **Mobile-First Responsive** | Dirancang dari mobile ke atas | Touch-friendly targets (min 44px), collapsible layouts |
+| 8 | **Professional Iconography** | Gunakan icon library profesional (Lucide), TIDAK emoji/emote | Semua stat cards, nav items, badges menggunakan Lucide React icons |
+| 9 | **Relaxed & Playful** | UI terasa santai tapi tetap profesional | Rounded corners (xl), soft shadows, smooth hover lift, generous spacing |
+| 10 | **Calm Color Palette** | Warna blue-purple yang tenang sebagai identitas Nexera | Primary `#7C3AED` (purple), secondary `#06B6D4` (cyan), info `#3B82F6` (blue) |
 
 ### 1.3 Emotional Design Goals
 
@@ -250,21 +253,42 @@ SOCIAL → "Ayo raid bareng!" (Belonging)
 | **Color** | Inherits from parent, default `--text-secondary` |
 | **Touch Target** | Min 44×44px (wrapper) |
 
-### 5.2 Subject Emoji Icons
+### 5.2 Icon Usage Rules (Updated March 2026)
 
-| Subject | Emoji | Color |
-|---------|-------|-------|
-| Computer Science | 💻 | `#3B82F6` |
-| Mathematics | 📐 | `#EF4444` |
-| Physics | ⚛️ | `#06B6D4` |
-| Biology | 🧬 | `#22C55E` |
-| Chemistry | 🧪 | `#A855F7` |
-| Literature | 📖 | `#F59E0B` |
-| History | 🏛️ | `#D97706` |
-| Economics | 📊 | `#10B981` |
-| Languages | 🌏 | `#6366F1` |
-| Art & Design | 🎨 | `#EC4899` |
-| General | 📚 | `#8B5CF6` |
+> **CRITICAL RULE: NO EMOJI IN PRODUCTION UI**
+> - All icons across the platform MUST use Lucide React icons
+> - Emoji/emote characters (🔥📚🎯 etc.) are PROHIBITED in UI components
+> - Emoji may only appear in user-generated content (chat, comments, bios)
+> - This applies to: stat cards, navigation, badges, buttons, labels, cards, charts
+
+**Subject Icons (Lucide replacements):**
+
+| Subject | Lucide Icon | Color |
+|---------|-------------|-------|
+| Computer Science | `Monitor` | `#3B82F6` |
+| Mathematics | `Calculator` | `#EF4444` |
+| Physics | `Atom` | `#06B6D4` |
+| Biology | `Dna` | `#22C55E` |
+| Chemistry | `FlaskConical` | `#A855F7` |
+| Literature | `BookOpen` | `#F59E0B` |
+| History | `Landmark` | `#D97706` |
+| Economics | `BarChart3` | `#10B981` |
+| Languages | `Globe` | `#6366F1` |
+| Art & Design | `Palette` | `#EC4899` |
+| General | `Library` | `#8B5CF6` |
+
+**Dashboard Stat Icons:**
+
+| Metric | Icon | Color |
+|--------|------|-------|
+| Active Courses | `BookOpen` | `#7C3AED` |
+| Study Hours | `Clock` | `#3B82F6` |
+| Streak | `Flame` | `#F59E0B` |
+| XP Earned | `Zap` | `#22C55E` |
+| Leaderboard | `Trophy` | `#F59E0B` |
+| Timer | `Timer` | `#7C3AED` |
+| Achievements | `Award` | `#F59E0B` |
+| Community | `Globe` | `#06B6D4` |
 
 ### 5.3 Illustration Style
 
@@ -382,15 +406,98 @@ SOCIAL → "Ayo raid bareng!" (Belonging)
 
 ### 7.2 Dashboard / Home Page
 
+> **UI/UX Analysis (Updated March 2026):**
+> - Referensi best practices dari modern dashboard design (Donezo, Linear, Notion, Vercel Dashboard)
+> - **F-Pattern reading flow**: Header & stats di atas → charts & schedule di tengah → detail widgets di bawah
+> - **Information architecture**: Stat cards memberikan quick-glance metrics, charts memberikan trend insight, action items memberikan next steps
+> - **Professional iconography**: Semua icons menggunakan Lucide React — TIDAK ADA emoji/emote untuk menjaga kesan profesional
+> - **Calm color palette**: Purple (#7C3AED) sebagai primary, blue (#3B82F6) dan cyan (#06B6D4) sebagai secondary — tenang tapi engaging
+> - **Playful touches**: Rounded corners (xl), soft hover-lift animations, gradient accents pada stat cards, smooth transitions
+> - **Data completeness**: Dashboard must show ALL essential learning metrics at a single glance
+
 **Layout (top to bottom):**
 
-1. **Welcome Bar** — "Good morning, {name}! 🔥 {streak} day streak" + daily tip
-2. **Quick Stats Row** — 4 stat cards: Level/XP, Streak, Cards This Week, Focus Avg
-3. **Continue Learning** — Horizontal scroll of in-progress materials (card: thumbnail, title, progress %, CTA)
-4. **Weekly Challenge Widget** — Community progress bar + user contribution + time remaining
-5. **Active Social Sessions** — Live rooms/raids the user can join
-6. **Recent Knowledge Cards** — Last 3 earned cards in grid
-7. **Suggestions** — "Start a new learning session" CTA (for empty/new users)
+1. **Header Bar**
+   - "Dashboard" heading (text-h2, font-heading, bold)
+   - Subtitle: "{greeting}, {name}! Track your progress and keep learning."
+   - Action buttons: "Generate Course" (primary bg, Plus icon) + "Upload Material" (outlined, Upload icon)
+   - Responsive: stack vertically on mobile
+
+2. **Quick Stats Row** — 4 stat cards in grid (2-col mobile, 4-col desktop):
+   | Card | Icon | Color | Value | Trend |
+   |------|------|-------|-------|-------|
+   | Active Courses | BookOpen | `#7C3AED` (purple) | Course count | +/- % vs last week |
+   | Study Hours | Clock | `#3B82F6` (blue) | Total hours this week | +/- % vs last week |
+   | Day Streak | Flame | `#F59E0B` (amber) | Current streak count | Streak status |
+   | XP Earned | Zap | `#22C55E` (green) | XP this week | +/- % vs last week |
+
+   **Stat Card Design:**
+   - `bg-dark-card`, `border border-border/60`, `rounded-xl`, `p-5`
+   - Colored icon in tinted background circle (`{color}18` opacity bg)
+   - Trend badge: pill shape with ArrowUpRight icon, green for positive, red for negative
+   - Colored accent patch in top-right corner (`opacity-[0.06]`, `rounded-bl-[48px]`)
+   - Hover: `-translate-y-0.5`, `shadow-lg` transition
+
+3. **Weekly Study Activity (Recharts BarChart)** — 2/3 width on desktop:
+   - Dual bars: Hours (purple `#7C3AED`) + Quizzes (cyan `#06B6D4`)
+   - Rounded bar tops: `radius={[6, 6, 0, 0]}`
+   - CartesianGrid: dashed horizontal lines only (`stroke="#1E1E32"`, `vertical={false}`)
+   - Custom tooltip: `bg-dark-elevated`, rounded, shadow-xl
+   - Legend: colored squares + labels
+
+4. **Upcoming Schedule** — 1/3 width card:
+   - Calendar icon + "Upcoming" title, "View All" link
+   - Stacked items with typed icons (quiz: Target/purple, test: FileText/red, session: Users/cyan, review: CheckCircle/green)
+   - Urgent items get "DUE" badge in red
+   - Each item: icon circle + title + due time, `rounded-lg bg-dark-secondary/50`
+
+5. **Continue Learning** — 3-column grid:
+   - Per card: Subject-colored icon circle, title, subject label, progress bar (colored), section count, "Continue" CTA
+   - Progress bar uses `c.color` per subject
+   - Hover: lift + shadow
+   - CTA: outlined button "Continue >" linking to `/learn/{id}`
+
+6. **Course Progress (SVG Donut)** — 1/3 width:
+   - Custom SVG donut chart (148px, 20px stroke)
+   - Segments: Completed (green #22C55E), In Progress (purple #7C3AED), Not Started (dark track)
+   - Center text: completion percentage + "Completed" label
+   - Legend: 3 color dots with counts
+
+7. **Leaderboard Widget** — 1/3 width:
+   - Top 5 entries with rank icons (Crown for #1, Medal for #2-#3, number for #4-#5)
+   - User's own row highlighted: `bg-primary/10 border border-primary/20`
+   - XP in monospace font
+   - "Full Board" link to /explore
+
+8. **Study Timer** — 1/3 width:
+   - Digital display: `font-mono`, `text-4xl`, `tracking-[0.12em]`
+   - Glow effect when running: `textShadow: '0 0 24px rgba(124,58,237,0.5)'`
+   - Pulse border overlay when active
+   - Controls: Play/Pause (circular button, purple/warning toggle) + Reset (RotateCcw)
+   - Status text below: "Focus mode active" / "Start a study session"
+
+9. **XP Trend (Recharts AreaChart)** — 1/2 width:
+   - 7-week trend line with gradient fill (`url(#xpGradient)`, purple → transparent)
+   - CartesianGrid dashed horizontal only
+   - Custom tooltip matching dashboard style
+
+10. **Achievements Grid** — 1/2 width:
+    - 2×2 grid of achievement badges (earned + locked)
+    - Each: Lucide icon in colored circle, title, description
+    - Earned: full color, subtle bg tint. Locked: `opacity-50`, gray icon
+    - "View All" link to /profile
+
+11. **Community Activity** — Full width:
+    - 4-column grid of live community stats
+    - Per item: colored icon circle + bold value + label
+    - Stats: "Studying Now", "Active Rooms", "Ongoing Raids", "Friends Online"
+
+**Design System Notes:**
+- ALL card containers: `bg-dark-card border border-border/60 rounded-xl p-5`
+- Section headers: Lucide icon (18px, text-primary-light) + text (sm, font-semibold)
+- Link actions: `text-[11px] text-primary-light` with ArrowRight icon
+- No emoji anywhere — professional Lucide icons only
+- Spacing: `space-y-6` between major sections, `gap-4` within grids
 
 ### 7.3 Knowledge Profile Page
 
@@ -1011,6 +1118,95 @@ src/components/
 ---
 
 **END OF DRD v1.0**
+
+---
+
+## Appendix C: UI/UX Enhancement Analysis (March 25, 2026)
+
+### C.1 Dashboard UI/UX Audit & Redesign
+
+**Problems identified in v1.0 Dashboard:**
+
+| Issue | Severity | Root Cause |
+|-------|----------|------------|
+| Emoji icons (🔥📚🎯) look unprofessional | High | No icon standards enforced |
+| Missing critical data: study hours, XP trend, leaderboard position | High | Incomplete information architecture |
+| No data visualization (charts/graphs) | High | Only raw numbers, no trend context |
+| Flat stat cards without visual hierarchy | Medium | No color coding, no trend indicators |
+| No study timer widget | Medium | Missing utility feature for active sessions |
+| No community activity overview | Medium | Social proof principle violated |
+| No course progress visualization | Medium | Users can't assess overall completion |
+| HeroBanner takes too much vertical space | Low | Wastes prime above-the-fold real estate |
+
+**Best practices applied from industry analysis:**
+
+1. **Donezo Dashboard Pattern** — Stat cards at top with trend indicators + colored accents, mixed card sizes, utility widgets (timer)
+2. **Linear App** — Clean data-heavy layout, professional iconography, subtle card borders, monospace for numbers
+3. **Vercel Dashboard** — Minimal but information-dense, area charts for trends, dark theme done right
+4. **Notion** — Calm aesthetics, generous whitespace, grouped sections with clear headers
+5. **GitHub Profile** — Data-as-art (contribution heatmap), social proof (follower/star counts), achievement showcasing
+
+### C.2 Color Identity Analysis
+
+**Nexera Color Identity: Calm Blue-Purple**
+
+```
+Primary Purple:  #7C3AED → Used for: CTAs, active states, progress, primary stat cards
+Primary Light:   #A78BFA → Used for: Hover states, section headers, links
+Secondary Cyan:  #06B6D4 → Used for: Secondary metrics, quiz data, community
+Info Blue:       #3B82F6 → Used for: Study hours, subject CS, information
+Success Green:   #22C55E → Used for: Completed items, positive trends, active streak
+Accent Amber:    #F59E0B → Used for: XP, streak fire, leaderboard gold, achievements
+Danger Red:      #EF4444 → Used for: Urgent items, negative trends, at-risk streak
+```
+
+**Reasoning:** Purple and blue evoke trust, wisdom, and calm authority — aligned with a knowledge/learning platform. Amber/gold for gamification elements creates excitement without clashing.
+
+### C.3 Card Component Design Standards
+
+All dashboard cards follow a unified design language:
+
+```
+Container:  bg-dark-card border border-border/60 rounded-xl p-5
+Header:     Lucide icon (18px, text-primary-light) + text (sm, font-semibold, text-text-primary)
+Links:      text-[11px] text-primary-light + ArrowRight icon (12px)
+Hover:      -translate-y-0.5 shadow-lg transition-all duration-200
+Sub-cards:  bg-dark-secondary/30 border-border/20 rounded-lg p-3
+```
+
+### C.4 Data Visualization Standards
+
+| Chart Type | Library | Use Case | Style |
+|------------|---------|----------|-------|
+| Bar Chart | Recharts BarChart | Weekly activity (hours + quizzes) | Rounded top radius, dual color bars |
+| Area Chart | Recharts AreaChart | XP trend over weeks | Gradient fill (purple → transparent) |
+| Donut Chart | Custom SVG | Course completion breakdown | 3 segments (completed/progress/empty) |
+| Progress Bar | CSS | Individual course progress | Subject-colored fill, rounded-full |
+
+**Chart styling rules:**
+- CartesianGrid: `strokeDasharray="3 3"`, `stroke="#1E1E32"`, `vertical={false}`
+- Axis: `axisLine={false}`, `tickLine={false}`, `tick={{ fill: '#64748B', fontSize: 11 }}`
+- Tooltip: `bg-dark-elevated`, border, rounded-lg, shadow-xl
+- Colors: Always from the Nexera palette — purple, cyan, blue, green, amber
+
+### C.5 Platform-Wide Iconography Rules
+
+**Mandatory: Lucide React icons for all UI elements**
+
+| Context | Icon Source | Acceptable Fallback |
+|---------|-----------|-------------------|
+| Navigation | Lucide React | None |
+| Stat cards | Lucide React | None |
+| Buttons | Lucide React | None |
+| Badges/labels | Lucide React | None |
+| Empty states | Lucide React (48px) | Custom SVG illustration |
+| User-generated content | N/A | Emoji allowed in text only |
+| Sidebar nav | Lucide React | None |
+| Form inputs | Lucide React | None |
+
+---
+
+**END OF DRD v2.0**
 
 **Document Status:** COMPLETE  
 **Total Sections:** 17 + 2 Appendices  

@@ -1,5 +1,8 @@
 import { create } from "zustand";
 import api from "../services/api";
+import { useContentStore } from "./contentStore";
+import { useAuthStore } from "./authStore";
+import { useTaskStore } from "./taskStore";
 
 /**
  * Session Store — manages Document Dungeon learning session state.
@@ -67,6 +70,36 @@ export const useSessionStore = create((set, get) => ({
 
     /** Start a new session for a given content ID */
     startSession: async (contentId) => {
+        // ── Optimistic load: use content already in store (from CourseDetailPage) ──
+        const cachedContent = useContentStore.getState().currentContent;
+        if (cachedContent?.id === contentId && cachedContent?.structured_sections?.length > 0) {
+            const sections = cachedContent.structured_sections;
+            const sectionStates = sections.map((_, i) => i === 0 ? "current" : "locked");
+            set({
+                session: { id: `pending-${Date.now()}`, status: "active", content_id: contentId },
+                content: cachedContent,
+                sections,
+                currentSectionIndex: 0,
+                sectionStates,
+                view: "quest-map",
+                loading: false,
+                focusTimer: 0, totalFocusTime: 0, lives: 3,
+                tabSwitches: 0, distractionCount: 0, focusIntegrity: 100,
+                quizQuestions: [], quizAttempts: 0, quizScore: null,
+                quizPassed: false, quizCooldownUntil: null,
+                summaryText: "", summaryScore: null, summaryFeedback: null,
+                summaryApproved: false, rewards: null, knowledgeCard: null, readingDone: false,
+            });
+            // Create real session in background — update session id when ready
+            api.post("/v1/sessions/start", { content_id: contentId })
+                .then((res) => {
+                    const data = res.data.data ?? res.data;
+                    if (data.session) set({ session: data.session });
+                })
+                .catch(() => { /* keep using local session id — non-critical */ });
+            return;
+        }
+
         set({ loading: true, error: null });
         try {
             const res = await api.post("/v1/sessions/start", {
@@ -91,7 +124,6 @@ export const useSessionStore = create((set, get) => ({
                 sectionStates,
                 view: "quest-map",
                 loading: false,
-                // Reset all progress
                 focusTimer: 0,
                 totalFocusTime: 0,
                 lives: 3,
@@ -112,7 +144,7 @@ export const useSessionStore = create((set, get) => ({
                 readingDone: false,
             });
         } catch (err) {
-            // Fallback: if backend not ready, try loading content directly
+            // Fallback: load content directly
             try {
                 const contentRes = await api.get(`/v1/content/${contentId}`);
                 const contentData = contentRes.data.data ?? contentRes.data;
@@ -220,7 +252,7 @@ export const useSessionStore = create((set, get) => ({
             tabSwitches,
             focusIntegrity,
         } = get();
-        if (!session?.id || session.id.startsWith("local-")) return;
+        if (!session?.id || session.id.startsWith("local-") || session.id.startsWith("pending-")) return;
 
         try {
             await api.patch(`/v1/sessions/${session.id}/progress`, {
@@ -253,7 +285,7 @@ export const useSessionStore = create((set, get) => ({
         }
 
         // Try fetching from backend
-        if (session?.id && !session.id.startsWith("local-")) {
+        if (session?.id && !session.id.startsWith("local-") && !session.id.startsWith("pending-")) {
             try {
                 const res = await api.get(`/v1/sessions/${session.id}/quiz`, {
                     params: { section: currentSectionIndex },
@@ -301,7 +333,7 @@ export const useSessionStore = create((set, get) => ({
         const newAttempts = quizAttempts + 1;
 
         // Try submitting to backend
-        if (session?.id && !session.id.startsWith("local-")) {
+        if (session?.id && !session.id.startsWith("local-") && !session.id.startsWith("pending-")) {
             try {
                 const res = await api.post(
                     `/v1/sessions/${session.id}/quiz-attempt`,
@@ -399,7 +431,7 @@ export const useSessionStore = create((set, get) => ({
         const { session, summaryText } = get();
         set({ loading: true });
 
-        if (session?.id && !session.id.startsWith("local-")) {
+        if (session?.id && !session.id.startsWith("local-") && !session.id.startsWith("pending-")) {
             try {
                 const res = await api.post(
                     `/v1/sessions/${session.id}/validate-summary`,
@@ -455,14 +487,38 @@ export const useSessionStore = create((set, get) => ({
             focusIntegrity,
             content,
         } = get();
+
+        const cleanedSummary = (summaryText || "").trim();
+        if (cleanedSummary.length < 50) {
+            set({
+                summaryApproved: false,
+                summaryScore: null,
+                summaryFeedback: {
+                    completeness: "Summary too short.",
+                    accuracy: "Write a fuller summary based on the section content.",
+                    clarity: "Use at least a few complete sentences.",
+                    missing_concepts: ["Tambahkan minimal 50 karakter agar bisa direview AI."],
+                },
+            });
+            return { success: false, reason: "summary_too_short" };
+        }
+
+        // Auto-validate on submit if not approved yet so users don't get stuck.
+        if (!get().summaryApproved) {
+            await get().validateSummary();
+            if (!get().summaryApproved) {
+                return { success: false, reason: "summary_not_approved" };
+            }
+        }
+
         set({ loading: true });
 
-        if (session?.id && !session.id.startsWith("local-")) {
+        if (session?.id && !session.id.startsWith("local-") && !session.id.startsWith("pending-")) {
             try {
                 const res = await api.post(
                     `/v1/sessions/${session.id}/complete`,
                     {
-                        summary: summaryText,
+                        summary: cleanedSummary,
                         actual_duration: Math.floor(totalFocusTime / 60),
                     },
                 );
@@ -474,6 +530,13 @@ export const useSessionStore = create((set, get) => ({
                     view: "complete",
                     loading: false,
                 });
+
+                // Refresh global user XP/coins and sidebar task counters
+                await Promise.allSettled([
+                    useAuthStore.getState().syncUser(),
+                    useTaskStore.getState().fetchSummary(),
+                ]);
+
                 return;
             } catch {
                 // Fallback

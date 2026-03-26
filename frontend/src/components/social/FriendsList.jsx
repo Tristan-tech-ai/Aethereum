@@ -141,9 +141,10 @@ const FriendsList = ({
   useEffect(() => {
       const fetchFriends = async () => {
           try {
-              const res = await api.get('/api/v1/friends');
-              if (res.data?.data?.friends) {
-                  setFriends(res.data.data.friends);
+              const res = await api.get('/v1/friends');
+              const data = res.data?.data ?? res.data;
+              if (Array.isArray(data) && data.length > 0) {
+                  setFriends(data);
               } else {
                   setFriends(demoFriends);
               }

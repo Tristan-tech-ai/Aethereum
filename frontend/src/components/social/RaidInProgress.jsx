@@ -1,572 +1,153 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-    MessageCircle,
-    Send,
-    BookOpen,
-    Trophy,
-    AlertTriangle,
-    ChevronRight,
-    Users,
-    X,
-} from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { MessageCircle, Send, BookOpen, AlertTriangle, ChevronRight, Users, X } from "lucide-react";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 import Avatar from "../ui/Avatar";
+import { useAuthStore } from "../../stores/authStore";
 
-/**
- * RaidInProgress — real-time cooperative learning view per DRD §9.1 & PRD §7 (Study Raid).
- *
- * Layout (desktop):
- *   Left: Participant cards (name + % progress + status emoji)
- *   Center: Learning content (reading interface — same as Document Dungeon)
- *   Right: Chat sidebar (text only, 200 char limit)
- *
- * Top: Shared team progress bar
- *
- * In production, progress updates come from WebSocket (Reverb).
- * For now, opponent progress is simulated.
- */
+const normalizeSections = (raid) => {
+    const structured = raid?.content?.structured_sections;
+    if (Array.isArray(structured) && structured.length > 0) {
+        return structured.map((section, index) => ({
+            id: index + 1,
+            title: section?.title || `Section ${index + 1}`,
+            content: section?.content || section?.text || "",
+        }));
+    }
 
-// Simulated learning sections — in prod, fetched from content analysis
-const demoSections = [
-    {
-        id: 1,
-        title: "Introduction to Data Structures",
-        content:
-            "Data structures are ways of organizing and storing data so it can be accessed and modified efficiently. Common data structures include arrays, linked lists, stacks, queues, trees, and graphs.\n\nUnderstanding data structures is fundamental to writing efficient algorithms and is a core topic in computer science education.\n\n**Why Data Structures Matter:**\n\n- They determine how data is stored in memory\n- They affect the time complexity of operations\n- Choosing the right structure can dramatically improve performance\n- They are essential for solving complex computational problems",
-    },
-    {
-        id: 2,
-        title: "Arrays and Linked Lists",
-        content:
-            "An **array** is a collection of elements stored in contiguous memory locations. Arrays offer O(1) access time by index but O(n) for insertion and deletion.\n\nA **linked list** stores elements in nodes, where each node points to the next. Linked lists offer O(1) insertion/deletion at the head but O(n) access time.\n\n**Key Differences:**\n\n- Memory: Arrays use contiguous memory; linked lists use scattered nodes\n- Access: Arrays support random access; linked lists require traversal\n- Insertion: Linked lists are better for frequent insertions/deletions\n- Cache: Arrays have better cache locality due to contiguous storage",
-    },
-    {
-        id: 3,
-        title: "Stacks and Queues",
-        content:
-            "**Stacks** follow LIFO (Last In, First Out) — think of a stack of plates. Key operations: push, pop, peek.\n\n**Queues** follow FIFO (First In, First Out) — think of a line at a store. Key operations: enqueue, dequeue, front.\n\n**Applications:**\n\n- Stack: Function call stack, undo operations, expression parsing, backtracking\n- Queue: BFS traversal, task scheduling, printer queues, message buffers\n\nBoth can be implemented using arrays or linked lists.",
-    },
-    {
-        id: 4,
-        title: "Trees and Binary Search Trees",
-        content:
-            "A **tree** is a hierarchical data structure with a root node and child nodes. Each node can have zero or more children.\n\nA **Binary Search Tree (BST)** is a tree where each node has at most 2 children, and left child < parent < right child.\n\n**BST Operations (average case):**\n\n- Search: O(log n)\n- Insert: O(log n)\n- Delete: O(log n)\n\n**Note:** In the worst case (unbalanced), BST degrades to O(n). Self-balancing trees (AVL, Red-Black) maintain O(log n) guarantees.",
-    },
-    {
-        id: 5,
-        title: "Graphs and Hash Tables",
-        content:
-            "**Graphs** consist of vertices (nodes) and edges (connections). They can be directed/undirected, weighted/unweighted.\n\n**Common algorithms:** BFS, DFS, Dijkstra, Bellman-Ford, Kruskal, Prim.\n\n**Hash Tables** store key-value pairs using a hash function for O(1) average lookup.\n\n**Collision handling:** Chaining (linked lists at each bucket) or Open Addressing (probing).\n\n**Real-world uses:**\n\n- Graphs: Social networks, routing, dependency management\n- Hash Tables: Databases, caching, symbol tables, dictionaries",
-    },
-];
+    const fallback = raid?.content?.ai_analysis?.summary || raid?.content?.description || "No section content available for this raid yet.";
+    return [{ id: 1, title: raid?.content?.title || "Study Content", content: fallback }];
+};
 
-// Demo participants
-const demoParticipants = [
-    {
-        id: "me",
-        name: "You",
-        level: 22,
-        progress: 0,
-        status: "learning",
-        isMe: true,
-    },
-    {
-        id: "p2",
-        name: "Budi Santoso",
-        level: 24,
-        progress: 0,
-        status: "learning",
-        isMe: false,
-    },
-    {
-        id: "p3",
-        name: "Siti Rahma",
-        level: 31,
-        progress: 0,
-        status: "learning",
-        isMe: false,
-    },
-];
+const RaidInProgress = ({ raid = {}, participants: externalParticipants, onComplete, className = "" }) => {
+    const authUser = useAuthStore((s) => s.user);
+    const sections = useMemo(() => normalizeSections(raid), [raid]);
 
-const RaidInProgress = ({
-    raid = {},
-    participants: externalParticipants,
-    onComplete,
-    className = "",
-}) => {
-    const { contentTitle = "Data Structures & Algorithms" } = raid;
+    const participants = useMemo(() => {
+        const source = externalParticipants || raid?.participants || [];
+        return source.map((p) => {
+            const pivot = p?.pivot || {};
+            return {
+                id: p.id,
+                name: p.name || p.username || "Member",
+                level: p.level || 1,
+                progress: Number(pivot.progress_percentage ?? 0),
+                status: String(pivot.status || "learning"),
+                isMe: p.id === authUser?.id,
+            };
+        });
+    }, [externalParticipants, raid?.participants, authUser?.id]);
 
-    // ── Sections & reading state ──
     const [currentSection, setCurrentSection] = useState(0);
     const [completedSections, setCompletedSections] = useState(new Set());
-    const [sectionScrolled, setSectionScrolled] = useState(false);
-
-    // ── Participants ──
-    const [participants, setParticipants] = useState(
-        externalParticipants || demoParticipants,
-    );
-
-    // ── Chat ──
-    const [chatMessages, setChatMessages] = useState([
-        { id: 1, user: "Budi Santoso", text: "Let's do this 💪", time: "now" },
-        { id: 2, user: "Siti Rahma", text: "Good luck team!", time: "now" },
-    ]);
+    const [chatMessages, setChatMessages] = useState([]);
     const [chatInput, setChatInput] = useState("");
-    const [showChat, setShowChat] = useState(false); // mobile toggle
-    const chatEndRef = useRef(null);
+    const [showChat, setShowChat] = useState(false);
 
-    // ── Focus tracking ──
-    const [myDistractions, setMyDistractions] = useState(0);
-
-    // My progress based on completed sections
-    const myProgress = Math.round(
-        (completedSections.size / demoSections.length) * 100,
-    );
-
-    // Team average progress
-    const teamProgress = Math.round(
-        participants.reduce(
-            (sum, p) => sum + (p.isMe ? myProgress : p.progress),
-            0,
-        ) / participants.length,
-    );
-
-    // ── Simulate opponent progress ──
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setParticipants((prev) =>
-                prev.map((p) => {
-                    if (p.isMe) return { ...p, progress: myProgress };
-                    // Random progress increment (simulated)
-                    const increment =
-                        Math.random() < 0.3
-                            ? Math.floor(Math.random() * 8 + 2)
-                            : 0;
-                    const newProgress = Math.min(100, p.progress + increment);
-                    // Update status
-                    let status = "learning";
-                    if (newProgress >= 100) status = "completed";
-                    else if (Math.random() < 0.05) status = "quiz";
-                    return { ...p, progress: newProgress, status };
-                }),
-            );
-        }, 3000);
-        return () => clearInterval(interval);
-    }, [myProgress]);
-
-    // Auto-generate simulated chat messages
-    useEffect(() => {
-        const messages = [
-            { user: "Budi Santoso", text: "Arrays section is interesting!" },
-            { user: "Siti Rahma", text: "BST is tricky but I get it now" },
-            { user: "Budi Santoso", text: "Almost done with Trees 🌳" },
-            { user: "Siti Rahma", text: "Who's on the last section?" },
-        ];
-        let idx = 0;
-        const interval = setInterval(() => {
-            if (idx >= messages.length) return;
-            setChatMessages((prev) => [
-                ...prev,
-                { id: Date.now(), ...messages[idx], time: "just now" },
-            ]);
-            idx++;
-        }, 12000);
-        return () => clearInterval(interval);
-    }, []);
-
-    // Auto-scroll chat
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [chatMessages]);
-
-    // Focus tracking — tab switches
-    useEffect(() => {
-        const handleBlur = () => {
-            setMyDistractions((p) => p + 1);
-        };
-        window.addEventListener("blur", handleBlur);
-        return () => window.removeEventListener("blur", handleBlur);
-    }, []);
-
-    // ── Handlers ──
-    const handleCompleteSection = () => {
-        setCompletedSections((prev) => new Set([...prev, currentSection]));
-        setSectionScrolled(false);
-
-        if (completedSections.size + 1 >= demoSections.length) {
-            // All sections done — trigger completion
-            setTimeout(() => {
-                onComplete?.({
-                    sectionsCompleted: demoSections.length,
-                    focusIntegrity: Math.max(0, 100 - myDistractions * 5),
-                    distractions: myDistractions,
-                    participants,
-                });
-            }, 600);
-        } else {
-            // Move to next uncompleted section
-            const nextIdx = demoSections.findIndex(
-                (_, i) => i > currentSection && !completedSections.has(i),
-            );
-            if (nextIdx !== -1) setCurrentSection(nextIdx);
-        }
-    };
-
-    const handleSendChat = useCallback(() => {
-        const text = chatInput.trim();
-        if (!text) return;
-        setChatMessages((prev) => [
-            ...prev,
-            { id: Date.now(), user: "You", text, time: "now" },
-        ]);
-        setChatInput("");
-    }, [chatInput]);
-
-    const handleChatKeyDown = (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSendChat();
-        }
-    };
+    const myProgress = Math.round((completedSections.size / Math.max(1, sections.length)) * 100);
+    const teamProgress = Math.round((participants.reduce((sum, p) => sum + (p.isMe ? myProgress : p.progress), 0)) / Math.max(1, participants.length || 1));
 
     const getStatusEmoji = (status) => {
         switch (status) {
-            case "learning":
-                return "📖";
-            case "quiz":
-                return "⚔️";
-            case "completed":
-                return "✅";
-            default:
-                return "⏳";
+            case "learning": return "📖";
+            case "quiz": return "⚔️";
+            case "completed": return "✅";
+            default: return "⏳";
         }
+    };
+
+    const handleCompleteSection = () => {
+        const nextSet = new Set([...completedSections, currentSection]);
+        setCompletedSections(nextSet);
+
+        if (nextSet.size >= sections.length) {
+            onComplete?.({ sectionsCompleted: sections.length, focusIntegrity: 100, distractions: 0, participants });
+            return;
+        }
+
+        const nextIdx = sections.findIndex((_, i) => i > currentSection && !nextSet.has(i));
+        if (nextIdx !== -1) setCurrentSection(nextIdx);
+    };
+
+    const handleSendChat = () => {
+        const text = chatInput.trim();
+        if (!text) return;
+        setChatMessages((prev) => [...prev, { id: Date.now(), user: "You", text, time: "now" }]);
+        setChatInput("");
     };
 
     return (
         <div className={`space-y-4 ${className}`}>
-            {/* ── Top Bar: Title + Team Progress ── */}
             <div>
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                         <span className="text-lg">⚔️</span>
-                        <h2 className="text-h4 font-heading text-text-primary">
-                            {contentTitle}
-                        </h2>
+                        <h2 className="text-h4 font-heading text-text-primary">{raid?.content?.title || "Study Raid"}</h2>
                     </div>
                     <div className="flex items-center gap-2">
                         <Badge variant="primary">RAID ACTIVE</Badge>
-                        {/* Mobile chat toggle */}
-                        <button
-                            onClick={() => setShowChat((v) => !v)}
-                            className="lg:hidden p-2 text-text-muted hover:text-primary-light transition-colors relative"
-                        >
+                        <button onClick={() => setShowChat((v) => !v)} className="lg:hidden p-2 text-text-muted hover:text-primary-light transition-colors relative">
                             <MessageCircle size={18} />
-                            {chatMessages.length > 0 && (
-                                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full" />
-                            )}
                         </button>
                     </div>
                 </div>
 
-                {/* Shared Team Progress Bar */}
                 <div>
-                    <div className="flex justify-between text-caption mb-1">
-                        <span className="text-text-muted flex items-center gap-1">
-                            <Users size={12} /> Team Progress
-                        </span>
-                        <span className="text-text-secondary font-medium">
-                            {teamProgress}%
-                        </span>
-                    </div>
-                    <div className="w-full h-3 bg-dark-secondary rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-700 ease-out"
-                            style={{ width: `${teamProgress}%` }}
-                        />
-                    </div>
+                    <div className="flex justify-between text-caption mb-1"><span className="text-text-muted flex items-center gap-1"><Users size={12} /> Team Progress</span><span className="text-text-secondary font-medium">{teamProgress}%</span></div>
+                    <div className="w-full h-3 bg-dark-secondary rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500" style={{ width: `${teamProgress}%` }} /></div>
                 </div>
             </div>
 
-            {/* ── Three-Column Layout ── */}
             <div className="flex gap-4">
-                {/* ── Left: Participant Cards ── */}
                 <div className="hidden md:block w-48 shrink-0 space-y-2">
-                    <p className="text-caption text-text-muted font-medium uppercase tracking-wider mb-1">
-                        Raiders
-                    </p>
+                    <p className="text-caption text-text-muted font-medium uppercase tracking-wider mb-1">Raiders</p>
                     {participants.map((p) => (
-                        <Card
-                            key={p.id}
-                            padding="compact"
-                            className={`transition-all ${p.isMe ? "ring-1 ring-primary/30" : ""}`}
-                        >
+                        <Card key={p.id} padding="compact" className={p.isMe ? "ring-1 ring-primary/30" : ""}>
                             <div className="flex items-center gap-2 mb-2">
                                 <Avatar name={p.name} size="xs" />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[11px] font-medium text-text-primary truncate">
-                                        {p.name}
-                                    </p>
-                                    <p className="text-[10px] text-text-muted">
-                                        Lv.{p.level}
-                                    </p>
-                                </div>
-                                <span className="text-sm" title={p.status}>
-                                    {getStatusEmoji(p.status)}
-                                </span>
+                                <div className="flex-1 min-w-0"><p className="text-[11px] font-medium text-text-primary truncate">{p.name}</p><p className="text-[10px] text-text-muted">Lv.{p.level}</p></div>
+                                <span className="text-sm" title={p.status}>{getStatusEmoji(p.status)}</span>
                             </div>
-                            <div className="w-full h-1.5 bg-dark-secondary rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-500 ${
-                                        (p.isMe ? myProgress : p.progress) >=
-                                        100
-                                            ? "bg-success"
-                                            : "bg-primary"
-                                    }`}
-                                    style={{
-                                        width: `${p.isMe ? myProgress : p.progress}%`,
-                                    }}
-                                />
-                            </div>
-                            <p className="text-[10px] text-text-muted text-right mt-1">
-                                {p.isMe ? myProgress : p.progress}%
-                            </p>
+                            <div className="w-full h-1.5 bg-dark-secondary rounded-full overflow-hidden"><div className="h-full bg-primary" style={{ width: `${p.isMe ? myProgress : p.progress}%` }} /></div>
                         </Card>
                     ))}
-
-                    {myDistractions > 0 && (
-                        <div className="flex items-center gap-1.5 text-[10px] text-warning mt-2 px-1">
-                            <AlertTriangle size={10} />
-                            <span>
-                                {myDistractions} tab switch
-                                {myDistractions > 1 ? "es" : ""}
-                            </span>
-                        </div>
-                    )}
                 </div>
 
-                {/* ── Center: Learning Content ── */}
-                <div className="flex-1 min-w-0">
-                    {/* Section Navigator */}
-                    <div className="flex gap-1.5 mb-4 overflow-x-auto scrollbar-hide pb-1">
-                        {demoSections.map((section, i) => (
-                            <button
-                                key={section.id}
-                                onClick={() => {
-                                    setCurrentSection(i);
-                                    setSectionScrolled(false);
-                                }}
-                                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap transition-all border ${
-                                    i === currentSection
-                                        ? "border-primary bg-primary/15 text-primary-light"
-                                        : completedSections.has(i)
-                                          ? "border-success/30 bg-success/10 text-success"
-                                          : "border-border bg-dark-secondary text-text-muted hover:border-white/10"
-                                }`}
-                            >
-                                {completedSections.has(i) ? "✅" : `${i + 1}`}
-                                <span className="hidden sm:inline ml-0.5">
-                                    {section.title
-                                        .split(" ")
-                                        .slice(0, 2)
-                                        .join(" ")}
-                                </span>
-                            </button>
-                        ))}
+                <Card className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-4">
+                        <div><h3 className="text-h4 font-heading text-text-primary">{sections[currentSection]?.title || "Section"}</h3><p className="text-caption text-text-muted mt-1">Section {currentSection + 1} of {sections.length}</p></div>
+                        <Badge variant="secondary">{myProgress}% complete</Badge>
                     </div>
 
-                    {/* Reading Content Card */}
-                    <Card padding="spacious" className="min-h-[400px]">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-h4 font-heading text-text-primary">
-                                {demoSections[currentSection].title}
-                            </h3>
-                            <Badge
-                                variant={
-                                    completedSections.has(currentSection)
-                                        ? "success"
-                                        : "default"
-                                }
-                            >
-                                {completedSections.has(currentSection)
-                                    ? "Completed"
-                                    : `Section ${currentSection + 1}/${demoSections.length}`}
-                            </Badge>
-                        </div>
+                    <div className="mb-4 max-h-[46vh] overflow-auto pr-2 text-sm text-text-secondary whitespace-pre-wrap leading-relaxed">{sections[currentSection]?.content || "No content."}</div>
 
-                        {/* Content text with markdown-like styling */}
-                        <div
-                            className="prose prose-invert prose-sm max-w-none text-text-secondary leading-relaxed"
-                            onScroll={(e) => {
-                                const el = e.target;
-                                if (
-                                    el.scrollTop + el.clientHeight >=
-                                    el.scrollHeight - 20
-                                ) {
-                                    setSectionScrolled(true);
-                                }
-                            }}
-                        >
-                            {demoSections[currentSection].content
-                                .split("\n\n")
-                                .map((paragraph, idx) => (
-                                    <p key={idx} className="mb-3">
-                                        {paragraph.split("**").map((part, j) =>
-                                            j % 2 === 1 ? (
-                                                <strong
-                                                    key={j}
-                                                    className="text-text-primary font-semibold"
-                                                >
-                                                    {part}
-                                                </strong>
-                                            ) : (
-                                                <span key={j}>{part}</span>
-                                            ),
-                                        )}
-                                    </p>
-                                ))}
-                        </div>
+                    <div className="flex items-center justify-between border-t border-border-subtle pt-3">
+                        <div className="text-caption text-text-muted">Complete this section to continue</div>
+                        <Button onClick={handleCompleteSection}>{completedSections.has(currentSection) ? "Continue" : "Complete Section"} <ChevronRight size={14} className="ml-1" /></Button>
+                    </div>
+                </Card>
 
-                        {/* Complete Section Button */}
-                        {!completedSections.has(currentSection) && (
-                            <div className="mt-6 pt-4 border-t border-border-subtle">
-                                <Button
-                                    className="w-full"
-                                    onClick={handleCompleteSection}
-                                >
-                                    <ChevronRight
-                                        size={16}
-                                        className="mr-1.5"
-                                    />
-                                    {completedSections.size + 1 >=
-                                    demoSections.length
-                                        ? "Complete Final Section"
-                                        : "Mark Complete & Next"}
-                                </Button>
-                            </div>
-                        )}
-
-                        {completedSections.has(currentSection) && (
-                            <div className="mt-6 pt-4 border-t border-border-subtle text-center">
-                                <p className="text-sm text-success flex items-center justify-center gap-2">
-                                    <Trophy size={14} /> Section completed!
-                                </p>
-                            </div>
-                        )}
-                    </Card>
-                </div>
-
-                {/* ── Right: Chat Sidebar ── */}
-                <div
-                    className={`${
-                        showChat
-                            ? "fixed inset-0 z-50 bg-black/60 lg:relative lg:inset-auto lg:z-auto lg:bg-transparent"
-                            : "hidden"
-                    } lg:block w-64 shrink-0`}
-                >
-                    <div
-                        className={`${
-                            showChat
-                                ? "absolute right-0 top-0 h-full w-72 lg:relative lg:w-full"
-                                : ""
-                        } flex flex-col bg-dark-card border border-border rounded-md-drd h-[500px]`}
-                    >
-                        {/* Chat Header */}
-                        <div className="flex items-center justify-between px-3 py-2.5 border-b border-border-subtle">
-                            <p className="text-caption font-medium text-text-primary flex items-center gap-1.5">
-                                <MessageCircle size={12} /> Raid Chat
-                            </p>
-                            <button
-                                onClick={() => setShowChat(false)}
-                                className="lg:hidden p-1 text-text-muted hover:text-text-primary"
-                            >
-                                <X size={14} />
-                            </button>
-                        </div>
-
-                        {/* Messages */}
-                        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2.5">
-                            {chatMessages.map((msg) => (
-                                <div
-                                    key={msg.id}
-                                    className={`${msg.user === "You" ? "text-right" : ""}`}
-                                >
-                                    <p className="text-[10px] text-text-muted mb-0.5">
-                                        {msg.user === "You" ? "" : msg.user}
-                                    </p>
-                                    <div
-                                        className={`inline-block max-w-[85%] px-2.5 py-1.5 rounded-lg text-[12px] ${
-                                            msg.user === "You"
-                                                ? "bg-primary/20 text-primary-light"
-                                                : "bg-dark-secondary text-text-secondary"
-                                        }`}
-                                    >
-                                        {msg.text}
-                                    </div>
-                                </div>
-                            ))}
-                            <div ref={chatEndRef} />
-                        </div>
-
-                        {/* Chat Input */}
-                        <div className="px-3 py-2.5 border-t border-border-subtle">
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="Type a message..."
-                                    value={chatInput}
-                                    onChange={(e) =>
-                                        setChatInput(
-                                            e.target.value.slice(0, 200),
-                                        )
-                                    }
-                                    onKeyDown={handleChatKeyDown}
-                                    maxLength={200}
-                                    className="flex-1 h-8 bg-dark-secondary text-text-primary text-[12px] rounded-md-drd px-3 border border-border focus:border-primary focus:outline-none transition-colors"
-                                />
-                                <button
-                                    onClick={handleSendChat}
-                                    className="p-1.5 text-text-muted hover:text-primary-light transition-colors"
-                                    disabled={!chatInput.trim()}
-                                >
-                                    <Send size={14} />
-                                </button>
-                            </div>
-                            <p className="text-[9px] text-text-muted text-right mt-1">
-                                {chatInput.length}/200
-                            </p>
-                        </div>
+                <div className={`fixed inset-y-0 right-0 w-[86%] max-w-sm z-40 bg-dark-base border-l border-border transform transition-transform duration-300 lg:static lg:translate-x-0 lg:w-80 lg:max-w-none lg:border lg:rounded-xl lg:bg-transparent ${showChat ? "translate-x-0" : "translate-x-full lg:translate-x-0"}`}>
+                    <div className="h-full flex flex-col">
+                        <div className="px-4 py-3 border-b border-border flex items-center justify-between"><h4 className="text-sm font-semibold text-text-primary">Team Chat</h4><button onClick={() => setShowChat(false)} className="lg:hidden text-text-muted"><X size={16} /></button></div>
+                        <div className="flex-1 overflow-auto p-3 space-y-2">{chatMessages.length === 0 ? <p className="text-xs text-text-muted text-center py-6">No messages yet.</p> : chatMessages.map((m) => (<div key={m.id} className="bg-dark-card border border-border rounded-lg p-2.5"><p className="text-[11px] text-text-muted">{m.user}</p><p className="text-sm text-text-primary">{m.text}</p></div>))}</div>
+                        <div className="p-3 border-t border-border flex items-end gap-2"><textarea value={chatInput} onChange={(e) => setChatInput(e.target.value.slice(0, 200))} placeholder="Type a message..." rows={2} className="flex-1 bg-dark-secondary border border-border rounded-lg px-3 py-2 text-sm text-text-primary resize-none focus:outline-none focus:border-primary" /><Button size="sm" onClick={handleSendChat}><Send size={14} /></Button></div>
                     </div>
                 </div>
             </div>
 
-            {/* Mobile: Participant summary strip */}
-            <div className="md:hidden flex gap-2 overflow-x-auto pb-1">
-                {participants.map((p) => (
-                    <div
-                        key={p.id}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-dark-card border border-border rounded-full shrink-0"
-                    >
-                        <Avatar name={p.name} size="xs" />
-                        <span className="text-[10px] text-text-primary font-medium">
-                            {p.name.split(" ")[0]}
-                        </span>
-                        <span className="text-[10px] text-text-muted">
-                            {p.isMe ? myProgress : p.progress}%
-                        </span>
-                        <span className="text-[10px]">
-                            {getStatusEmoji(p.status)}
-                        </span>
-                    </div>
+            {participants.length <= 1 && (
+                <Card className="border-warning/30 bg-warning/5"><div className="flex items-center gap-2 text-warning text-sm"><AlertTriangle size={16} /> Waiting for more participants to make this raid collaborative.</div></Card>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {sections.map((section, index) => (
+                    <button key={section.id} onClick={() => setCurrentSection(index)} className={`text-left p-3 rounded-lg border transition-colors ${index === currentSection ? "border-primary bg-primary/10" : "border-border bg-dark-card hover:border-border-hover"}`}>
+                        <div className="flex items-center justify-between"><p className="text-xs font-medium text-text-primary truncate">{section.title}</p><span className="text-xs">{completedSections.has(index) ? "✅" : "📄"}</span></div>
+                    </button>
                 ))}
             </div>
-
-            {/* Tip */}
-            <p className="text-center text-caption text-text-muted">
-                💡 Stay focused! Your team is counting on you. Switching tabs is
-                tracked.
-            </p>
         </div>
     );
 };

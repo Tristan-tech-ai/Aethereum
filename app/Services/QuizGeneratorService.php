@@ -40,10 +40,7 @@ class QuizGeneratorService
     }
 
     /**
-     * Generate a new quiz for a content section.
-     *
-     * TODO: Integrate with GeminiService for AI-generated questions.
-     * Currently generates structured placeholder questions from section data.
+     * Generate a new quiz for a content section using Gemini AI.
      */
     public function generateQuiz(LearningContent $content, int $sectionIndex): Quiz
     {
@@ -51,20 +48,27 @@ class QuizGeneratorService
         $section  = $sections[$sectionIndex] ?? null;
 
         $sectionTitle   = $section['title'] ?? "Section {$sectionIndex}";
-        $sectionContent = $section['content'] ?? $section['text'] ?? '';
+        $sectionContent = $section['content_text'] ?? $section['content'] ?? $section['text'] ?? '';
+        $difficulty     = $content->difficulty ?? 'medium';
 
-        // TODO: Replace with actual Gemini API call:
-        // $questions = app(GeminiService::class)->generateQuiz($sectionContent, 'medium', 5);
-
-        // Fallback: generate placeholder questions
-        $questions = $this->generatePlaceholderQuestions($sectionTitle, $sectionContent);
+        try {
+            $questions = app(GeminiService::class)->generateQuiz(
+                $sectionContent,
+                $sectionTitle,
+                $difficulty,
+                5
+            );
+        } catch (\Throwable $e) {
+            Log::warning("GeminiService quiz generation failed, using placeholder: " . $e->getMessage());
+            $questions = $this->generatePlaceholderQuestions($sectionTitle, $sectionContent);
+        }
 
         $quiz = Quiz::create([
             'content_id'         => $content->id,
             'section_index'      => $sectionIndex,
             'questions'          => $questions,
             'question_count'     => count($questions),
-            'difficulty'         => $content->difficulty ?? 'medium',
+            'difficulty'         => $difficulty,
             'time_limit_seconds' => 120,
             'pass_threshold'     => self::PASS_THRESHOLD,
         ]);

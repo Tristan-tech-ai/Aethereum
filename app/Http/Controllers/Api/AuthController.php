@@ -26,7 +26,7 @@ class AuthController extends Controller
     public function user(Request $request): JsonResponse
     {
         $user = $request->user();
-        $user->load(['wallet', 'achievements.achievement', 'pinnedCards']);
+        $user->load(['wallet']);
 
         $stats = [
             'total_sessions'        => $user->total_sessions,

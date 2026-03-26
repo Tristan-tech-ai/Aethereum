@@ -1,0 +1,792 @@
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+    BarChart3,
+    TrendingUp,
+    BookOpen,
+    Target,
+    Zap,
+    Flame,
+    Award,
+    Brain,
+    Calendar,
+    ChevronDown,
+    FileText,
+    Trophy,
+    Activity,
+    PieChart as PieChartIcon,
+} from "lucide-react";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    CartesianGrid,
+    PieChart,
+    Pie,
+    Cell,
+    RadarChart,
+    PolarGrid,
+    PolarAngleAxis,
+    PolarRadiusAxis,
+    Radar,
+    LineChart,
+    Line,
+    Legend,
+} from "recharts";
+import { useAuthStore } from "../stores/authStore";
+import api from "../services/api";
+import Card from "../components/ui/Card";
+import LearningHeatmap from "../components/profile/LearningHeatmap";
+
+/* ════════════════════════════════════════════════════════════
+   DEMO DATA — used as fallback if API is empty
+   ════════════════════════════════════════════════════════════ */
+
+const demoWeeklyActivity = [
+    { day: "Mon", hours: 2.5, quizzes: 3, xp: 180 },
+    { day: "Tue", hours: 3.2, quizzes: 5, xp: 240 },
+    { day: "Wed", hours: 1.8, quizzes: 2, xp: 120 },
+    { day: "Thu", hours: 4.1, quizzes: 6, xp: 310 },
+    { day: "Fri", hours: 2.9, quizzes: 4, xp: 220 },
+    { day: "Sat", hours: 5.5, quizzes: 8, xp: 420 },
+    { day: "Sun", hours: 4.5, quizzes: 7, xp: 350 },
+];
+
+const demoMonthlyXP = [
+    { week: "W1", xp: 1200, sessions: 12 },
+    { week: "W2", xp: 1580, sessions: 15 },
+    { week: "W3", xp: 1350, sessions: 11 },
+    { week: "W4", xp: 1890, sessions: 18 },
+];
+
+const demoSubjectBreakdown = [
+    { subject: "Computer Science", hours: 42, cards: 12, color: "#7C3AED" },
+    { subject: "Mathematics", hours: 28, cards: 8, color: "#3B82F6" },
+    { subject: "Physics", hours: 18, cards: 5, color: "#06B6D4" },
+    { subject: "Biology", hours: 15, cards: 4, color: "#10B981" },
+    { subject: "Chemistry", hours: 12, cards: 3, color: "#F59E0B" },
+    { subject: "Literature", hours: 8, cards: 2, color: "#EF4444" },
+];
+
+const demoSkillRadar = [
+    { skill: "Problem Solving", score: 85 },
+    { skill: "Critical Thinking", score: 78 },
+    { skill: "Memory Retention", score: 92 },
+    { skill: "Focus Endurance", score: 70 },
+    { skill: "Quiz Performance", score: 88 },
+    { skill: "Consistency", score: 65 },
+];
+
+const demoDailyXP = (() => {
+    const data = [];
+    const now = new Date();
+    let cumulative = 800;
+    for (let i = 29; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dayXP = Math.random() > 0.15 ? Math.floor(Math.random() * 150 + 30) : 0;
+        cumulative += dayXP;
+        data.push({
+            date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+            xp: dayXP,
+            cumulative,
+        });
+    }
+    return data;
+})();
+
+const demoQuizPerformance = [
+    { month: "Oct", avgScore: 72, attempts: 8 },
+    { month: "Nov", avgScore: 78, attempts: 12 },
+    { month: "Dec", avgScore: 75, attempts: 10 },
+    { month: "Jan", avgScore: 82, attempts: 15 },
+    { month: "Feb", avgScore: 88, attempts: 18 },
+    { month: "Mar", avgScore: 91, attempts: 20 },
+];
+
+const demoCardTiers = [
+    { tier: "Diamond", count: 2, color: "#B9F2FF", emoji: "💎" },
+    { tier: "Gold", count: 5, color: "#FFD700", emoji: "🥇" },
+    { tier: "Silver", count: 8, color: "#C0C0C0", emoji: "🥈" },
+    { tier: "Bronze", count: 12, color: "#CD7F32", emoji: "🥉" },
+];
+
+const demoRecentSessions = [
+    { title: "Data Structures & Algorithms", date: "Today", duration: "45m", xp: 85, score: 92 },
+    { title: "Linear Algebra — Eigenvalues", date: "Today", duration: "30m", xp: 60, score: 88 },
+    { title: "React Patterns — Hooks", date: "Yesterday", duration: "55m", xp: 105, score: 95 },
+    { title: "Organic Chemistry — Reactions", date: "Yesterday", duration: "40m", xp: 75, score: 80 },
+    { title: "Molecular Biology — DNA", date: "2 days ago", duration: "35m", xp: 70, score: 85 },
+];
+
+/* ════════════════════════════════════════════════════════════
+   CUSTOM RECHARTS TOOLTIP
+   ════════════════════════════════════════════════════════════ */
+
+const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+        <div className="bg-dark-elevated border border-border-subtle rounded-md-drd p-3 shadow-lg-drd min-w-[140px]">
+            <p className="text-caption text-text-muted mb-1.5 font-medium">{label}</p>
+            {payload.map((entry, i) => (
+                <div key={i} className="flex items-center justify-between gap-4">
+                    <span className="text-body-sm text-text-secondary flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                        {entry.name}
+                    </span>
+                    <span className="text-body-sm font-semibold text-text-primary">
+                        {typeof entry.value === "number" ? entry.value.toLocaleString() : entry.value}
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+/* ════════════════════════════════════════════════════════════
+   STAT CARD
+   ════════════════════════════════════════════════════════════ */
+
+const StatCard = ({ icon: Icon, label, value, sub, trend, trendUp, color }) => (
+    <Card className="relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-20 h-20 opacity-[0.04] pointer-events-none">
+            <Icon size={80} />
+        </div>
+        <div className="flex items-start gap-3">
+            <div className={`p-2.5 rounded-lg ${color}`}>
+                <Icon size={18} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-caption text-text-muted mb-0.5">{label}</p>
+                <p className="text-h3 font-bold text-text-primary leading-none">{value}</p>
+                {sub && <p className="text-[11px] text-text-muted mt-1">{sub}</p>}
+            </div>
+        </div>
+        {trend && (
+            <div className={`absolute top-3 right-3 text-[11px] font-semibold flex items-center gap-0.5 ${trendUp ? "text-success" : "text-danger"}`}>
+                <TrendingUp size={12} className={!trendUp ? "rotate-180" : ""} />
+                {trend}
+            </div>
+        )}
+    </Card>
+);
+
+/* ════════════════════════════════════════════════════════════
+   SKELETON PRIMITIVES
+   ════════════════════════════════════════════════════════════ */
+
+const Bone = ({ className = "" }) => (
+    <div className={`skeleton rounded-md ${className}`} />
+);
+
+const CardSkeleton = ({ children, className = "" }) => (
+    <div className={`bg-dark-card border border-border rounded-md-drd p-5 ${className}`}>
+        {children}
+    </div>
+);
+
+/* ════════════════════════════════════════════════════════════
+   REPORT SKELETON
+   ════════════════════════════════════════════════════════════ */
+
+const ReportSkeleton = () => (
+    <div className="px-4 lg:px-8 py-6 max-w-page mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+                <Bone className="h-7 w-52" />
+                <Bone className="h-4 w-80" />
+            </div>
+            <Bone className="h-9 w-56 rounded-lg" />
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+                <CardSkeleton key={i}>
+                    <div className="flex items-start gap-3">
+                        <Bone className="w-10 h-10 rounded-lg flex-shrink-0" />
+                        <div className="flex-1 space-y-2">
+                            <Bone className="h-3 w-20" />
+                            <Bone className="h-6 w-24" />
+                            <Bone className="h-2.5 w-16" />
+                        </div>
+                    </div>
+                </CardSkeleton>
+            ))}
+        </div>
+
+        {/* Charts Row — XP + Weekly */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[12, 7].map((bars, i) => (
+                <CardSkeleton key={i} className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <Bone className="h-5 w-32" />
+                        <Bone className="h-3 w-20" />
+                    </div>
+                    <div className="h-56 flex items-end gap-1.5 pt-4">
+                        {Array.from({ length: bars }).map((_, j) => (
+                            <Bone
+                                key={j}
+                                className="flex-1 rounded-t-sm"
+                                style={{ height: `${25 + ((j * 37 + i * 13) % 60)}%` }}
+                            />
+                        ))}
+                    </div>
+                </CardSkeleton>
+            ))}
+        </div>
+
+        {/* Charts Row — Subject + Radar */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Pie skeleton */}
+            <CardSkeleton className="p-6">
+                <Bone className="h-5 w-40 mb-4" />
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                    <Bone className="w-40 h-40 !rounded-full flex-shrink-0" />
+                    <div className="flex-1 space-y-3 w-full">
+                        {[1, 2, 3, 4, 5, 6].map((k) => (
+                            <div key={k} className="flex items-center gap-3">
+                                <Bone className="w-2.5 h-2.5 !rounded-full flex-shrink-0" />
+                                <Bone className="h-3 flex-1" />
+                                <Bone className="h-3 w-8" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </CardSkeleton>
+
+            {/* Radar skeleton */}
+            <CardSkeleton className="p-6">
+                <Bone className="h-5 w-28 mb-4" />
+                <div className="h-64 flex items-center justify-center">
+                    <Bone className="w-48 h-48 !rounded-full opacity-60" />
+                </div>
+            </CardSkeleton>
+        </div>
+
+        {/* Heatmap */}
+        <CardSkeleton className="p-6">
+            <Bone className="h-5 w-36 mb-4" />
+            <div className="grid grid-cols-[repeat(26,1fr)] gap-[3px]">
+                {Array.from({ length: 182 }).map((_, i) => (
+                    <Bone key={i} className="aspect-square !rounded-sm" style={{ opacity: 0.3 + ((i * 7) % 5) * 0.12 }} />
+                ))}
+            </div>
+        </CardSkeleton>
+
+        {/* Quiz Perf + Card Tiers */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <CardSkeleton className="p-6">
+                <Bone className="h-5 w-36 mb-4" />
+                <div className="h-56 flex items-end gap-3 pt-4">
+                    {[40, 55, 50, 65, 75, 80].map((h, j) => (
+                        <Bone key={j} className="flex-1 rounded-t-sm" style={{ height: `${h}%` }} />
+                    ))}
+                </div>
+            </CardSkeleton>
+
+            <CardSkeleton className="p-6">
+                <Bone className="h-5 w-44 mb-4" />
+                <div className="space-y-5">
+                    {[1, 2, 3, 4].map((k) => (
+                        <div key={k} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Bone className="h-3 w-20" />
+                                <Bone className="h-3 w-16" />
+                            </div>
+                            <Bone className="h-2.5 w-full !rounded-full" />
+                        </div>
+                    ))}
+                </div>
+            </CardSkeleton>
+        </div>
+
+        {/* Summary + Recent Sessions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <CardSkeleton className="p-6">
+                <Bone className="h-5 w-24 mb-5" />
+                <div className="space-y-4">
+                    {[1, 2, 3, 4, 5, 6].map((k) => (
+                        <div key={k} className="flex items-center justify-between">
+                            <Bone className="h-3 w-28" />
+                            <Bone className="h-3 w-12" />
+                        </div>
+                    ))}
+                </div>
+            </CardSkeleton>
+
+            <div className="lg:col-span-2">
+                <CardSkeleton className="p-6">
+                    <Bone className="h-5 w-44 mb-4" />
+                    <div className="space-y-1">
+                        {[1, 2, 3, 4, 5].map((k) => (
+                            <div key={k} className="flex items-center gap-4 py-3 px-3">
+                                <Bone className="w-10 h-10 rounded-lg flex-shrink-0" />
+                                <div className="flex-1 space-y-2">
+                                    <Bone className="h-3.5 w-3/4" />
+                                    <Bone className="h-2.5 w-1/3" />
+                                </div>
+                                <Bone className="h-3.5 w-14" />
+                            </div>
+                        ))}
+                    </div>
+                </CardSkeleton>
+            </div>
+        </div>
+    </div>
+);
+
+/* ════════════════════════════════════════════════════════════
+   REPORT PAGE
+   ════════════════════════════════════════════════════════════ */
+
+const ReportPage = () => {
+    const { user } = useAuthStore();
+    const [period, setPeriod] = useState("30d");
+    const [profileData, setProfileData] = useState(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [profRes] = await Promise.allSettled([
+                    api.get("/api/v1/profile/me"),
+                    api.get("/api/v1/profile/me/xp-history"),
+                ]);
+
+                if (profRes.status === "fulfilled" && profRes.value.data?.data) {
+                    setProfileData(profRes.value.data.data);
+                }
+            } catch (err) {
+                console.error("Using fallback data for reports");
+            }
+        };
+        fetchData();
+    }, []);
+
+    const totalCards = profileData?.stats?.total_cards ?? 27;
+    const totalHours = profileData?.stats?.total_study_time_hours ?? 87;
+    const totalXP = profileData?.stats?.total_xp ?? 12450;
+    const avgMastery = profileData?.stats?.average_mastery ?? 89;
+    const currentStreak = user?.current_streak ?? 14;
+    const totalSessions = profileData?.stats?.total_sessions ?? 156;
+    const avgFocus = profileData?.stats?.avg_focus ?? 91;
+    const totalAchievements = profileData?.stats?.total_achievements ?? 6;
+
+    return (
+        <div className="px-4 lg:px-8 py-6 max-w-page mx-auto space-y-6">
+            {/* ── Header ── */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-h2 font-heading text-text-primary flex items-center gap-2">
+                        <BarChart3 size={24} className="text-primary" />
+                        Learning Report
+                    </h1>
+                    <p className="text-body-sm text-text-secondary mt-1">
+                        Track your progress, study patterns, and knowledge growth
+                    </p>
+                </div>
+                {/* Period Selector */}
+                <div className="flex gap-1 bg-dark-secondary p-1 rounded-lg border border-border-subtle">
+                    {["7d", "30d", "90d"].map((p) => (
+                        <button
+                            key={p}
+                            onClick={() => setPeriod(p)}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-fast ${
+                                period === p
+                                    ? "bg-primary text-white shadow-glow-primary"
+                                    : "text-text-muted hover:text-text-primary"
+                            }`}
+                        >
+                            {p === "7d" ? "7 Days" : p === "30d" ? "30 Days" : "90 Days"}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* ── Quick Stats Grid ── */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard
+                    icon={Zap}
+                    label="Total XP"
+                    value={totalXP.toLocaleString()}
+                    sub="Experience Points"
+                    trend="+12%"
+                    trendUp
+                    color="bg-primary/20"
+                />
+                <StatCard
+                    icon={Clock}
+                    label="Study Hours"
+                    value={`${totalHours}h`}
+                    sub={`${totalSessions} sessions`}
+                    trend="+8%"
+                    trendUp
+                    color="bg-info/20"
+                />
+                <StatCard
+                    icon={Flame}
+                    label="Current Streak"
+                    value={`${currentStreak} days`}
+                    sub="Keep it up!"
+                    trend="+3"
+                    trendUp
+                    color="bg-warning/20"
+                />
+                <StatCard
+                    icon={Target}
+                    label="Avg Mastery"
+                    value={`${avgMastery}%`}
+                    sub={`${totalCards} knowledge cards`}
+                    trend="+5%"
+                    trendUp
+                    color="bg-success/20"
+                />
+            </div>
+
+            {/* ── Row 2: XP Trend + Weekly Activity ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* XP Progress Chart */}
+                <Card padding="spacious">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2">
+                            <TrendingUp size={16} className="text-primary" />
+                            XP Progress
+                        </h3>
+                        <span className="text-caption text-text-muted">Last 30 days</span>
+                    </div>
+                    <div className="h-56">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={demoDailyXP}>
+                                <defs>
+                                    <linearGradient id="xpGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#7C3AED" stopOpacity={0.3} />
+                                        <stop offset="100%" stopColor="#7C3AED" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                <XAxis
+                                    dataKey="date"
+                                    tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    interval="preserveStartEnd"
+                                />
+                                <YAxis
+                                    tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    width={35}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Area
+                                    type="monotone"
+                                    dataKey="xp"
+                                    name="Daily XP"
+                                    stroke="#7C3AED"
+                                    strokeWidth={2}
+                                    fill="url(#xpGradient)"
+                                    dot={false}
+                                    activeDot={{ r: 4, stroke: "#7C3AED", fill: "#1a0f2e", strokeWidth: 2 }}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </Card>
+
+                {/* Weekly Study Activity */}
+                <Card padding="spacious">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2">
+                            <Activity size={16} className="text-info" />
+                            Weekly Activity
+                        </h3>
+                        <span className="text-caption text-text-muted">This week</span>
+                    </div>
+                    <div className="h-56">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={demoWeeklyActivity} barGap={4}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                <XAxis
+                                    dataKey="day"
+                                    tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <YAxis
+                                    tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    width={30}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Bar dataKey="hours" name="Hours" fill="#7C3AED" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                                <Bar dataKey="quizzes" name="Quizzes" fill="#3B82F6" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </Card>
+            </div>
+
+            {/* ── Row 3: Subject Breakdown + Skill Radar ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Subject Breakdown */}
+                <Card padding="spacious">
+                    <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2 mb-4">
+                        <PieChartIcon size={16} className="text-accent" />
+                        Subject Breakdown
+                    </h3>
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                        <div className="h-52 w-52 flex-shrink-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={demoSubjectBreakdown}
+                                        dataKey="hours"
+                                        nameKey="subject"
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={45}
+                                        outerRadius={75}
+                                        strokeWidth={2}
+                                        stroke="rgba(0,0,0,0.3)"
+                                    >
+                                        {demoSubjectBreakdown.map((entry, i) => (
+                                            <Cell key={i} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<CustomTooltip />} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="flex-1 space-y-2.5 w-full">
+                            {demoSubjectBreakdown.map((s, i) => (
+                                <div key={i} className="flex items-center gap-3">
+                                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                                    <span className="text-body-sm text-text-secondary flex-1 truncate">{s.subject}</span>
+                                    <span className="text-body-sm font-semibold text-text-primary">{s.hours}h</span>
+                                    <span className="text-caption text-text-muted">{s.cards} cards</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </Card>
+
+                {/* Skill Radar */}
+                <Card padding="spacious">
+                    <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2 mb-4">
+                        <Brain size={16} className="text-primary-light" />
+                        Skill Radar
+                    </h3>
+                    <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <RadarChart data={demoSkillRadar} outerRadius="70%">
+                                <PolarGrid stroke="rgba(255,255,255,0.08)" />
+                                <PolarAngleAxis
+                                    dataKey="skill"
+                                    tick={{ fontSize: 10, fill: "rgba(255,255,255,0.5)" }}
+                                />
+                                <PolarRadiusAxis
+                                    angle={30}
+                                    domain={[0, 100]}
+                                    tick={{ fontSize: 9, fill: "rgba(255,255,255,0.3)" }}
+                                    axisLine={false}
+                                />
+                                <Radar
+                                    name="Score"
+                                    dataKey="score"
+                                    stroke="#7C3AED"
+                                    fill="#7C3AED"
+                                    fillOpacity={0.2}
+                                    strokeWidth={2}
+                                    dot={{ r: 3, fill: "#7C3AED" }}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                            </RadarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </Card>
+            </div>
+
+            {/* ── Row 4: Learning Heatmap ── */}
+            <Card padding="spacious">
+                <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2 mb-4">
+                    <Calendar size={16} className="text-success" />
+                    Learning Activity
+                </h3>
+                <LearningHeatmap weeks={52} />
+            </Card>
+
+            {/* ── Row 5: Quiz Performance + Knowledge Cards Distribution ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Quiz Performance Trend */}
+                <Card padding="spacious">
+                    <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2 mb-4">
+                        <Trophy size={16} className="text-warning" />
+                        Quiz Performance
+                    </h3>
+                    <div className="h-56">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={demoQuizPerformance}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                <XAxis
+                                    dataKey="month"
+                                    tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <YAxis
+                                    tick={{ fontSize: 10, fill: "rgba(255,255,255,0.4)" }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    domain={[0, 100]}
+                                    width={30}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Line
+                                    type="monotone"
+                                    dataKey="avgScore"
+                                    name="Avg Score %"
+                                    stroke="#F59E0B"
+                                    strokeWidth={2.5}
+                                    dot={{ r: 4, fill: "#F59E0B", stroke: "#1a0f2e", strokeWidth: 2 }}
+                                    activeDot={{ r: 6, stroke: "#F59E0B", fill: "#1a0f2e", strokeWidth: 2 }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="attempts"
+                                    name="Attempts"
+                                    stroke="#3B82F6"
+                                    strokeWidth={2}
+                                    strokeDasharray="5 5"
+                                    dot={{ r: 3, fill: "#3B82F6" }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+                </Card>
+
+                {/* Knowledge Card Tiers */}
+                <Card padding="spacious">
+                    <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2 mb-4">
+                        <Award size={16} className="text-primary-light" />
+                        Knowledge Card Tiers
+                    </h3>
+                    <div className="space-y-4">
+                        {demoCardTiers.map((tier, i) => {
+                            const totalCards = demoCardTiers.reduce((s, t) => s + t.count, 0);
+                            const pct = Math.round((tier.count / totalCards) * 100);
+                            return (
+                                <div key={i}>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <span className="text-body-sm text-text-primary font-medium flex items-center gap-2">
+                                            <span>{tier.emoji}</span>
+                                            {tier.tier}
+                                        </span>
+                                        <span className="text-caption text-text-muted">
+                                            {tier.count} cards · {pct}%
+                                        </span>
+                                    </div>
+                                    <div className="h-2.5 bg-dark-secondary rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full rounded-full transition-all duration-500"
+                                            style={{
+                                                width: `${pct}%`,
+                                                backgroundColor: tier.color,
+                                                boxShadow: `0 0 8px ${tier.color}40`,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
+                            <span className="text-body-sm text-text-secondary font-medium">Total Cards</span>
+                            <span className="text-h4 font-bold text-text-primary">
+                                {demoCardTiers.reduce((s, t) => s + t.count, 0)}
+                            </span>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+
+            {/* ── Row 6: Additional Stats + Recent Sessions ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Summary Stats */}
+                <Card padding="spacious">
+                    <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2 mb-5">
+                        <FileText size={16} className="text-info" />
+                        Summary
+                    </h3>
+                    <div className="space-y-4">
+                        {[
+                            { label: "Total Sessions", value: totalSessions, icon: "📚" },
+                            { label: "Avg Focus Score", value: `${avgFocus}%`, icon: "🎯" },
+                            { label: "Materials Completed", value: 38, icon: "✅" },
+                            { label: "Achievements Earned", value: totalAchievements, icon: "🏅" },
+                            { label: "Quizzes Passed", value: 94, icon: "💯" },
+                            { label: "Best Streak", value: "21 days", icon: "🔥" },
+                        ].map((item, i) => (
+                            <div key={i} className="flex items-center justify-between py-1">
+                                <span className="text-body-sm text-text-secondary flex items-center gap-2">
+                                    <span>{item.icon}</span>
+                                    {item.label}
+                                </span>
+                                <span className="text-body-sm font-semibold text-text-primary">{item.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+
+                {/* Recent Study Sessions */}
+                <div className="lg:col-span-2">
+                    <Card padding="spacious">
+                        <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2 mb-4">
+                            <BookOpen size={16} className="text-success" />
+                            Recent Study Sessions
+                        </h3>
+                        <div className="space-y-1">
+                            {demoRecentSessions.map((session, i) => (
+                                <div
+                                    key={i}
+                                    className="flex items-center gap-4 py-3 px-3 rounded-lg hover:bg-white/[0.02] transition-colors"
+                                >
+                                    {/* Score badge */}
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold ${
+                                        session.score >= 90
+                                            ? "bg-success/15 text-success"
+                                            : session.score >= 80
+                                                ? "bg-primary/15 text-primary-light"
+                                                : "bg-warning/15 text-warning"
+                                    }`}>
+                                        {session.score}%
+                                    </div>
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-body-sm text-text-primary font-medium truncate">
+                                            {session.title}
+                                        </p>
+                                        <p className="text-caption text-text-muted">
+                                            {session.date} · {session.duration}
+                                        </p>
+                                    </div>
+                                    {/* XP */}
+                                    <span className="text-body-sm font-semibold text-primary-light whitespace-nowrap">
+                                        +{session.xp} XP
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ReportPage;

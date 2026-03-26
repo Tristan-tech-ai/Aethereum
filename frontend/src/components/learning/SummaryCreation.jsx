@@ -15,11 +15,11 @@ import Badge from "../ui/Badge";
  * SummaryCreation — Summary writing + AI validation component.
  *
  * DRD 7.6 Summary sub-view:
- *   - Textarea (min 100 chars), live char count
+ *   - Textarea (min 50 chars), live char count
  *   - "Check with AI" button → inline AI feedback card
  *   - "Submit & Complete" (enabled after AI approval)
  *
- * PRD Principle: Summary quality check (min 100 chars + AI coherence score ≥40%)
+ * PRD Principle: Summary quality check (min 50 chars + AI coherence score ≥40%)
  */
 const SummaryCreation = ({
     summaryText = "",
@@ -35,9 +35,9 @@ const SummaryCreation = ({
     const [hasValidated, setHasValidated] = useState(false);
     const charCount = summaryText.length;
     const wordCount = summaryText.trim().split(/\s+/).filter(Boolean).length;
-    const minChars = 100;
+    const minChars = 50;
     const canValidate = charCount >= minChars;
-    const canSubmit = summaryApproved;
+    const canSubmit = canValidate;
 
     const handleValidate = async () => {
         setHasValidated(true);

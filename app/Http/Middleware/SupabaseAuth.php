@@ -34,11 +34,18 @@ class SupabaseAuth
         try {
             $secret = config('services.supabase.jwt_secret');
             if ($secret) {
-                $decoded = JWT::decode($token, new Key($secret, 'HS256'));
+                // Supabase JWT secret is base64-encoded. Decode to raw bytes.
+                $rawSecret = base64_decode($secret);
+                $decoded = JWT::decode($token, new Key($rawSecret, 'HS256'));
             }
         } catch (\Exception $e) {
-            // Fallback to Supabase user endpoint below.
-            $decoded = null;
+            // Try with the raw (non-decoded) secret as fallback.
+            try {
+                $decoded = JWT::decode($token, new Key($secret, 'HS256'));
+            } catch (\Exception $e2) {
+                // Both failed — will fallback to Supabase HTTP endpoint.
+                $decoded = null;
+            }
         }
 
         if (!$decoded) {
@@ -79,8 +86,10 @@ class SupabaseAuth
             $user = $this->createUserFromSupabase($decoded);
         }
 
-        // Update last login
-        $user->updateQuietly(['last_login_at' => now()]);
+        // Update last login at most once per hour to avoid write on every request.
+        if (!$user->last_login_at || $user->last_login_at->diffInMinutes(now()) >= 60) {
+            $user->updateQuietly(['last_login_at' => now()]);
+        }
 
         // Set the authenticated user for the request
         $request->setUserResolver(fn () => $user);
@@ -139,7 +148,7 @@ class SupabaseAuth
                 'amount'        => 100,
                 'type'          => 'earn',
                 'source'        => 'welcome_bonus',
-                'description'   => 'Welcome bonus for joining Aethereum!',
+                'description'   => 'Welcome bonus for joining Nexera!',
                 'balance_after' => 100,
             ]);
 

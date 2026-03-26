@@ -3,11 +3,12 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 
 const ProtectedRoute = ({ children }) => {
-  const { session, initialized } = useAuthStore();
+  const { session, initialized, user } = useAuthStore();
   const location = useLocation();
 
-  // While checking auth state, show loading
-  if (!initialized) {
+  // While auth is initializing, show loading ONLY if we don't have a persisted user.
+  // If we have a user, render immediately — session will catch up in the background.
+  if (!initialized && !user) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
         <div className="text-center">
@@ -21,8 +22,8 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!session) {
-    // Save attempted location for redirect after login
+  // Only redirect to login if we explicitly finished initializing and have no session/user
+  if (initialized && !session && !user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

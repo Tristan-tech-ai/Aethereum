@@ -5,15 +5,6 @@ import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import Avatar from '../ui/Avatar';
 
-// Demo rooms
-const demoRooms = [
-  { id: 1, name: 'Late Night Study', host: 'Community', members: 12, max: 20, subject: 'General', music: 'Lo-fi', active: true, participants: ['Andi', 'Budi', 'Siti', 'Maya'] },
-  { id: 2, name: 'CS Focus Room', host: 'Andi', members: 5, max: 10, subject: 'Computer Science', music: 'Classical', active: true, participants: ['Andi', 'Budi', 'Siti'] },
-  { id: 3, name: 'Exam Prep Zone', host: 'Siti', members: 8, max: 15, subject: 'Mathematics', music: 'Nature', active: true, participants: ['Siti', 'Arief', 'Maya', 'Dian'] },
-  { id: 4, name: 'Chill & Learn', host: 'Maya', members: 3, max: 8, subject: 'Biology', music: 'Lo-fi', active: true, participants: ['Maya', 'Eka'] },
-  { id: 5, name: 'Morning Grind', host: 'Arief', members: 0, max: 10, subject: 'Physics', music: 'Silence', active: false, participants: [] },
-];
-
 const musicIcons = {
   'Lo-fi': '🎵',
   'Classical': '🎻',
@@ -33,7 +24,7 @@ const subjectColors = {
  * StudyRoomBrowser — list of public study rooms with capacity, subject, music type
  */
 const StudyRoomBrowser = ({
-  rooms = demoRooms,
+  rooms = [],
   onJoin,
   onCreate,
   className = '',

@@ -1,16 +1,26 @@
 <?php
 
+use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ExploreController;
 use App\Http\Controllers\Api\FeedController;
+use App\Http\Controllers\Api\FocusDuelController;
 use App\Http\Controllers\Api\FriendController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\KnowledgeCardController;
 use App\Http\Controllers\Api\LeaderboardController;
+use App\Http\Controllers\Api\LearningRelayController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\QuizArenaController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\MyTaskController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SessionController;
+use App\Http\Controllers\Api\StudyRaidController;
+use App\Http\Controllers\Api\StudyRoomController;
+use App\Http\Controllers\Api\WeeklyChallengeController;
 use App\Http\Middleware\SupabaseAuth;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +51,10 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::post('/avatar', [ProfileController::class, 'uploadAvatar']);
         Route::patch('/settings', [ProfileController::class, 'updateSettings']);
     });
+
+    // ─── Dashboard (Aggregated) ───
+    Route::get('v1/dashboard', [DashboardController::class, 'index']);
+    Route::get('v1/reports/learning', [ReportController::class, 'learning']);
 
     // ─── Knowledge Profile ───
     Route::prefix('v1/profile')->group(function () {
@@ -105,10 +119,100 @@ Route::middleware(SupabaseAuth::class)->group(function () {
 
     // ─── Learning Sessions ───
     Route::prefix('v1/sessions')->group(function () {
+        Route::get('/active', [SessionController::class, 'myActiveSessions']);
         Route::post('/start', [SessionController::class, 'start']);
         Route::patch('/{id}/progress', [SessionController::class, 'updateProgress']);
         Route::post('/{id}/quiz-attempt', [SessionController::class, 'submitQuizAttempt']);
         Route::post('/{id}/validate-summary', [SessionController::class, 'validateSummary']);
         Route::post('/{id}/complete', [SessionController::class, 'complete']);
+    });
+
+    // ─── My Tasks (Aggregation) ───
+    Route::prefix('v1/my-tasks')->group(function () {
+        Route::get('/summary', [MyTaskController::class, 'summary']);
+    });
+
+    // ─── Study Raids ───
+    Route::prefix('v1/raids')->group(function () {
+        Route::get('/my', [StudyRaidController::class, 'myRaids']);
+        Route::post('/', [StudyRaidController::class, 'create']);
+        Route::post('/join', [StudyRaidController::class, 'join']);
+        Route::get('/{id}', [StudyRaidController::class, 'show']);
+        Route::post('/{id}/start', [StudyRaidController::class, 'start']);
+        Route::post('/{id}/progress', [StudyRaidController::class, 'updateProgress']);
+        Route::post('/{id}/quiz-complete', [StudyRaidController::class, 'quizComplete']);
+        Route::post('/{id}/complete', [StudyRaidController::class, 'complete']);
+        Route::get('/{id}/results', [StudyRaidController::class, 'results']);
+    });
+
+    // ─── Focus Duels ───
+    Route::prefix('v1/duels')->group(function () {
+        Route::get('/my', [FocusDuelController::class, 'myDuels']);
+        Route::post('/challenge', [FocusDuelController::class, 'challenge']);
+        Route::post('/{id}/accept', [FocusDuelController::class, 'accept']);
+        Route::post('/{id}/decline', [FocusDuelController::class, 'decline']);
+        Route::post('/{id}/start', [FocusDuelController::class, 'start']);
+        Route::post('/{id}/focus-event', [FocusDuelController::class, 'focusEvent']);
+        Route::post('/{id}/complete', [FocusDuelController::class, 'complete']);
+    });
+
+    // ─── Quiz Arena ───
+    Route::prefix('v1/arena')->group(function () {
+        Route::get('/my', [QuizArenaController::class, 'my']);
+        Route::post('/', [QuizArenaController::class, 'create']);
+        Route::post('/join', [QuizArenaController::class, 'join']);
+        Route::post('/{id}/start', [QuizArenaController::class, 'start']);
+        Route::post('/{id}/answer', [QuizArenaController::class, 'answer']);
+        Route::get('/{id}/results', [QuizArenaController::class, 'results']);
+    });
+
+    // ─── Learning Relay ───
+    Route::prefix('v1/relay')->group(function () {
+        Route::get('/my', [LearningRelayController::class, 'my']);
+        Route::post('/', [LearningRelayController::class, 'create']);
+        Route::post('/join', [LearningRelayController::class, 'join']);
+        Route::post('/{id}/start', [LearningRelayController::class, 'start']);
+        Route::post('/{id}/summary', [LearningRelayController::class, 'submitSummary']);
+        Route::post('/{id}/quiz', [LearningRelayController::class, 'submitQuiz']);
+        Route::get('/{id}/results', [LearningRelayController::class, 'results']);
+    });
+
+    // ─── Study Rooms ───
+    Route::prefix('v1/rooms')->group(function () {
+        Route::get('/public', [StudyRoomController::class, 'publicRooms']);
+        Route::post('/', [StudyRoomController::class, 'create']);
+        Route::post('/join', [StudyRoomController::class, 'join']);
+        Route::post('/{id}/presence', [StudyRoomController::class, 'updatePresence']);
+        Route::post('/{id}/react', [StudyRoomController::class, 'react']);
+        Route::post('/{id}/leave', [StudyRoomController::class, 'leave']);
+        Route::post('/{id}/close', [StudyRoomController::class, 'close']);
+    });
+
+    // ─── Weekly Challenges ───
+    Route::prefix('v1/challenges')->group(function () {
+        Route::get('/current', [WeeklyChallengeController::class, 'current']);
+        Route::get('/history', [WeeklyChallengeController::class, 'history']);
+        Route::get('/{id}/progress', [WeeklyChallengeController::class, 'progress']);
+    });
+
+    // ─── Nexera Assistant ───
+    Route::prefix('v1/assistant')->group(function () {
+        // Conversations
+        Route::get('/conversations', [AssistantController::class, 'conversations']);
+        Route::get('/conversations/{id}', [AssistantController::class, 'showConversation']);
+        Route::delete('/conversations/{id}', [AssistantController::class, 'deleteConversation']);
+
+        // Chat
+        Route::post('/chat', [AssistantController::class, 'chat']);
+
+        // Study Plan
+        Route::post('/study-plan/generate', [AssistantController::class, 'generateStudyPlan']);
+
+        // Reflection
+        Route::post('/reflection', [AssistantController::class, 'reflection']);
+
+        // Preferences
+        Route::get('/preferences', [AssistantController::class, 'getPreferences']);
+        Route::patch('/preferences', [AssistantController::class, 'updatePreferences']);
     });
 });

@@ -6,12 +6,15 @@ import {
     Newspaper,
     ArrowRight,
     Loader2,
+    RefreshCw,
 } from "lucide-react";
 import Card from "../ui/Card";
 import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
 import { useNavigate } from "react-router-dom";
-import api from "../../services/api";
+import { useFeedStore } from "../../stores/feedStore";
+import { useAuthStore } from "../../stores/authStore";
+import useFeedSocket from "../../hooks/useFeedSocket";
 
 /* ─────────────── Event type config ─────────────── */
 const EVENT_CONFIG = {
@@ -32,21 +35,27 @@ const EVENT_CONFIG = {
         emoji: "🔥",
         color: "text-warning",
         bgGlow: "from-warning/10 to-transparent",
-        template: (data) => `mencapai ${data.streak_count || 30}-day streak!`,
+        template: (data) => `mencapai ${data.streak_days || data.streak_count || 30}-day streak!`,
     },
     raid_complete: {
         emoji: "⚔️",
         color: "text-danger",
         bgGlow: "from-danger/10 to-transparent",
         template: (data) =>
-            `menyelesaikan Study Raid dengan team score ${data.score || 95}%!`,
+            `menyelesaikan Study Raid dengan team score ${data.team_score || data.score || 95}%!`,
+    },
+    duel_complete: {
+        emoji: "⏱️",
+        color: "text-danger",
+        bgGlow: "from-danger/10 to-transparent",
+        template: () => "menyelesaikan Focus Duel!",
     },
     challenge_complete: {
         emoji: "🎯",
         color: "text-success",
         bgGlow: "from-success/10 to-transparent",
         template: (data) =>
-            `Community Challenge "${data.challenge_name || "Read-a-thon"}" tercapai! All participants +${data.coins || 100} coins`,
+            `Community Challenge "${data.challenge_title || data.challenge_name || "Read-a-thon"}" tercapai!`,
     },
     diamond_card: {
         emoji: "💎",
@@ -56,110 +65,6 @@ const EVENT_CONFIG = {
             `earned a Diamond card in ${data.subject || "Molecular Biology"}!`,
     },
 };
-
-/* ─────────────── Demo data ─────────────── */
-const DEMO_EVENTS = [
-    {
-        id: "1",
-        user: { name: "Andi", avatar_url: null },
-        event_type: "rank_up",
-        event_data: { new_rank: "Scholar" },
-        likes: 12,
-        liked_by_me: false,
-        is_public: true,
-        created_at: new Date(Date.now() - 2 * 3600000).toISOString(),
-    },
-    {
-        id: "2",
-        user: { name: "Budi", avatar_url: null },
-        event_type: "achievement",
-        event_data: { badge_name: "Quiz Master" },
-        likes: 8,
-        liked_by_me: false,
-        is_public: true,
-        created_at: new Date(Date.now() - 3 * 3600000).toISOString(),
-    },
-    {
-        id: "3",
-        user: { name: "Siti", avatar_url: null },
-        event_type: "streak_milestone",
-        event_data: { streak_count: 30 },
-        likes: 24,
-        liked_by_me: true,
-        is_public: true,
-        created_at: new Date(Date.now() - 5 * 3600000).toISOString(),
-    },
-    {
-        id: "4",
-        user: { name: "Arief", avatar_url: null },
-        event_type: "raid_complete",
-        event_data: { score: 95, raid_name: "Data Structures Raid" },
-        likes: 15,
-        liked_by_me: false,
-        is_public: true,
-        created_at: new Date(Date.now() - 24 * 3600000).toISOString(),
-    },
-    {
-        id: "5",
-        user: { name: "Maya", avatar_url: null },
-        event_type: "diamond_card",
-        event_data: { subject: "Molecular Biology" },
-        likes: 31,
-        liked_by_me: false,
-        is_public: true,
-        created_at: new Date(Date.now() - 26 * 3600000).toISOString(),
-    },
-    {
-        id: "6",
-        user: { name: "Community", avatar_url: null },
-        event_type: "challenge_complete",
-        event_data: { challenge_name: "Read-a-thon", coins: 100 },
-        likes: 56,
-        liked_by_me: true,
-        is_public: true,
-        created_at: new Date(Date.now() - 48 * 3600000).toISOString(),
-    },
-    {
-        id: "7",
-        user: { name: "Dian", avatar_url: null },
-        event_type: "rank_up",
-        event_data: { new_rank: "Sage" },
-        likes: 42,
-        liked_by_me: false,
-        is_public: true,
-        created_at: new Date(Date.now() - 50 * 3600000).toISOString(),
-    },
-    {
-        id: "8",
-        user: { name: "Eka", avatar_url: null },
-        event_type: "achievement",
-        event_data: { badge_name: "Night Owl" },
-        likes: 5,
-        liked_by_me: false,
-        is_public: true,
-        created_at: new Date(Date.now() - 72 * 3600000).toISOString(),
-    },
-    {
-        id: "9",
-        user: { name: "Fajar", avatar_url: null },
-        event_type: "streak_milestone",
-        event_data: { streak_count: 7 },
-        likes: 9,
-        liked_by_me: false,
-        is_public: true,
-        created_at: new Date(Date.now() - 96 * 3600000).toISOString(),
-    },
-    {
-        id: "10",
-        user: { name: "Gita", avatar_url: null },
-        event_type: "raid_complete",
-        event_data: { score: 88, raid_name: "Physics Raid" },
-        likes: 18,
-        liked_by_me: true,
-        is_public: true,
-        created_at: new Date(Date.now() - 120 * 3600000).toISOString(),
-    },
-];
 
 const PAGE_SIZE = 5;
 
@@ -223,9 +128,14 @@ const FeedEventCard = ({ event, onLike }) => {
     const config = EVENT_CONFIG[event.event_type] || EVENT_CONFIG.achievement;
     const data = event.event_data || {};
     const userName = event.user?.name || "Unknown";
-    const [liked, setLiked] = useState(event.liked_by_me);
+    const [liked, setLiked] = useState(Boolean(event.liked_by_me ?? event.is_liked));
     const [likeCount, setLikeCount] = useState(event.likes || 0);
     const [animating, setAnimating] = useState(false);
+
+    useEffect(() => {
+        setLiked(Boolean(event.liked_by_me ?? event.is_liked));
+        setLikeCount(event.likes || 0);
+    }, [event.id, event.liked_by_me, event.is_liked, event.likes]);
 
     const handleLike = () => {
         const newLiked = !liked;
@@ -326,60 +236,45 @@ const FeedEventCard = ({ event, onLike }) => {
 
 /* ─────────────── Main CommunityFeed ─────────────── */
 const CommunityFeed = () => {
-    const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const user = useAuthStore((state) => state.user);
+    const {
+        feedEvents,
+        loading,
+        error,
+        hasMore,
+        page,
+        fetchFeed,
+        loadMore,
+        likeFeedEvent,
+        clearError,
+    } = useFeedStore();
+
     const [loadingMore, setLoadingMore] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
-    const [page, setPage] = useState(1);
-    const [useDemo, setUseDemo] = useState(false);
     const observerRef = useRef(null);
     const sentinelRef = useRef(null);
 
-    /* Fetch feed events from API, fall back to demo */
-    const fetchEvents = useCallback(
-        async (pageNum = 1, append = false) => {
-            if (pageNum === 1) setLoading(true);
-            else setLoadingMore(true);
+    useFeedSocket(user?.id);
 
-            try {
-                const res = await api.get("/api/v1/feed", {
-                    params: { page: pageNum, per_page: PAGE_SIZE },
-                });
-                
-                const items = res.data?.data?.feed?.data || [];
-
-                if (items.length === 0 && pageNum === 1) {
-                    // Got empty from API — use demo
-                    throw new Error("empty");
-                }
-
-                setEvents((prev) => (append ? [...prev, ...items] : items));
-                setHasMore(items.length >= PAGE_SIZE);
-            } catch {
-                // Fallback to demo data
-                if (pageNum === 1) {
-                    setUseDemo(true);
-                    const slice = DEMO_EVENTS.slice(0, PAGE_SIZE);
-                    setEvents(slice);
-                    setHasMore(DEMO_EVENTS.length > PAGE_SIZE);
-                } else if (useDemo) {
-                    const start = (pageNum - 1) * PAGE_SIZE;
-                    const slice = DEMO_EVENTS.slice(start, start + PAGE_SIZE);
-                    setEvents((prev) => [...prev, ...slice]);
-                    setHasMore(start + PAGE_SIZE < DEMO_EVENTS.length);
-                }
-            } finally {
-                setLoading(false);
-                setLoadingMore(false);
-            }
-        },
-        [useDemo],
-    );
-
+    /* Fetch feed events from API */
     /* Initial load */
     useEffect(() => {
-        fetchEvents(1);
-    }, []);
+        fetchFeed(1, true);
+    }, [fetchFeed]);
+
+    /* Passive refresh on focus + interval */
+    useEffect(() => {
+        const onFocus = () => fetchFeed(1, true);
+        window.addEventListener("focus", onFocus);
+
+        const intervalId = setInterval(() => {
+            fetchFeed(1, true);
+        }, 45000);
+
+        return () => {
+            window.removeEventListener("focus", onFocus);
+            clearInterval(intervalId);
+        };
+    }, [fetchFeed]);
 
     /* Infinite scroll — IntersectionObserver */
     useEffect(() => {
@@ -388,9 +283,8 @@ const CommunityFeed = () => {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting && !loadingMore && hasMore) {
-                    const nextPage = page + 1;
-                    setPage(nextPage);
-                    fetchEvents(nextPage, true);
+                    setLoadingMore(true);
+                    loadMore().finally(() => setLoadingMore(false));
                 }
             },
             { threshold: 0.1 },
@@ -400,20 +294,16 @@ const CommunityFeed = () => {
         observerRef.current = observer;
 
         return () => observer.disconnect();
-    }, [hasMore, loading, loadingMore, page, fetchEvents]);
+    }, [hasMore, loading, loadingMore, page, loadMore]);
 
     /* Handle like */
     const handleLike = async (eventId, liked) => {
-        try {
-            await api.post(`/api/v1/feed/${eventId}/like`);
-        } catch {
-            // Silently fail — optimistic UI already updated
-        }
+        await likeFeedEvent(eventId, liked);
     };
 
     /* ── Render ── */
     if (loading) return <FeedSkeleton />;
-    if (!loading && events.length === 0) return <EmptyFeed />;
+    if (!loading && feedEvents.length === 0) return <EmptyFeed />;
 
     return (
         <div className="max-w-2xl space-y-4">
@@ -422,15 +312,29 @@ const CommunityFeed = () => {
                 <h2 className="text-h3 font-heading text-text-primary">
                     Community Feed
                 </h2>
-                {useDemo && (
-                    <span className="text-caption text-text-muted bg-dark-secondary px-2 py-0.5 rounded-full">
-                        Demo
-                    </span>
-                )}
+                <button
+                    type="button"
+                    onClick={() => fetchFeed(1, true)}
+                    className="inline-flex items-center gap-1.5 text-caption text-text-muted hover:text-text-secondary transition-colors"
+                >
+                    <RefreshCw size={14} /> Refresh
+                </button>
             </div>
 
+            {error && (
+                <Card>
+                    <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm text-danger">{error}</p>
+                        <div className="flex items-center gap-2">
+                            <Button size="sm" variant="ghost" onClick={clearError}>Dismiss</Button>
+                            <Button size="sm" onClick={() => fetchFeed(1, true)}>Retry</Button>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
             {/* Event cards */}
-            {events.map((event) => (
+            {feedEvents.map((event) => (
                 <FeedEventCard
                     key={event.id}
                     event={event}
@@ -449,7 +353,7 @@ const CommunityFeed = () => {
             {hasMore && <div ref={sentinelRef} className="h-4" />}
 
             {/* End of feed */}
-            {!hasMore && events.length > 0 && (
+            {!hasMore && feedEvents.length > 0 && (
                 <p className="text-center text-caption text-text-muted py-4">
                     You're all caught up! 🎉
                 </p>

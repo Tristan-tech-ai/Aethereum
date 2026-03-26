@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessKnowledgeCardJob;
+use App\Models\CoinTransaction;
+use App\Models\KnowledgeCard;
 use App\Models\LearningContent;
 use App\Models\LearningSession;
+use App\Models\XpEvent;
 use App\Services\FocusTrackerService;
+use App\Services\GeminiService;
 use App\Services\LearningFlowService;
 use App\Services\QuizGeneratorService;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +25,48 @@ class SessionController extends Controller
     ) {}
 
     // ─────────────────────────────────────────────────────────────
+    // GET /api/v1/sessions/active
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * List all active/paused learning sessions for the authenticated user.
+     */
+    public function myActiveSessions(Request $request): JsonResponse
+    {
+        $sessions = LearningSession::where('user_id', $request->user()->id)
+            ->whereIn('status', ['active', 'paused'])
+            ->with(['content:id,title,subject_category,content_type,estimated_duration'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->map(fn (LearningSession $s) => [
+                'id'               => $s->id,
+                'content_id'       => $s->content_id,
+                'status'           => $s->status,
+                'current_section'  => $s->current_section,
+                'total_sections'   => $s->total_sections,
+                'focus_integrity'  => $s->focus_integrity,
+                'quiz_avg_score'   => $s->quiz_avg_score,
+                'xp_earned'        => $s->xp_earned,
+                'total_focus_time' => $s->total_focus_time,
+                'started_at'       => $s->started_at,
+                'updated_at'       => $s->updated_at,
+                'progress_data'    => $s->progress_data,
+                'content'          => $s->content ? [
+                    'id'                 => $s->content->id,
+                    'title'              => $s->content->title,
+                    'subject_category'   => $s->content->subject_category,
+                    'content_type'       => $s->content->content_type,
+                    'estimated_duration' => $s->content->estimated_duration,
+                ] : null,
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $sessions,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // POST /api/v1/sessions/start
     // ─────────────────────────────────────────────────────────────
 
@@ -30,7 +76,7 @@ class SessionController extends Controller
     public function start(Request $request): JsonResponse
     {
         $request->validate([
-            'content_id' => ['required', 'uuid', 'exists:learning_contents,id'],
+            'content_id' => ['required', 'uuid'],
         ]);
 
         $user    = $request->user();
@@ -216,14 +262,12 @@ class SessionController extends Controller
     // ─────────────────────────────────────────────────────────────
 
     /**
-     * AI validate user summary.
-     *
-     * TODO: Integrate with GeminiService for real AI validation.
+     * AI validate user summary using Gemini.
      */
     public function validateSummary(Request $request, string $id): JsonResponse
     {
         $request->validate([
-            'summary' => ['required', 'string', 'min:100'],
+            'summary' => ['required', 'string', 'min:50', 'max:5000'],
         ]);
 
         $user    = $request->user();
@@ -233,55 +277,74 @@ class SessionController extends Controller
             ->firstOrFail();
 
         $summary = $request->input('summary');
+        $content = $session->content;
 
-        // TODO: Replace with actual Gemini AI validation:
-        // $validationResult = app(GeminiService::class)->validateSummary(
-        //     $session->content->structured_sections,
-        //     $summary
-        // );
+        // Build original content context from sections
+        $sections      = $content->structured_sections ?? [];
+        $sectionTitles = collect($sections)->pluck('title')->toArray();
+        $originalText  = collect($sections)
+            ->pluck('content_text')
+            ->filter()
+            ->implode("\n\n");
 
-        // ─── Placeholder scoring ───
-        // Simple heuristics until Gemini is integrated
-        $wordCount  = str_word_count($summary);
-        $charCount  = mb_strlen($summary);
+        // Attempt AI validation, fall back to heuristics
+        try {
+            $gemini = app(GeminiService::class);
+            $result = $gemini->validateSummary($summary, $originalText, $sectionTitles);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Gemini summary validation failed, using heuristic: " . $e->getMessage());
+            $result = $this->heuristicSummaryValidation($summary);
+        }
 
-        // Base score from length (longer = better, up to a point)
-        $lengthScore = min(100, ($wordCount / 150) * 100);
+        $score    = (int) ($result['score'] ?? 0);
+        $approved = (bool) ($result['approved'] ?? ($score >= 60));
 
-        // Simple quality indicators
-        $hasStructure  = preg_match('/[\.\!\?]/', $summary) ? 10 : 0;
-        $hasParagraphs = substr_count($summary, "\n") > 0 ? 5 : 0;
-
-        $summaryScore = min(100, round($lengthScore + $hasStructure + $hasParagraphs));
-
-        $approved = $summaryScore >= 60;
-
-        // Save summary to session
         $session->update([
             'user_summary'  => $summary,
-            'summary_score' => $summaryScore,
+            'summary_score' => $score,
         ]);
 
         return response()->json([
             'message' => $approved
-                ? 'Summary approved! Good work. ✅'
-                : 'Summary needs improvement. Please add more detail.',
-            'data'    => [
-                'score'    => $summaryScore,
+                ? 'Ringkasan disetujui! Kerja bagus. ✅'
+                : 'Ringkasan perlu ditingkatkan. Coba tambahkan lebih banyak detail.',
+            'data' => [
+                'score'    => $score,
                 'approved' => $approved,
-                'feedback' => [
-                    'completeness' => $lengthScore >= 60
-                        ? 'Good coverage of the material.'
-                        : 'Try to cover more key concepts from the material.',
-                    'accuracy'     => 'Please ensure your summary reflects the actual content.',
-                    'clarity'      => $hasStructure
-                        ? 'Well-structured writing.'
-                        : 'Consider adding proper sentence structure.',
-                    'word_count'   => $wordCount,
-                    'missing_concepts' => $approved ? [] : ['Consider covering the main themes more thoroughly'],
+                'feedback' => $result['feedback'] ?? [
+                    'completeness'     => 'Unable to evaluate.',
+                    'accuracy'         => 'Unable to evaluate.',
+                    'clarity'          => 'Unable to evaluate.',
+                    'missing_concepts' => [],
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Heuristic fallback if Gemini is unavailable.
+     */
+    private function heuristicSummaryValidation(string $summary): array
+    {
+        $wordCount   = str_word_count($summary);
+        $lengthScore = min(100, ($wordCount / 150) * 100);
+        $hasStructure = preg_match('/[\.\!\?]/', $summary) ? 10 : 0;
+        $score        = min(100, (int) round($lengthScore + $hasStructure));
+
+        return [
+            'score'    => $score,
+            'approved' => $score >= 60,
+            'feedback' => [
+                'completeness'     => $lengthScore >= 60
+                    ? 'Good coverage of the material.'
+                    : 'Try to cover more key concepts from the material.',
+                'accuracy'         => 'Please ensure your summary reflects the actual content.',
+                'clarity'          => $hasStructure
+                    ? 'Well-structured writing.'
+                    : 'Consider adding proper sentence structure.',
+                'missing_concepts' => $score < 60 ? ['Cover the main themes more thoroughly'] : [],
+            ],
+        ];
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -293,11 +356,43 @@ class SessionController extends Controller
      */
     public function complete(Request $request, string $id): JsonResponse
     {
+        $request->validate([
+            'summary' => ['nullable', 'string', 'min:50', 'max:5000'],
+            'actual_duration' => ['nullable', 'integer', 'min:0'],
+        ]);
+
         $user    = $request->user();
         $session = LearningSession::where('id', $id)
             ->where('user_id', $user->id)
             ->where('status', 'active')
             ->firstOrFail();
+
+        // Persist summary from client if provided; if summary score doesn't exist yet,
+        // validate it now so rewards/card mastery include summary quality.
+        $incomingSummary = trim((string) $request->input('summary', ''));
+        if ($incomingSummary !== '') {
+            $sections      = $session->content?->structured_sections ?? [];
+            $sectionTitles = collect($sections)->pluck('title')->toArray();
+            $originalText  = collect($sections)
+                ->pluck('content_text')
+                ->filter()
+                ->implode("\n\n");
+
+            if ($session->user_summary !== $incomingSummary || $session->summary_score === null) {
+                try {
+                    $gemini = app(GeminiService::class);
+                    $result = $gemini->validateSummary($incomingSummary, $originalText, $sectionTitles);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("Gemini summary validation failed in complete(), using heuristic: " . $e->getMessage());
+                    $result = $this->heuristicSummaryValidation($incomingSummary);
+                }
+
+                $session->update([
+                    'user_summary'  => $incomingSummary,
+                    'summary_score' => (int) ($result['score'] ?? 0),
+                ]);
+            }
+        }
 
         // Mark final section as completed
         $progressData = $session->progress_data ?? [];
@@ -314,16 +409,37 @@ class SessionController extends Controller
             'progress_data' => $progressData,
         ]);
 
-        // Dispatch job to create Knowledge Card, award XP, coins, etc.
-        ProcessKnowledgeCardJob::dispatch($session);
+        // Run synchronously so API response always includes card/rewards immediately,
+        // regardless of QUEUE_CONNECTION configuration.
+        ProcessKnowledgeCardJob::dispatchSync($session->fresh());
 
         // Update user's last_learning_date for streak tracking
         $user->update([
             'last_learning_date' => now()->toDateString(),
         ]);
 
+        // -- Query results created by the sync job --
+        $card    = KnowledgeCard::where('session_id', $session->id)->first();
+        $xpEvent = XpEvent::where('session_id', $session->id)
+            ->orderByDesc('created_at')
+            ->first();
+        $user->refresh();
+
+        // Build rewards payload for frontend
+        $xpBreakdown = [];
+        $totalXp     = 0;
+        if ($xpEvent) {
+            $totalXp     = $xpEvent->xp_amount;
+            $xpBreakdown = [['label' => 'Session completed', 'xp' => $totalXp]];
+        }
+
+        $coinsEarned = (int) (CoinTransaction::where('user_id', $user->id)
+            ->where('source', 'session_complete')
+            ->latest('created_at')
+            ->value('amount') ?? 0);
+
         return response()->json([
-            'message' => 'Session completed! Your Knowledge Card is being generated. 🎉',
+            'message' => 'Session completed! Knowledge Card generated. 🎉',
             'data'    => [
                 'id'               => $session->id,
                 'status'           => 'completed',
@@ -332,7 +448,23 @@ class SessionController extends Controller
                 'quiz_avg_score'   => $session->quiz_avg_score,
                 'summary_score'    => $session->summary_score,
                 'total_focus_time' => $session->total_focus_time,
-                'progress_data'    => $session->progress_data,
+                'card'             => $card,
+                'rewards'          => [
+                    'xp_breakdown' => $xpBreakdown,
+                    'total_xp'     => $totalXp,
+                    'level_before' => $xpEvent?->level_before ?? $user->level,
+                    'level_after'  => $xpEvent?->level_after  ?? $user->level,
+                    'level_up'     => $xpEvent && $xpEvent->level_after > $xpEvent->level_before,
+                    'rank_before'  => $user->rank,
+                    'rank_after'   => $user->rank,
+                    'coins_earned' => $coinsEarned,
+                    'streak_update'=> [
+                        'current'    => $user->current_streak,
+                        'longest'    => $user->longest_streak,
+                        'is_new_day' => true,
+                    ],
+                    'achievements' => [],
+                ],
             ],
         ]);
     }
@@ -372,6 +504,7 @@ class SessionController extends Controller
                 'difficulty'          => $content->difficulty,
                 'total_sections'      => count($sections),
                 'estimated_duration'  => $content->estimated_duration,
+                'structured_sections' => $sections,
             ],
             'current_section' => $firstSection,
             'flow_config'     => $this->flowService->getFlowConfig($session->flow_type),

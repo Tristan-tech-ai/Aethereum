@@ -36,6 +36,8 @@ class LearningContent extends Model
         'error_message',
     ];
 
+    protected $appends = ['quiz_count'];
+
     protected function casts(): array
     {
         return [
@@ -44,6 +46,11 @@ class LearningContent extends Model
             'estimated_duration' => 'integer',
             'total_pages' => 'integer',
         ];
+    }
+
+    public function getQuizCountAttribute(): int
+    {
+        return $this->quizzes()->count();
     }
 
     public function user(): BelongsTo

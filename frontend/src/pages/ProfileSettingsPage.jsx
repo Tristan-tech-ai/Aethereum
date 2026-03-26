@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { User, Camera, Shield, ArrowLeft, Save, Check } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { User, Camera, Shield, ArrowLeft, Save, Check, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
@@ -8,7 +8,8 @@ import Avatar from '../components/ui/Avatar';
 import { useAuthStore } from '../stores/authStore';
 
 const ProfileSettingsPage = () => {
-  const { user, updateProfile, uploadAvatar, updateSettings, loading, error, fieldErrors, clearError } = useAuthStore();
+  const { user, updateProfile, uploadAvatar, updateSettings, logout, loading, error, fieldErrors, clearError } = useAuthStore();
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('profile');
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -271,6 +272,27 @@ const ProfileSettingsPage = () => {
           </form>
         </Card>
       )}
+
+      {/* ── Logout Section ── */}
+      <Card className="mt-6 border-danger/20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-text-primary font-semibold">Sign Out</h3>
+            <p className="text-text-secondary text-body-sm">Log out of your account on this device</p>
+          </div>
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              await logout();
+              navigate('/login', { replace: true });
+            }}
+            className="!text-danger hover:!bg-danger/10 border border-danger/30 hover:border-danger/50"
+          >
+            <LogOut size={16} className="mr-2" />
+            Logout
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 };

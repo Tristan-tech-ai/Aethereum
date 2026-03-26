@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { supabase } from '../services/supabase';
 import api from '../services/api';
 
@@ -36,50 +37,103 @@ const saveOAuthError = (message) => {
     }
 };
 
-export const useAuthStore = create((set, get) => ({
+let authInitPromise = null;
+let syncUserPromise = null;
+
+export const useAuthStore = create(
+    persist(
+        (set, get) => ({
     user: null,
     session: null,
+    _authSubscription: null,
     loading: false,
     error: null,
     fieldErrors: {},
     initialized: false,
+    initializing: false,
 
     /**
      * Initialize auth state — call once on app mount.
-     * Reads the current Supabase session, syncs with backend, and
-     * subscribes to auth state changes.
+     *
+     * IMPORTANT: On hard-refresh with @supabase/supabase-js v2.60+,
+     * getSession() reads from MEMORY (which is empty after reload) and
+     * returns null. The real session comes through the INITIAL_SESSION
+     * event from onAuthStateChange(). Therefore we MUST wait for that
+     * event before marking initialization complete.
      */
     initialize: async () => {
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                set({ session });
-                await get().syncUser();
-            }
-        } catch (err) {
-            console.error('Auth initialization error:', err);
-            saveOAuthError(parseError(err));
-        } finally {
-            set({ initialized: true });
+        if (get().initialized) return;
+        if (authInitPromise) return authInitPromise;
+
+        set({ initializing: true });
+
+        authInitPromise = new Promise((resolveInit) => {
+
+        // Clean up any previous subscription.
+        if (get()._authSubscription) {
+            get()._authSubscription.unsubscribe();
         }
 
-        // Listen for future auth state changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                set({ session });
+        let resolved = false;
+        const markReady = (session) => {
+            if (resolved) return;
+            resolved = true;
+            set({
+                session,
+                initialized: true,
+                initializing: false,
+            });
+            if (session) {
+                get().syncUser(); // background
+            }
+            resolveInit();
+        };
 
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+                // Whichever session-bearing event arrives first, use it to
+                // initialize. On some Supabase versions SIGNED_IN fires
+                // before INITIAL_SESSION (when token is auto-refreshed on
+                // page load). Handle both.
+                if (event === 'INITIAL_SESSION' || (event === 'SIGNED_IN' && !resolved)) {
+                    markReady(session);
+                    return;
+                }
+
+                if (event === 'TOKEN_REFRESHED' && session) {
+                    set({ session });
+                    return;
+                }
+
+                // SIGNED_IN after already initialized (e.g. fresh login)
                 if (event === 'SIGNED_IN' && session) {
-                    await get().syncUser();
-                } else if (event === 'SIGNED_OUT') {
+                    set({ session });
+                    get().syncUser();
+                    return;
+                }
+
+                if (event === 'SIGNED_OUT') {
                     set({ user: null, session: null });
-                } else if (event === 'TOKEN_REFRESHED' && session) {
-                    // session already set above
+                    return;
                 }
             }
         );
 
-        // Store unsubscribe so we can clean up if needed
         set({ _authSubscription: subscription });
+
+        // Safety net
+        setTimeout(() => {
+            if (!resolved) {
+                console.warn('[Auth] Timeout — forcing initialized');
+                markReady(null);
+            }
+        }, 3000);
+
+        }).finally(() => {
+            authInitPromise = null;
+        });
+
+        return authInitPromise;
     },
 
     /**
@@ -87,16 +141,30 @@ export const useAuthStore = create((set, get) => ({
      * The backend auto-creates the local user + wallet on first call.
      */
     syncUser: async () => {
+        if (syncUserPromise) return syncUserPromise;
+
+        syncUserPromise = (async () => {
         try {
             const response = await api.get('/v1/auth/user');
             const payload = response.data.data ?? response.data;
             set({ user: payload.user });
         } catch (err) {
-            console.error('Failed to sync user with backend:', err);
-            saveOAuthError(parseError(err));
-            await supabase.auth.signOut();
-            set({ user: null, session: null });
+            console.error('[Auth] syncUser: FAIL', err?.response?.status, err?.message);
+            // Retry once after a short delay.
+            try {
+                await new Promise(r => setTimeout(r, 500));
+                const retry = await api.get('/v1/auth/user');
+                const payload = retry.data.data ?? retry.data;
+                set({ user: payload.user });
+            } catch (retryErr) {
+                console.error('[Auth] syncUser: retry FAIL', retryErr?.response?.status, retryErr?.message);
+            }
         }
+        })().finally(() => {
+            syncUserPromise = null;
+        });
+
+        return syncUserPromise;
     },
 
     // ─── Register with email + password ───
@@ -114,6 +182,10 @@ export const useAuthStore = create((set, get) => ({
 
             // If Supabase requires email confirmation the session will be null
             const needsVerification = !data.session;
+            if (data.session) {
+                set({ session: data.session });
+                await get().syncUser();
+            }
             set({ loading: false });
             return { success: true, needsVerification };
         } catch (err) {
@@ -126,13 +198,15 @@ export const useAuthStore = create((set, get) => ({
     login: async ({ email, password }) => {
         set({ loading: true, error: null, fieldErrors: {} });
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
             if (error) throw error;
 
-            // onAuthStateChange will fire SIGNED_IN → syncUser
+            // Set session immediately so syncUser can use it
+            set({ session: data.session });
+            await get().syncUser();
             set({ loading: false });
             return { success: true };
         } catch (err) {
@@ -232,4 +306,10 @@ export const useAuthStore = create((set, get) => ({
     },
 
     clearError: () => set({ error: null, fieldErrors: {} }),
-}));
+        }),
+        {
+            name: 'aethereum-auth',
+            partialize: (state) => ({ user: state.user }),
+        }
+    )
+);

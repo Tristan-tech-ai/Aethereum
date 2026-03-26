@@ -74,6 +74,8 @@ const Modal = ({
         className={`
           relative w-full ${sizes[size]}
           bg-dark-elevated rounded-lg-drd p-6
+          max-h-[92vh] overflow-hidden
+          flex flex-col
           shadow-lg-drd
           animate-[scaleIn_300ms_ease-out]
           focus:outline-none
