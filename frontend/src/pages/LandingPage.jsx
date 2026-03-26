@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ScrollStack, { ScrollStackItem } from '../components/ui/ScrollStack';
 import {
-  Upload, Brain, Crown, ArrowRight, ChevronDown,
+  Upload, Brain, Crown, ArrowRight, ChevronDown, ChevronUp,
   Target, Trophy, Menu, X, Flame, Star, Shield,
   FileText, Youtube, Globe, Sparkles, Lock, CheckCircle,
   TrendingUp, MessageSquare, Swords, Radio, GitBranch, Coffee,
@@ -641,7 +641,7 @@ const LandingPage = () => {
       </section>
 
       {/* ═══════════════════════════════════════════
-          RANK PROGRESSION — SCROLL HORIZONTAL
+          LEAGUE SYSTEM — YOUR LEARNING LEGACY
       ═══════════════════════════════════════════ */}
       <section className="relative py-24 overflow-hidden">
         {/* Subtle separator */}
@@ -649,15 +649,16 @@ const LandingPage = () => {
 
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <SectionLabel color="amber">Rank System</SectionLabel>
+            <SectionLabel color="amber">League System</SectionLabel>
             <h2 className="font-heading text-[2rem] md:text-[2.75rem] font-bold text-white mt-4 mb-3" style={{ letterSpacing: '-0.02em' }}>
               Your Learning Legacy
             </h2>
             <p className="text-[#64748B] max-w-lg mx-auto">
-              Progress through 6 rank tiers. Each rank unlocks exclusive perks, frames, and profile cosmetics.
+              Compete weekly in ranked leagues. Top 10 promote, bottom 20 demote — only 50 players per block. Climb from Bronze to Diamond.
             </p>
           </div>
 
+          {/* Tier progression */}
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
             {ranks.map((rank, i) => (
               <div
@@ -672,7 +673,7 @@ const LandingPage = () => {
                 <img src={rank.image} alt={rank.name} className="w-12 h-12 object-contain" />
                 <div className="text-center">
                   <p className="font-heading font-bold text-white text-[0.95rem]">{rank.name}</p>
-                  <p className="text-[12px] mt-0.5" style={{ color: rank.color }}>Level {rank.levels}</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: rank.color }}>League Tier {i + 1}</p>
                 </div>
                 {i < ranks.length - 1 && (
                   <div className="w-full h-1.5 rounded-full" style={{ background: `${rank.color}20` }}>
@@ -686,6 +687,31 @@ const LandingPage = () => {
                 )}
               </div>
             ))}
+          </div>
+
+          {/* League rules cards */}
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-5 rounded-2xl text-center" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(16,185,129,0.15)' }}>
+                <ChevronUp size={22} color="#10B981" />
+              </div>
+              <p className="font-heading font-semibold text-white text-[0.95rem] mb-1">Top 10 Promote</p>
+              <p className="text-[#64748B] text-[0.8rem] leading-relaxed">Finish in the top 10 of your block to advance to the next league tier.</p>
+            </div>
+            <div className="p-5 rounded-2xl text-center" style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(59,130,246,0.15)' }}>
+                <Shield size={22} color="#3B82F6" />
+              </div>
+              <p className="font-heading font-semibold text-white text-[0.95rem] mb-1">#11–#30 Stay</p>
+              <p className="text-[#64748B] text-[0.8rem] leading-relaxed">Hold your position in the safe zone. Keep learning to maintain your tier.</p>
+            </div>
+            <div className="p-5 rounded-2xl text-center" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(239,68,68,0.15)' }}>
+                <ChevronDown size={22} color="#EF4444" />
+              </div>
+              <p className="font-heading font-semibold text-white text-[0.95rem] mb-1">#31–#50 Demote</p>
+              <p className="text-[#64748B] text-[0.8rem] leading-relaxed">Fall behind and you'll drop a tier. Every XP earned counts towards your rank.</p>
+            </div>
           </div>
         </div>
       </section>
