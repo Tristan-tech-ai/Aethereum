@@ -1,16 +1,17 @@
 import React, { useLayoutEffect, useRef, useCallback } from 'react';
 import Lenis from 'lenis';
 
-export const ScrollStackItem = ({ children, itemClassName = '' }) => (
+export const ScrollStackItem = ({ children, itemClassName = '', itemStyle = {} }) => (
   <div
     className={`scroll-stack-card relative w-full my-8 rounded-[32px] box-border origin-top will-change-transform ${itemClassName}`.trim()}
     style={{
       backfaceVisibility: 'hidden',
       transformStyle: 'preserve-3d',
       background: 'rgba(12,9,28,0.97)',
-      border: '1px solid rgba(255,255,255,0.07)',
+      border: '1px solid rgba(255,255,255,0.08)',
       backdropFilter: 'blur(20px)',
       padding: '2.5rem 3rem',
+      ...itemStyle,
     }}
   >
     {children}
@@ -262,9 +263,14 @@ const ScrollStack = ({
 
   return (
     <div
-      className={`relative w-full h-full overflow-y-auto overflow-x-visible ${className}`.trim()}
+      className={`relative w-full ${!useWindowScroll ? 'overflow-y-auto overflow-x-visible' : ''} ${className}`.trim()}
       ref={scrollerRef}
-      style={{
+      style={useWindowScroll ? {
+        // In window-scroll mode, this is a plain container — window drives scroll
+        WebkitTransform: 'translateZ(0)',
+        transform: 'translateZ(0)',
+      } : {
+        // In container mode, this IS the scroll container
         overscrollBehavior: 'contain',
         WebkitOverflowScrolling: 'touch',
         scrollBehavior: 'smooth',
@@ -273,7 +279,13 @@ const ScrollStack = ({
         willChange: 'scroll-position',
       }}
     >
-      <div className="scroll-stack-inner pt-[20vh] px-4 md:px-20 pb-[50rem] min-h-screen">
+      <div
+        className={`scroll-stack-inner px-4 md:px-16 ${
+          useWindowScroll
+            ? 'pt-[15vh] pb-[30vh]'         // window mode: reasonable page height
+            : 'pt-[20vh] pb-[50rem] min-h-screen' // container mode: massive height for internal scroll
+        }`}
+      >
         {children}
         <div className="scroll-stack-end w-full h-px" />
       </div>

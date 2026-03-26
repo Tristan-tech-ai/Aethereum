@@ -424,18 +424,17 @@ const LandingPage = () => {
         </div>
 
         <ScrollStack
-          useWindowScroll={false}
-          itemDistance={60}
+          useWindowScroll={true}
+          itemDistance={50}
           itemScale={0.04}
-          itemStackDistance={24}
+          itemStackDistance={20}
           stackPosition="18%"
           baseScale={0.88}
-          className="h-[90vh]"
         >
           {scrollCards.map((card, i) => (
             <ScrollStackItem
               key={i}
-              itemClassName=""
+              itemStyle={{ borderColor: `${card.color}30`, boxShadow: `0 0 40px ${card.color}08` }}
             >
               {/* Styled card interior */}
               <div
