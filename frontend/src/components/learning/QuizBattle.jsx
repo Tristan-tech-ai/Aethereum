@@ -44,11 +44,13 @@ const QuizBattle = ({
     const [currentQ, setCurrentQ] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [answers, setAnswers] = useState([]);
+    const [answerCorrectness, setAnswerCorrectness] = useState([]); // track correct/wrong per question
     const [results, setResults] = useState(null);
     const [showFeedback, setShowFeedback] = useState(false);
     const [feedbackCorrect, setFeedbackCorrect] = useState(false);
     const [timeLeft, setTimeLeft] = useState(QUESTION_TIME_LIMIT);
     const [cooldownLeft, setCooldownLeft] = useState(0);
+    const [resultsLoading, setResultsLoading] = useState(false);
     const timerRef = useRef(null);
     const feedbackTimerRef = useRef(null);
 
@@ -107,10 +109,12 @@ const QuizBattle = ({
             setFeedbackCorrect(isCorrect);
             setShowFeedback(true);
 
-            // Show feedback then proceed
+            // Show feedback: 1.5s for correct, 3s for wrong (so user can read explanation)
+            const feedbackDuration = isCorrect ? 1500 : 3000;
             feedbackTimerRef.current = setTimeout(() => {
                 const newAnswers = [...answers, answerIdx];
                 setAnswers(newAnswers);
+                setAnswerCorrectness((prev) => [...prev, isCorrect]);
                 setShowFeedback(false);
                 setSelectedAnswer(null);
 
@@ -119,11 +123,13 @@ const QuizBattle = ({
                 } else {
                     // Submit all answers
                     setPhase("results");
+                    setResultsLoading(true);
                     onSubmit?.(newAnswers).then((res) => {
                         setResults(res);
+                        setResultsLoading(false);
                     });
                 }
-            }, 1500);
+            }, feedbackDuration);
 
             return () => clearTimeout(feedbackTimerRef.current);
         },
@@ -135,7 +141,9 @@ const QuizBattle = ({
         setCurrentQ(0);
         setSelectedAnswer(null);
         setAnswers([]);
+        setAnswerCorrectness([]);
         setResults(null);
+        setResultsLoading(false);
         setShowFeedback(false);
         onRetry?.();
     };
@@ -186,7 +194,9 @@ const QuizBattle = ({
                                 key={i}
                                 className={`w-2.5 h-2.5 rounded-full transition-colors ${
                                     i < currentQ
-                                        ? "bg-success"
+                                        ? answerCorrectness[i]
+                                            ? "bg-success"
+                                            : "bg-danger"
                                         : i === currentQ
                                           ? "bg-primary shadow-glow-primary"
                                           : "bg-dark-secondary"
@@ -355,6 +365,25 @@ const QuizBattle = ({
     }
 
     // ── RESULTS PHASE ──
+    // Show loading spinner while results are being calculated
+    if (resultsLoading || (phase === "results" && !results && quizScore === null)) {
+        return (
+            <div className="max-w-[500px] mx-auto px-4 md:px-6 py-12 text-center">
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="mb-4 inline-block"
+                >
+                    <Swords size={40} className="text-primary" />
+                </motion.div>
+                <h2 className="text-h3 font-heading text-text-primary mb-2">
+                    Calculating results...
+                </h2>
+                <p className="text-text-muted text-sm">Grading your answers</p>
+            </div>
+        );
+    }
+
     const score = results?.score ?? quizScore ?? 0;
     const passed = results?.passed ?? quizPassed ?? false;
     const correctCount =
@@ -453,7 +482,7 @@ const QuizBattle = ({
                             <div
                                 key={i}
                                 className={`
-                  flex items-center gap-3 px-4 py-2.5 rounded-md-drd border text-sm
+                  px-4 py-2.5 rounded-md-drd border text-sm
                   ${
                       r.isCorrect
                           ? "bg-success/5 border-success/20"
@@ -461,23 +490,28 @@ const QuizBattle = ({
                   }
                 `}
                             >
-                                {r.isCorrect ? (
-                                    <CheckCircle
-                                        size={16}
-                                        className="text-success shrink-0"
-                                    />
-                                ) : (
-                                    <XCircle
-                                        size={16}
-                                        className="text-danger shrink-0"
-                                    />
+                                <div className="flex items-center gap-3">
+                                    {r.isCorrect ? (
+                                        <CheckCircle
+                                            size={16}
+                                            className="text-success shrink-0"
+                                        />
+                                    ) : (
+                                        <XCircle
+                                            size={16}
+                                            className="text-danger shrink-0"
+                                        />
+                                    )}
+                                    <span className="flex-1 truncate text-text-secondary">
+                                        Q{i + 1}:{" "}
+                                        {questions[i]?.question?.slice(0, 60)}...
+                                    </span>
+                                </div>
+                                {!r.isCorrect && questions[i]?.explanation && (
+                                    <p className="text-caption text-text-muted mt-1.5 ml-7">
+                                        💡 {questions[i].explanation}
+                                    </p>
                                 )}
-                                <span
-                                    className={`flex-1 truncate ${r.isCorrect ? "text-text-secondary" : "text-text-secondary"}`}
-                                >
-                                    Q{i + 1}:{" "}
-                                    {questions[i]?.question?.slice(0, 60)}...
-                                </span>
                             </div>
                         ))}
                     </div>

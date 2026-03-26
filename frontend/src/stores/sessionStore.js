@@ -352,7 +352,7 @@ export const useSessionStore = create((set, get) => ({
                     quizAttempts: newAttempts,
                     quizCooldownUntil: passed
                         ? null
-                        : Date.now() + 5 * 60 * 1000,
+                        : Date.now() + 30 * 1000,
                 });
                 return {
                     score: data.score ?? score,
@@ -368,7 +368,7 @@ export const useSessionStore = create((set, get) => ({
             quizScore: score,
             quizPassed: passed,
             quizAttempts: newAttempts,
-            quizCooldownUntil: passed ? null : Date.now() + 5 * 60 * 1000,
+            quizCooldownUntil: passed ? null : Date.now() + 30 * 1000,
         });
         return { score, passed, results };
     },
