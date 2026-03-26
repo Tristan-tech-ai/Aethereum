@@ -659,11 +659,11 @@ const LandingPage = () => {
           </div>
 
           {/* Tier progression */}
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+          <div className="flex gap-4 justify-center flex-wrap pb-4">
             {ranks.map((rank, i) => (
               <div
                 key={i}
-                className="flex-shrink-0 snap-center flex flex-col items-center gap-3 p-6 rounded-2xl w-[160px] transition-all duration-300 hover:scale-105 cursor-default"
+                className="flex-shrink-0 flex flex-col items-center gap-3 p-6 rounded-2xl w-[160px] transition-all duration-300 hover:scale-105 cursor-default"
                 style={{
                   background: `${rank.color}08`,
                   border: `1px solid ${rank.color}25`,
@@ -675,16 +675,6 @@ const LandingPage = () => {
                   <p className="font-heading font-bold text-white text-[0.95rem]">{rank.name}</p>
                   <p className="text-[12px] mt-0.5" style={{ color: rank.color }}>League Tier {i + 1}</p>
                 </div>
-                {i < ranks.length - 1 && (
-                  <div className="w-full h-1.5 rounded-full" style={{ background: `${rank.color}20` }}>
-                    <div className="h-full rounded-full" style={{ background: rank.color, width: `${100 - i * 15}%` }} />
-                  </div>
-                )}
-                {i === ranks.length - 1 && (
-                  <span className="text-[11px] px-2 py-1 rounded-full font-bold" style={{ background: `${rank.color}20`, color: rank.color }}>
-                    MAX
-                  </span>
-                )}
               </div>
             ))}
           </div>
