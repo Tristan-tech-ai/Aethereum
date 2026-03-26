@@ -38,6 +38,8 @@ const ScrollStack = ({
   const animationFrameRef = useRef(null);
   const lenisRef = useRef(null);
   const cardsRef = useRef([]);
+  const cardOffsetsRef = useRef([]); // stable page offsets cached at mount, before any transforms
+  const endElementOffsetRef = useRef(0);
   const lastTransformsRef = useRef(new Map());
   const isUpdatingRef = useRef(false);
 
@@ -95,23 +97,14 @@ const ScrollStack = ({
       ? document.querySelector('.scroll-stack-end')
       : scrollerRef.current?.querySelector('.scroll-stack-end');
 
-    const endElementTop = endElement
-      ? (useWindowScroll
-          ? (endElement.getBoundingClientRect().top + window.scrollY)
-          : getElementOffset(endElement))
-      : 0;
+    const endElementTop = endElementOffsetRef.current;
 
     cardsRef.current.forEach((card, i) => {
       if (!card) return;
 
-      // For window-scroll mode: BCR gives visual viewport top.
-      // Natural (un-transformed) document top = BCR.top + scrollY - appliedTranslateY.
-      // Subtracting the applied transform makes this immune to the feedback loop.
-      // For container mode: use offsetTop (accurate relative to container).
-      const appliedTranslateY = lastTransformsRef.current.get(i)?.translateY ?? 0;
-      const cardTop = useWindowScroll
-        ? (card.getBoundingClientRect().top + window.scrollY - appliedTranslateY)
-        : getElementOffset(card);
+      // Use stable cached offset captured at mount (before transforms) — immune to
+      // BCR feedback from scale + translateY transforms causing frame-to-frame jitter.
+      const cardTop = cardOffsetsRef.current[i] ?? 0;
 
       const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
       const triggerEnd = cardTop - scaleEndPositionPx;
@@ -127,10 +120,7 @@ const ScrollStack = ({
       if (blurAmount) {
         let topCardIndex = 0;
         for (let j = 0; j < cardsRef.current.length; j++) {
-          const jApplied = lastTransformsRef.current.get(j)?.translateY ?? 0;
-          const jCardTop = useWindowScroll
-            ? (cardsRef.current[j].getBoundingClientRect().top + window.scrollY - jApplied)
-            : getElementOffset(cardsRef.current[j]);
+          const jCardTop = cardOffsetsRef.current[j] ?? 0;
           const jTriggerStart = jCardTop - stackPositionPx - itemStackDistance * j;
           if (scrollTop >= jTriggerStart) topCardIndex = j;
         }
@@ -250,6 +240,23 @@ const ScrollStack = ({
     cardsRef.current = cards;
     const transformsCache = lastTransformsRef.current;
 
+    // Cache absolute page offsets once, BEFORE any transforms are applied.
+    // Using BCR here is safe — transforms are identity at this moment.
+    // We store these and never recompute, so scale/translate feedback can never cause jitter.
+    cardOffsetsRef.current = cards.map(card =>
+      useWindowScroll
+        ? (card.getBoundingClientRect().top + window.scrollY)
+        : card.offsetTop
+    );
+    const endEl = useWindowScroll
+      ? document.querySelector('.scroll-stack-end')
+      : scrollerRef.current?.querySelector('.scroll-stack-end');
+    endElementOffsetRef.current = endEl
+      ? (useWindowScroll
+          ? (endEl.getBoundingClientRect().top + window.scrollY)
+          : endEl.offsetTop)
+      : 0;
+
     cards.forEach((card, i) => {
       if (i < cards.length - 1) card.style.marginBottom = `${itemDistance}px`;
       card.style.willChange = 'transform, filter, opacity';
@@ -269,7 +276,10 @@ const ScrollStack = ({
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (lenisRef.current) lenisRef.current.destroy();
-      stackCompletedRef.current = false;      cardsRef.current = [];
+      stackCompletedRef.current = false;
+      cardsRef.current = [];
+      cardOffsetsRef.current = [];
+      endElementOffsetRef.current = 0;
       transformsCache.clear();
       isUpdatingRef.current = false;
     };

@@ -428,7 +428,7 @@ const LandingPage = () => {
           itemDistance={50}
           itemScale={0.04}
           itemStackDistance={20}
-          stackPosition="18%"
+          stackPosition="30%"
           baseScale={0.88}
         >
           {scrollCards.map((card, i) => (
