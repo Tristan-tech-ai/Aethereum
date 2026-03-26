@@ -15,11 +15,10 @@ class LeaderboardController extends Controller
     public function focus(Request $request): JsonResponse
     {
         // Weekly Focus Champions
-        // Users ranked by `total_sessions` or focus-based logic
         $users = User::where('show_on_leaderboard', true)
             ->orderBy('total_learning_hours', 'desc')
             ->limit(50)
-            ->get(['id', 'username', 'name', 'avatar_url', 'level', 'rank', 'total_learning_hours']);
+            ->get(['id', 'username', 'name', 'avatar_url', 'level', 'rank', 'total_learning_hours', 'current_streak', 'total_xp_ever']);
 
         return $this->success([
             'leaderboard' => $users,
@@ -35,7 +34,7 @@ class LeaderboardController extends Controller
             ->orderBy('total_knowledge_cards', 'desc')
             ->orderBy('xp', 'desc')
             ->limit(50)
-            ->get(['id', 'username', 'name', 'avatar_url', 'level', 'rank', 'total_knowledge_cards', 'xp']);
+            ->get(['id', 'username', 'name', 'avatar_url', 'level', 'rank', 'total_knowledge_cards', 'current_streak', 'total_xp_ever', 'xp']);
 
         return $this->success([
             'leaderboard' => $users,
@@ -50,7 +49,7 @@ class LeaderboardController extends Controller
         $users = User::where('show_on_leaderboard', true)
             ->orderBy('current_streak', 'desc')
             ->limit(50)
-            ->get(['id', 'username', 'name', 'avatar_url', 'level', 'rank', 'current_streak']);
+            ->get(['id', 'username', 'name', 'avatar_url', 'level', 'rank', 'current_streak', 'total_xp_ever']);
 
         return $this->success([
             'leaderboard' => $users,
@@ -61,12 +60,11 @@ class LeaderboardController extends Controller
 
     public function quiz(Request $request): JsonResponse
     {
-        // Quiz Masters (could be based on xp gained via quizzes or total xp)
-        // Here we'll fallback to ranking by total XP for now as a placeholder
+        // Quiz Masters — ranked by total XP earned
         $users = User::where('show_on_leaderboard', true)
             ->orderBy('total_xp_ever', 'desc')
             ->limit(50)
-            ->get(['id', 'username', 'name', 'avatar_url', 'level', 'rank', 'total_xp_ever']);
+            ->get(['id', 'username', 'name', 'avatar_url', 'level', 'rank', 'total_xp_ever', 'current_streak']);
 
         return $this->success([
             'leaderboard' => $users,

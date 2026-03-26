@@ -4,7 +4,6 @@ import {
     Crown,
     Medal,
     TrendingUp,
-    Flame,
     BookOpen,
     Clock,
     Star,
@@ -16,14 +15,15 @@ import {
 } from "lucide-react";
 import api from "../services/api";
 import { useAuthStore } from "../stores/authStore";
+import { getStreakStage } from "../components/profile/StreakDisplay";
 
 const timeFilters = ["This Week", "This Month", "All Time"];
 
 const categoryFilters = [
-    { key: "xp", label: "XP Earned", icon: Zap, endpoint: "quiz" },
-    { key: "streak", label: "Streak", icon: Flame, endpoint: "streak" },
-    { key: "hours", label: "Study Hours", icon: Clock, endpoint: "focus" },
-    { key: "courses", label: "Cards Collected", icon: BookOpen, endpoint: "knowledge" },
+    { key: "xp",      label: "XP Earned",       icon: Zap,      endpoint: "quiz"      },
+    { key: "streak",  label: "Streak",           streakImg: true, endpoint: "streak"  },
+    { key: "hours",   label: "Study Hours",      icon: Clock,    endpoint: "focus"    },
+    { key: "courses", label: "Cards Collected",  icon: BookOpen, endpoint: "knowledge" },
 ];
 
 const initials = (name = "?") =>
@@ -205,7 +205,9 @@ const LeaderboardPage = () => {
                                 category === c.key ? "bg-primary/10 border-primary/30 text-primary-light" : "border-border/40 text-text-secondary hover:text-text-primary hover:border-border-hover"
                             }`}
                         >
-                            <c.icon size={13} />
+                            {c.streakImg
+                                ? <img src={getStreakStage(0).image} alt="streak" className="w-3.5 h-3.5 object-contain" />
+                                : <c.icon size={13} />}
                             {c.label}
                         </button>
                     ))}
@@ -265,7 +267,11 @@ const LeaderboardPage = () => {
                             </div>
                             <span className="w-20 text-center text-sm font-semibold text-text-secondary hidden sm:block">Lv. {entry.level}</span>
                             <span className="w-20 text-center hidden md:flex items-center justify-center gap-1 text-sm">
-                                <Flame size={13} className="text-accent" />
+                                <img
+                                    src={getStreakStage(entry.streak).image}
+                                    alt={getStreakStage(entry.streak).label}
+                                    className="w-4 h-4 object-contain"
+                                />
                                 <span className="font-medium text-text-secondary">{entry.streak}</span>
                             </span>
                             <span className="w-24 text-right pr-2 text-sm font-bold font-mono text-text-primary">

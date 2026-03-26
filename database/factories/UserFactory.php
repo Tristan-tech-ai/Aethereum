@@ -42,7 +42,7 @@ class UserFactory extends Factory
             'total_sessions' => 0,
             'total_knowledge_cards' => 0,
             'is_profile_public' => true,
-            'show_on_leaderboard' => fake()->boolean(30),
+            'show_on_leaderboard' => true,
             'google_id' => null,
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,

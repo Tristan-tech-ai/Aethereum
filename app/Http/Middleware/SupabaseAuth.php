@@ -130,6 +130,7 @@ class SupabaseAuth
                 'rank'              => 'Bronze',
                 'xp'                => 0,
                 'total_xp_ever'     => 0,
+                'show_on_leaderboard' => true,
             ]);
 
             $wallet = UserWallet::create([
