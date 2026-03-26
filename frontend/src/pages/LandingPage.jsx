@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Upload, Brain, Crown, ArrowRight, ChevronDown,
   Target, Trophy, Menu, X, Flame, Star, Shield,
@@ -176,30 +176,21 @@ const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const { scrollYProgress: stackProgress } = useScroll({
-    target: stackRef,
-    offset: ['start start', 'end end'],
-  });
+  const [activeCard, setActiveCard] = useState(0);
 
-  // Pre-compute transforms for each scroll card (hooks can't be in loops)
-  const N = scrollCards.length;
-  const sc0 = useTransform(stackProgress, [0, 1/N], [1, 0.93]);
-  const sc1 = useTransform(stackProgress, [1/N, 2/N], [1, 0.93]);
-  const sc2 = useTransform(stackProgress, [2/N, 3/N], [1, 0.93]);
-  const sc3 = useTransform(stackProgress, [3/N, 4/N], [1, 0.93]);
-  const cardScales = [sc0, sc1, sc2, sc3];
-
-  const op0 = useTransform(stackProgress, [0, 0.08, 0.22, 0.32], [0, 1, 1, 0]);
-  const op1 = useTransform(stackProgress, [0.25, 0.33, 0.47, 0.57], [0, 1, 1, 0]);
-  const op2 = useTransform(stackProgress, [0.50, 0.58, 0.72, 0.82], [0, 1, 1, 0]);
-  const op3 = useTransform(stackProgress, [0.75, 0.83, 1.0, 1.0], [0, 1, 1, 1]);
-  const cardOpacities = [op0, op1, op2, op3];
-
-  const cy0 = useTransform(stackProgress, [0, 0.12], ['50px', '0px']);
-  const cy1 = useTransform(stackProgress, [0.25, 0.37], ['50px', '0px']);
-  const cy2 = useTransform(stackProgress, [0.50, 0.62], ['50px', '0px']);
-  const cy3 = useTransform(stackProgress, [0.75, 0.87], ['50px', '0px']);
-  const cardYs = [cy0, cy1, cy2, cy3];
+  useEffect(() => {
+    const handleStackScroll = () => {
+      const el = stackRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const scrollable = rect.height - window.innerHeight;
+      if (scrollable <= 0) return;
+      const progress = Math.max(0, Math.min(0.9999, -rect.top / scrollable));
+      setActiveCard(Math.floor(progress * scrollCards.length));
+    };
+    window.addEventListener('scroll', handleStackScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleStackScroll);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -433,6 +424,68 @@ const LandingPage = () => {
       </section>
 
       {/* ═══════════════════════════════════════════
+          PARTICLE NEURAL — AI ENGINE VISUALIZATION
+      ═══════════════════════════════════════════ */}
+      <section className="relative px-4 py-24">
+        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(124,58,237,0.2), transparent)' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(44,255,248,0.12), transparent)' }} />
+
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <SectionLabel color="blue">
+              <Cpu size={11} />
+              Neural Engine
+            </SectionLabel>
+            <h2 className="font-heading text-[2rem] md:text-[2.75rem] font-bold text-white mt-4 mb-3" style={{ letterSpacing: '-0.02em' }}>
+              Powered by Intelligence
+            </h2>
+            <p className="text-[#64748B] max-w-sm mx-auto">
+              Hover the visualization to accelerate signal flow.
+            </p>
+          </div>
+
+          {/* Canvas container */}
+          <div
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              height: '380px',
+              background: 'rgba(8,6,18,0.92)',
+              border: '1px solid rgba(255,255,255,0.05)',
+              boxShadow: 'inset 0 0 80px rgba(44,255,248,0.03), 0 0 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            <ParticleNeural className="absolute inset-0 w-full h-full" />
+            <div className="absolute top-5 left-6 pointer-events-none">
+              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(44,255,248,0.3)' }}>Input</p>
+              <p className="font-mono text-[9px]" style={{ color: 'rgba(44,255,248,0.18)' }}>Upload Vector</p>
+            </div>
+            <div className="absolute top-5 right-6 text-right pointer-events-none">
+              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(167,139,250,0.3)' }}>Output</p>
+              <p className="font-mono text-[9px]" style={{ color: 'rgba(167,139,250,0.18)' }}>Course Structure</p>
+            </div>
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none">
+              <p className="font-mono text-[9px] tracking-widest" style={{ color: 'rgba(255,255,255,0.12)' }}>Gemini 2.0 Flash · Real-time Processing</p>
+            </div>
+          </div>
+
+          {/* Stats strip */}
+          <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'Model',             value: 'Gemini 2.0 Flash', color: LOGO_BLUE   },
+              { label: 'Quiz Generation',   value: '< 3 seconds',      color: LOGO_PURPLE },
+              { label: 'Summary Accuracy',  value: '94% approval',     color: '#22C55E'   },
+              { label: 'Supported Formats', value: '5+ types',          color: '#F59E0B'   },
+            ].map((s, i) => (
+              <div key={i} className="p-4 rounded-2xl text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="font-heading font-bold text-white text-[1rem] mb-0.5">{s.value}</p>
+                <p className="text-[11px] text-[#475569]">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
           SCROLL STACK — DEEP DIVE
       ═══════════════════════════════════════════ */}
       <section id="deep-dive" className="relative px-4 pt-28 pb-8">
@@ -449,91 +502,103 @@ const LandingPage = () => {
         </div>
 
         {/* Sticky scroll stack */}
-        <div ref={stackRef} className="max-w-3xl mx-auto" style={{ height: `${scrollCards.length * 100}vh` }}>
-          <div className="sticky top-0 h-screen flex items-center justify-center">
-            {/* Progress dots */}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-2 pr-2 md:pr-0 md:-right-8">
-              {scrollCards.map((card, i) => (
-                <div
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
-                  style={{ background: `${card.color}40` }}
-                />
-              ))}
-            </div>
+        <div ref={stackRef} style={{ height: `${scrollCards.length * 100}vh` }}>
+          <div className="sticky top-0 h-screen flex items-center justify-center px-4">
+            <div className="w-full max-w-3xl">
 
-            <div className="relative w-full" style={{ height: '420px' }}>
-              {scrollCards.map((card, i) => (
-                <motion.div
-                  key={i}
-                  style={{
-                    scale  : cardScales[i],
-                    opacity: cardOpacities[i],
-                    y      : cardYs[i],
-                    transformOrigin: 'top center',
-                    position: 'absolute',
-                    top: 0, left: 0, right: 0,
-                    zIndex: i,
-                  }}
-                >
+              {/* Progress indicators */}
+              <div className="flex items-center justify-center gap-2 mb-8">
+                {scrollCards.map((card, i) => (
                   <div
-                    className="rounded-3xl p-7 md:p-9"
+                    key={i}
+                    className="transition-all duration-500"
                     style={{
-                      background: 'rgba(11, 8, 26, 0.97)',
-                      border: `1px solid ${card.color}18`,
-                      backdropFilter: 'blur(24px)',
-                      boxShadow: `0 24px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04), 0 0 40px ${card.color}08`,
+                      width: i === activeCard ? '28px' : '6px',
+                      height: '6px',
+                      borderRadius: '3px',
+                      background: i === activeCard ? card.color : 'rgba(255,255,255,0.12)',
                     }}
-                  >
-                    <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
-                      {/* Left: number + icon */}
-                      <div className="flex-shrink-0 flex items-center gap-4 md:flex-col md:items-center md:gap-2">
-                        <span
-                          className="font-heading font-black leading-none select-none"
-                          style={{ fontSize: '3.5rem', color: `${card.color}22`, letterSpacing: '-0.05em' }}
-                        >
-                          {card.num}
-                        </span>
-                        <div
-                          className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                          style={{ background: `${card.color}14`, border: `1px solid ${card.color}28` }}
-                        >
-                          <card.icon size={22} style={{ color: card.color }} />
-                        </div>
-                      </div>
+                  />
+                ))}
+              </div>
 
-                      {/* Right: content */}
-                      <div className="flex-1">
-                        <p className="text-[11px] font-bold tracking-[0.12em] uppercase mb-1.5" style={{ color: card.color }}>
-                          {card.subtitle}
-                        </p>
-                        <h3 className="font-heading font-bold text-white text-[1.35rem] mb-3" style={{ letterSpacing: '-0.01em' }}>
-                          {card.title}
-                        </h3>
-                        <p className="text-[#64748B] text-[0.9rem] leading-relaxed mb-5">
-                          {card.desc}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {card.features.map((f, fi) => (
-                            <span
-                              key={fi}
-                              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full"
-                              style={{
-                                background: `${card.color}0d`,
-                                border: `1px solid ${card.color}22`,
-                                color: card.color,
-                              }}
-                            >
-                              <CheckCircle size={10} />
-                              {f}
-                            </span>
-                          ))}
+              {/* Animated card */}
+              <AnimatePresence mode="wait">
+                {scrollCards.map((card, i) => i !== activeCard ? null : (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 36 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -24 }}
+                    transition={{ duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  >
+                    <div
+                      className="rounded-3xl p-7 md:p-10"
+                      style={{
+                        background: 'rgba(11,8,26,0.97)',
+                        border: `1px solid ${card.color}25`,
+                        backdropFilter: 'blur(24px)',
+                        boxShadow: `0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), 0 0 60px ${card.color}10`,
+                      }}
+                    >
+                      <div className="flex flex-col md:flex-row gap-8 items-start">
+                        {/* Left: number + icon */}
+                        <div className="flex-shrink-0 flex items-center gap-4 md:flex-col md:items-center md:gap-3">
+                          <span
+                            className="font-heading font-black leading-none select-none"
+                            style={{ fontSize: '4rem', color: `${card.color}20`, letterSpacing: '-0.05em' }}
+                          >
+                            {card.num}
+                          </span>
+                          <div
+                            className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                            style={{ background: `${card.color}15`, border: `1px solid ${card.color}30` }}
+                          >
+                            <card.icon size={26} style={{ color: card.color }} />
+                          </div>
+                        </div>
+
+                        {/* Right: content */}
+                        <div className="flex-1">
+                          <p className="text-[11px] font-bold tracking-[0.14em] uppercase mb-2" style={{ color: card.color }}>
+                            {card.subtitle}
+                          </p>
+                          <h3 className="font-heading font-bold text-white text-[1.5rem] mb-3" style={{ letterSpacing: '-0.02em' }}>
+                            {card.title}
+                          </h3>
+                          <p className="text-[#64748B] text-[0.925rem] leading-relaxed mb-6">
+                            {card.desc}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {card.features.map((f, fi) => (
+                              <span
+                                key={fi}
+                                className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-full"
+                                style={{
+                                  background: `${card.color}10`,
+                                  border: `1px solid ${card.color}28`,
+                                  color: card.color,
+                                }}
+                              >
+                                <CheckCircle size={10} />
+                                {f}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+
+                    {/* Scroll hint on last card */}
+                    {i < scrollCards.length - 1 && (
+                      <p className="text-center text-[11px] text-[#334155] mt-5 tracking-widest uppercase">
+                        scroll to continue
+                      </p>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
             </div>
           </div>
         </div>
@@ -845,76 +910,6 @@ const LandingPage = () => {
             </Link>
           </div>
           <p className="text-[12px] text-[#475569] mt-5">Free forever · No credit card required · Powered by AI</p>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════
-          PARTICLE NEURAL — AI ENGINE VISUALIZATION
-      ═══════════════════════════════════════════ */}
-      <section className="relative px-4 py-28 overflow-hidden">
-        {/* Separator */}
-        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(44,255,248,0.15), transparent)' }} />
-
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <SectionLabel color="blue">
-              <Cpu size={11} />
-              Neural Engine
-            </SectionLabel>
-            <h2 className="font-heading text-[2rem] md:text-[2.75rem] font-bold text-white mt-4 mb-3" style={{ letterSpacing: '-0.02em' }}>
-              Powered by Intelligence
-            </h2>
-            <p className="text-[#64748B] max-w-sm mx-auto text-[1rem]">
-              Hover to accelerate the neural signal flow.
-            </p>
-          </div>
-
-          {/* Canvas container */}
-          <div
-            className="relative rounded-3xl overflow-hidden"
-            style={{
-              height: '420px',
-              background: 'rgba(8,6,18,0.9)',
-              border: '1px solid rgba(255,255,255,0.05)',
-              boxShadow: 'inset 0 0 80px rgba(44,255,248,0.03), 0 0 60px rgba(0,0,0,0.5)',
-            }}
-          >
-            <ParticleNeural className="absolute inset-0 w-full h-full" />
-
-            {/* Corner labels */}
-            <div className="absolute top-5 left-6 pointer-events-none">
-              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(44,255,248,0.3)' }}>Input</p>
-              <p className="font-mono text-[9px]" style={{ color: 'rgba(44,255,248,0.18)' }}>Upload Vector</p>
-            </div>
-            <div className="absolute top-5 right-6 text-right pointer-events-none">
-              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(167,139,250,0.3)' }}>Output</p>
-              <p className="font-mono text-[9px]" style={{ color: 'rgba(167,139,250,0.18)' }}>Course Structure</p>
-            </div>
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none text-center">
-              <p className="font-mono text-[9px] tracking-widest" style={{ color: 'rgba(255,255,255,0.12)' }}>
-                Gemini 2.0 Flash · Real-time Processing
-              </p>
-            </div>
-          </div>
-
-          {/* Stats strip below canvas */}
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: 'Model', value: 'Gemini 2.0 Flash', color: LOGO_BLUE },
-              { label: 'Quiz Generation', value: '< 3 seconds', color: LOGO_PURPLE },
-              { label: 'Summary Accuracy', value: '94% approval', color: '#22C55E' },
-              { label: 'Supported Formats', value: '5+ types', color: '#F59E0B' },
-            ].map((stat, i) => (
-              <div
-                key={i}
-                className="p-4 rounded-2xl text-center"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-              >
-                <p className="font-heading font-bold text-[1rem] text-white mb-0.5">{stat.value}</p>
-                <p className="text-[11px] text-[#475569]">{stat.label}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
