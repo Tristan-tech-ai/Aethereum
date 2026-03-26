@@ -7,6 +7,7 @@ import {
     AlertTriangle,
     FileText,
     Lightbulb,
+    Loader2,
 } from "lucide-react";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
@@ -33,19 +34,59 @@ const SummaryCreation = ({
     contentTitle = "",
 }) => {
     const [hasValidated, setHasValidated] = useState(false);
+    const [isValidating, setIsValidating] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const charCount = summaryText.length;
     const wordCount = summaryText.trim().split(/\s+/).filter(Boolean).length;
     const minChars = 50;
     const canValidate = charCount >= minChars;
     const canSubmit = canValidate;
+    const busy = isValidating || isSubmitting || loading;
 
     const handleValidate = async () => {
+        setIsValidating(true);
         setHasValidated(true);
         await onValidate?.();
+        setIsValidating(false);
+    };
+
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        await onSubmit?.();
+        setIsSubmitting(false);
     };
 
     return (
-        <div className="max-w-[640px] mx-auto px-4 md:px-6 py-8">
+        <div className="max-w-[640px] mx-auto px-4 md:px-6 py-8 relative">
+            {/* Full-area loading overlay */}
+            <AnimatePresence>
+                {(isValidating || isSubmitting) && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-dark-base/80 backdrop-blur-sm rounded-xl"
+                    >
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="mb-4"
+                        >
+                            {isSubmitting ? (
+                                <Send size={36} className="text-primary" />
+                            ) : (
+                                <Sparkles size={36} className="text-accent" />
+                            )}
+                        </motion.div>
+                        <p className="text-text-primary font-semibold text-sm mb-1">
+                            {isSubmitting ? "Submitting your summary…" : "AI is reviewing your summary…"}
+                        </p>
+                        <p className="text-text-muted text-caption">
+                            {isSubmitting ? "Generating your knowledge card" : "Analyzing completeness and accuracy"}
+                        </p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             {/* Header */}
             <div className="text-center mb-8">
                 <Badge variant="primary" className="mb-3">
@@ -298,17 +339,17 @@ const SummaryCreation = ({
                 <Button
                     variant="secondary"
                     onClick={handleValidate}
-                    disabled={!canValidate || loading}
-                    loading={loading && !canSubmit}
+                    disabled={!canValidate || busy}
+                    loading={isValidating}
                 >
                     <Sparkles size={16} className="mr-1.5" />
                     {hasValidated ? "Check Again" : "Check with AI"}
                 </Button>
 
                 <Button
-                    onClick={onSubmit}
-                    disabled={!canSubmit || loading}
-                    loading={loading && canSubmit}
+                    onClick={handleSubmit}
+                    disabled={!canSubmit || busy}
+                    loading={isSubmitting}
                 >
                     <Send size={16} className="mr-1.5" />
                     Submit & Complete

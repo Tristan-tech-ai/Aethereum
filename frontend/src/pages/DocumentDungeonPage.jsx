@@ -268,7 +268,7 @@ const DocumentDungeonPage = () => {
     return (
         <div className="fixed inset-0 bg-dark-base z-50 flex flex-col overflow-hidden">
             {/* ── Top Bar ── */}
-            <div className="h-14 bg-dark-secondary border-b border-border-subtle flex items-center justify-between px-4 shrink-0">
+            <div className="h-14 bg-dark-secondary border-b border-border-subtle relative flex items-center justify-between px-4 shrink-0">
                 {/* Left: Exit */}
                 <button
                     onClick={handleExit}
@@ -278,8 +278,8 @@ const DocumentDungeonPage = () => {
                     <span className="text-sm hidden sm:inline">Exit</span>
                 </button>
 
-                {/* Center: Title + section info */}
-                <div className="text-center truncate max-w-[40%]">
+                {/* Center: Title + section info — absolutely centered on the full bar */}
+                <div className="absolute left-1/2 -translate-x-1/2 text-center max-w-[40%] pointer-events-none">
                     <h2 className="text-sm font-semibold text-text-primary truncate">
                         {contentTitle}
                     </h2>

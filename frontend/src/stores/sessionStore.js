@@ -505,12 +505,10 @@ export const useSessionStore = create((set, get) => ({
             return { success: false, reason: "summary_too_short" };
         }
 
-        // Auto-validate on submit if not approved yet so users don't get stuck.
+        // Auto-validate on submit if not approved yet.
+        // We still proceed to complete even if score is low — AI check is advisory.
         if (!get().summaryApproved) {
             await get().validateSummary();
-            if (!get().summaryApproved) {
-                return { success: false, reason: "summary_not_approved" };
-            }
         }
 
         set({ loading: true });
