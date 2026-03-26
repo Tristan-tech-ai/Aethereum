@@ -14,7 +14,8 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     libpng-dev \
     nginx \
-    supervisor
+    supervisor \
+    dos2unix
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -45,25 +46,19 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 # Copy entire application
 COPY . .
 
-# Complete composer install
-RUN composer dump-autoload --optimize \
-    && composer run-script post-autoload-dump 2>/dev/null || true
+# Complete composer install (ignore post-autoload failures - no .env at build time)
+RUN composer dump-autoload --optimize
 
-# Copy Nginx config
+# Copy configs and fix CRLF line endings (Windows -> Linux)
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
-
-# Copy Supervisor config
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Copy PHP config
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
-
-# Copy startup script
 COPY docker/start.sh /start.sh
-RUN chmod +x /start.sh
+RUN dos2unix /start.sh /etc/nginx/http.d/default.conf /etc/supervisor/conf.d/supervisord.conf \
+    && chmod +x /start.sh
 
 # Set permissions
-RUN mkdir -p /var/log/supervisor \
+RUN mkdir -p /var/log/supervisor /var/www/html/storage/logs \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 

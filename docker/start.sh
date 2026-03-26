@@ -1,29 +1,24 @@
 #!/bin/sh
-# No set -e: we want supervisord to ALWAYS start regardless of artisan failures
+# Nexera Backend Startup Script
+# No set -e: supervisord MUST always start
 
 echo "=== Starting Nexera Backend ==="
 
-# Cache config and routes (ignore failures - env vars may not all be available at build time)
-php artisan config:cache 2>/dev/null || echo "[warn] config:cache skipped"
-php artisan route:cache 2>/dev/null  || echo "[warn] route:cache skipped"
-php artisan view:cache 2>/dev/null   || echo "[warn] view:cache skipped"
+# Create .env from environment variables (needed for artisan commands)
+echo "APP_KEY=${APP_KEY}" > /var/www/html/.env
+echo "APP_ENV=${APP_ENV:-production}" >> /var/www/html/.env
+echo "APP_DEBUG=${APP_DEBUG:-false}" >> /var/www/html/.env
 
-# Run migrations with retry (use if-statement so set -e doesn't fire)
+# Discover packages (was skipped during docker build due to missing .env)
+php artisan package:discover --ansi 2>&1 || echo "[warn] package:discover failed"
+
+# Cache config and routes
+php artisan config:cache 2>&1 || echo "[warn] config:cache failed"
+php artisan route:cache 2>&1 || echo "[warn] route:cache failed"
+
+# Run migrations
 echo "Running migrations..."
-MIGRATED=0
-for i in 1 2 3; do
-    if php artisan migrate --force 2>&1; then
-        echo "[ok] Migrations completed on attempt $i"
-        MIGRATED=1
-        break
-    fi
-    echo "[warn] Migration attempt $i/3 failed, retrying in 5s..."
-    sleep 5
-done
-
-if [ "$MIGRATED" = "0" ]; then
-    echo "[warn] Migrations failed after 3 attempts - starting anyway"
-fi
+php artisan migrate --force 2>&1 || echo "[warn] migrations failed - continuing anyway"
 
 echo "Starting supervisord (nginx + php-fpm + queue)..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
