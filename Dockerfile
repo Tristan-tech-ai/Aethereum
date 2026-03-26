@@ -14,8 +14,7 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     libpng-dev \
     nginx \
-    supervisor \
-    dos2unix
+    supervisor
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -49,12 +48,12 @@ COPY . .
 # Complete composer install (ignore post-autoload failures - no .env at build time)
 RUN composer dump-autoload --optimize
 
-# Copy configs and fix CRLF line endings (Windows -> Linux)
+# Copy configs and fix CRLF line endings (Windows -> Linux, using sed since dos2unix not in Alpine)
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
 COPY docker/start.sh /start.sh
-RUN dos2unix /start.sh /etc/nginx/http.d/default.conf /etc/supervisor/conf.d/supervisord.conf \
+RUN sed -i 's/\r$//' /start.sh /etc/nginx/http.d/default.conf /etc/supervisor/conf.d/supervisord.conf /usr/local/etc/php/conf.d/custom.ini \
     && chmod +x /start.sh
 
 # Set permissions
