@@ -1,21 +1,29 @@
 #!/bin/sh
-set -e
+# No set -e: we want supervisord to ALWAYS start regardless of artisan failures
 
 echo "=== Starting Nexera Backend ==="
 
-# Cache config and routes (don't fail if these have issues)
-echo "Caching configuration..."
-php artisan config:cache 2>/dev/null || echo "Config cache skipped"
-php artisan route:cache 2>/dev/null || echo "Route cache skipped"
-php artisan view:cache 2>/dev/null || echo "View cache skipped"
+# Cache config and routes (ignore failures - env vars may not all be available at build time)
+php artisan config:cache 2>/dev/null || echo "[warn] config:cache skipped"
+php artisan route:cache 2>/dev/null  || echo "[warn] route:cache skipped"
+php artisan view:cache 2>/dev/null   || echo "[warn] view:cache skipped"
 
-# Run migrations (with retry)
+# Run migrations with retry (use if-statement so set -e doesn't fire)
 echo "Running migrations..."
+MIGRATED=0
 for i in 1 2 3; do
-    php artisan migrate --force 2>&1 && echo "Migrations done!" && break
-    echo "Migration attempt $i failed, retrying in 5s..."
+    if php artisan migrate --force 2>&1; then
+        echo "[ok] Migrations completed on attempt $i"
+        MIGRATED=1
+        break
+    fi
+    echo "[warn] Migration attempt $i/3 failed, retrying in 5s..."
     sleep 5
 done
 
-echo "Starting supervisor (nginx + php-fpm + queue worker)..."
+if [ "$MIGRATED" = "0" ]; then
+    echo "[warn] Migrations failed after 3 attempts - starting anyway"
+fi
+
+echo "Starting supervisord (nginx + php-fpm + queue)..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
