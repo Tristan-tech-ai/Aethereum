@@ -270,6 +270,7 @@ const Sidebar = ({ open, onClose }) => {
           </DropdownNav>
 
           <NavItem to="/leaderboard" icon={Trophy} label="Leaderboard" onClick={onClose} />
+          <NavItem to="/league" icon={Award} label="League" onClick={onClose} />
 
           {/* ── INSIGHTS ── */}
           <GroupLabel>Insights</GroupLabel>

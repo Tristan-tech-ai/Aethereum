@@ -58,6 +58,10 @@ const routeContext = {
         title: "Leaderboard",
         subtitle: "See the top learners",
     },
+    "/league": {
+        title: "League",
+        subtitle: "Compete in weekly ranked leagues",
+    },
     "/profile": {
         title: "Profile",
         subtitle: "Review your personal progress",

@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\FriendController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\KnowledgeCardController;
 use App\Http\Controllers\Api\LeaderboardController;
+use App\Http\Controllers\Api\LeagueController;
 use App\Http\Controllers\Api\LearningRelayController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\QuizArenaController;
@@ -83,6 +84,9 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::get('/quiz', [LeaderboardController::class, 'quiz']);
         Route::get('/subject/{subject}', [LeaderboardController::class, 'subject']);
     });
+
+    // ─── League ───
+    Route::get('v1/league', [LeagueController::class, 'show']);
 
     // ─── Social Discovery ───
     Route::prefix('v1/explore')->group(function () {

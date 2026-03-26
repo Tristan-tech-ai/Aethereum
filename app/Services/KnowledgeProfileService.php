@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\LearningSession;
+use App\Models\LeagueMembership;
+use App\Models\LeagueSeason;
 use App\Models\User;
 use App\Models\XpEvent;
 use Illuminate\Support\Facades\DB;
@@ -147,6 +149,14 @@ class KnowledgeProfileService
                 'xp_after'    => $newXp,
                 'created_at'  => now(),
             ]);
+
+            // Credit league XP for the active season
+            $activeSeason = LeagueSeason::current();
+            if ($activeSeason) {
+                LeagueMembership::where('user_id', $user->id)
+                    ->where('season_id', $activeSeason->id)
+                    ->increment('xp_earned', $amount);
+            }
         });
 
         $user->refresh();
