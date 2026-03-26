@@ -45,8 +45,8 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 # Copy entire application
 COPY . .
 
-# Complete composer install (ignore post-autoload failures - no .env at build time)
-RUN composer dump-autoload --optimize
+# Complete composer install (--no-scripts: skip package:discover at build time, run at startup instead)
+RUN composer dump-autoload --optimize --no-scripts
 
 # Copy configs and fix CRLF line endings (Windows -> Linux, using sed since dos2unix not in Alpine)
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
