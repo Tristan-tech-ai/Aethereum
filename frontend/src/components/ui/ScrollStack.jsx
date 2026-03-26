@@ -38,6 +38,7 @@ const ScrollStack = ({
   const animationFrameRef = useRef(null);
   const lenisRef = useRef(null);
   const cardsRef = useRef([]);
+  const cardOffsetsRef = useRef([]); // natural page offsets cached before transforms (fixes getBoundingClientRect feedback loop)
   const lastTransformsRef = useRef(new Map());
   const isUpdatingRef = useRef(false);
 
@@ -100,7 +101,8 @@ const ScrollStack = ({
     cardsRef.current.forEach((card, i) => {
       if (!card) return;
 
-      const cardTop = getElementOffset(card);
+      // Use cached natural offset to avoid transform feedback loop
+      const cardTop = cardOffsetsRef.current[i] ?? getElementOffset(card);
       const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
       const triggerEnd = cardTop - scaleEndPositionPx;
       const pinStart = cardTop - stackPositionPx - itemStackDistance * i;
@@ -115,7 +117,7 @@ const ScrollStack = ({
       if (blurAmount) {
         let topCardIndex = 0;
         for (let j = 0; j < cardsRef.current.length; j++) {
-          const jCardTop = getElementOffset(cardsRef.current[j]);
+          const jCardTop = cardOffsetsRef.current[j] ?? getElementOffset(cardsRef.current[j]);
           const jTriggerStart = jCardTop - stackPositionPx - itemStackDistance * j;
           if (scrollTop >= jTriggerStart) topCardIndex = j;
         }
@@ -222,6 +224,16 @@ const ScrollStack = ({
     cardsRef.current = cards;
     const transformsCache = lastTransformsRef.current;
 
+    // Cache natural page offsets BEFORE any transforms are applied.
+    // getBoundingClientRect() includes visual transform offsets, so reading it
+    // after cards have transforms applied creates a feedback loop where cardTop
+    // keeps shifting. Caching once here (when transforms are still identity) is the fix.
+    cardOffsetsRef.current = cards.map(card =>
+      useWindowScroll
+        ? (card.getBoundingClientRect().top + window.scrollY)
+        : card.offsetTop
+    );
+
     cards.forEach((card, i) => {
       if (i < cards.length - 1) card.style.marginBottom = `${itemDistance}px`;
       card.style.willChange = 'transform, filter';
@@ -270,7 +282,7 @@ const ScrollStack = ({
       <div
         className={`scroll-stack-inner px-4 md:px-16 ${
           useWindowScroll
-            ? 'pt-[15vh] pb-[30vh]'         // window mode: reasonable page height
+            ? 'pt-[15vh] pb-[50rem]'         // window mode: scroll buffer for pin animations (needs ~800px below last card)
             : 'pt-[20vh] pb-[50rem] min-h-screen' // container mode: massive height for internal scroll
         }`}
       >
