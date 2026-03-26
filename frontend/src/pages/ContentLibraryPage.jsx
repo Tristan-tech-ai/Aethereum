@@ -31,6 +31,10 @@ import {
     Zap,
     GraduationCap,
     FolderOpen,
+    Trophy,
+    Star,
+    Target,
+    RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContentStore } from "../stores/contentStore";
@@ -38,6 +42,7 @@ import useContentPolling from "../hooks/useContentPolling";
 import ContentUploadModal from "../components/learning/ContentUploadModal";
 import ContentDetailModal from "../components/learning/ContentDetailModal";
 import Button from "../components/ui/Button";
+import api from "../services/api";
 
 // ─── Constants ───────────────────────────────
 const typeIcons = {
@@ -138,6 +143,12 @@ const ContentLibraryPage = () => {
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const searchRef = useRef(null);
 
+    // Completed sessions tab
+    const [activeTab, setActiveTab] = useState("library");
+    const [completedSessions, setCompletedSessions] = useState([]);
+    const [completedLoading, setCompletedLoading] = useState(false);
+    const completedFetched = useRef(false);
+
     // Auto-poll processing items
     useContentPolling(contents);
 
@@ -203,6 +214,25 @@ const ContentLibraryPage = () => {
         setSearchQuery("");
     };
 
+    const fetchCompleted = useCallback(async () => {
+        if (completedFetched.current) return;
+        completedFetched.current = true;
+        setCompletedLoading(true);
+        try {
+            const res = await api.get('/v1/sessions/completed');
+            setCompletedSessions(res.data?.data ?? []);
+        } catch {
+            setCompletedSessions([]);
+        } finally {
+            setCompletedLoading(false);
+        }
+    }, []);
+
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        if (tab === "completed") fetchCompleted();
+    };
+
     return (
         <div className="px-4 lg:px-8 py-6 space-y-6 max-w-page mx-auto">
 
@@ -226,6 +256,37 @@ const ContentLibraryPage = () => {
                     </Button>
                 </div>
 
+                {/* ═══ Tab Switcher ═══ */}
+                <div className="flex gap-1 bg-dark-secondary rounded-xl p-1 border border-border/60 self-start">
+                    <button
+                        onClick={() => handleTabChange("library")}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            activeTab === "library"
+                                ? "bg-primary text-white shadow-sm"
+                                : "text-text-muted hover:text-text-primary"
+                        }`}
+                    >
+                        <FolderOpen size={14} />
+                        My Library
+                    </button>
+                    <button
+                        onClick={() => handleTabChange("completed")}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            activeTab === "completed"
+                                ? "bg-primary text-white shadow-sm"
+                                : "text-text-muted hover:text-text-primary"
+                        }`}
+                    >
+                        <Trophy size={14} />
+                        Completed
+                        {completedSessions.length > 0 && (
+                            <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-white/20 text-[10px] font-bold">
+                                {completedSessions.length}
+                            </span>
+                        )}
+                    </button>
+                </div>
+
                 {/* ═══ Quick Stats ═══ */}
                 <div className="grid grid-cols-3 gap-3">
                     {[
@@ -246,7 +307,48 @@ const ContentLibraryPage = () => {
                 </div>
             </div>
 
+            {/* ═══ Completed Sessions Tab ═══ */}
+            {activeTab === "completed" && (
+                <div>
+                    {completedLoading ? (
+                        <div className="flex items-center justify-center py-16">
+                            <Loader2 size={28} className="animate-spin text-primary" />
+                        </div>
+                    ) : completedSessions.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+                            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                <Trophy size={28} className="text-primary-light/60" />
+                            </div>
+                            <div>
+                                <p className="text-text-primary font-semibold mb-1">No completed materials yet</p>
+                                <p className="text-sm text-text-muted">Finish a learning session to see it here</p>
+                            </div>
+                            <Button variant="secondary" onClick={() => handleTabChange("library")}>
+                                Browse Library
+                            </Button>
+                        </div>
+                    ) : (
+                        <motion.div
+                            variants={staggerContainer}
+                            initial="hidden"
+                            animate="show"
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                        >
+                            {completedSessions.map((session) => (
+                                <motion.div key={session.id} variants={fadeUp}>
+                                    <CompletedSessionCard
+                                        session={session}
+                                        onRelearn={() => session.content && handleStartLearning(session.content)}
+                                    />
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    )}
+                </div>
+            )}
+
             {/* ═══ Search & Filter Toolbar ═══ */}
+            {activeTab === "library" && (
             <div className="space-y-3">
                 <div className="flex flex-col sm:flex-row gap-3">
                     {/* Enhanced Search */}
@@ -421,8 +523,10 @@ const ContentLibraryPage = () => {
                 </AnimatePresence>
             </div>
 
+            )}
+
             {/* ═══ Results Count ═══ */}
-            {!loading && filteredContents.length > 0 && (
+            {activeTab === "library" && !loading && filteredContents.length > 0 && (
                 <div className="flex items-center justify-between">
                     <p className="text-xs text-text-muted">
                         Showing <span className="text-text-secondary font-medium">{filteredContents.length}</span>
@@ -432,7 +536,7 @@ const ContentLibraryPage = () => {
             )}
 
             {/* ═══ Content Grid / List ═══ */}
-            {loading && contents.length === 0 ? (
+            {activeTab === "library" && (loading && contents.length === 0 ? (
                 <LoadingSkeleton viewMode={viewMode} />
             ) : filteredContents.length === 0 ? (
                 <EmptyState
@@ -475,10 +579,10 @@ const ContentLibraryPage = () => {
                         </motion.div>
                     ))}
                 </motion.div>
-            )}
+            ))}
 
             {/* ═══ Pagination ═══ */}
-            {pagination.last_page > 1 && (
+            {activeTab === "library" && pagination.last_page > 1 && (
                 <div className="flex items-center justify-center gap-2 pt-4">
                     <Button
                         variant="ghost"
@@ -547,6 +651,96 @@ const ContentLibraryPage = () => {
 // ═══════════════════════════════════════════════
 // Sub-components
 // ═══════════════════════════════════════════════
+
+/** Completed Session Card */
+const CompletedSessionCard = ({ session, onRelearn }) => {
+    const content = session.content;
+    const TypeIcon = content ? (typeIcons[content.content_type] || FileText) : FileText;
+    const colors = content ? (typeColors[content.content_type] || typeColors.article) : typeColors.article;
+
+    const focusPct = Math.round(Number(session.focus_integrity ?? 0));
+    const quizPct = Math.round(Number(session.quiz_avg_score ?? 0));
+    const xp = Number(session.xp_earned ?? 0);
+    const mins = Math.round(Number(session.total_focus_time ?? 0) / 60);
+
+    const completedDate = session.completed_at
+        ? new Date(session.completed_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+        : "";
+
+    return (
+        <div className="group relative bg-dark-card border border-border/50 rounded-xl overflow-hidden transition-all duration-250 hover:border-emerald-400/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+            {/* Completed accent stripe */}
+            <div className="h-1 w-full bg-gradient-to-r from-emerald-500 to-emerald-400/40" />
+
+            <div className="p-4">
+                {/* Top row */}
+                <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                        <div className={`w-10 h-10 rounded-lg ${colors.bg} ${colors.text} flex items-center justify-center border ${colors.border}`}>
+                            <TypeIcon size={18} />
+                        </div>
+                        <span className={`text-[10px] font-semibold uppercase tracking-wider ${colors.text}`}>
+                            {content ? (typeLabels[content.content_type] || "File") : "Material"}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">
+                        <Trophy size={10} />
+                        Completed
+                    </div>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-sm font-semibold text-text-primary leading-snug mb-1 line-clamp-2">
+                    {content?.title || "Untitled"}
+                </h3>
+                {content?.subject_category && (
+                    <p className="text-[11px] text-text-muted mb-3 truncate">{content.subject_category}</p>
+                )}
+
+                {/* Stats row */}
+                <div className="flex items-center gap-3 text-[11px] pt-3 border-t border-border/30">
+                    {focusPct > 0 && (
+                        <span className="flex items-center gap-1 text-text-muted">
+                            <Target size={11} className="text-primary-light/60" />
+                            {focusPct}%
+                        </span>
+                    )}
+                    {quizPct > 0 && (
+                        <span className="flex items-center gap-1 text-text-muted">
+                            <Star size={11} className="text-amber-400/60" />
+                            {quizPct}%
+                        </span>
+                    )}
+                    {mins > 0 && (
+                        <span className="flex items-center gap-1 text-text-muted">
+                            <Clock size={11} className="text-primary-light/60" />
+                            {mins}m
+                        </span>
+                    )}
+                    {xp > 0 && (
+                        <span className="flex items-center gap-1 text-emerald-400/80 font-medium ml-auto">
+                            +{xp} XP
+                        </span>
+                    )}
+                </div>
+                {completedDate && (
+                    <p className="text-[10px] text-text-disabled mt-1.5">Completed {completedDate}</p>
+                )}
+            </div>
+
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-250 flex items-end justify-end p-4 pointer-events-none group-hover:pointer-events-auto">
+                <button
+                    onClick={(e) => { e.stopPropagation(); onRelearn(); }}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary-dark backdrop-blur-sm transition-colors shadow-lg shadow-primary/25"
+                >
+                    <RotateCcw size={12} />
+                    Re-learn
+                </button>
+            </div>
+        </div>
+    );
+};
 
 /** Enhanced Grid Card */
 const ContentGridCard = ({ content, onView, onDelete, onStart }) => {

@@ -67,6 +67,43 @@ class SessionController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────
+    // GET /api/v1/sessions/completed
+    // ─────────────────────────────────────────────────────────────
+
+    public function completedSessions(Request $request): JsonResponse
+    {
+        $sessions = LearningSession::where('user_id', $request->user()->id)
+            ->where('status', 'completed')
+            ->with(['content:id,title,subject_category,content_type,estimated_duration,content_type'])
+            ->orderByDesc('completed_at')
+            ->get()
+            ->map(fn (LearningSession $s) => [
+                'id'               => $s->id,
+                'content_id'       => $s->content_id,
+                'status'           => $s->status,
+                'current_section'  => $s->current_section,
+                'total_sections'   => $s->total_sections,
+                'focus_integrity'  => $s->focus_integrity,
+                'quiz_avg_score'   => $s->quiz_avg_score,
+                'xp_earned'        => $s->xp_earned,
+                'total_focus_time' => $s->total_focus_time,
+                'completed_at'     => $s->completed_at,
+                'content'          => $s->content ? [
+                    'id'                 => $s->content->id,
+                    'title'              => $s->content->title,
+                    'subject_category'   => $s->content->subject_category,
+                    'content_type'       => $s->content->content_type,
+                    'estimated_duration' => $s->content->estimated_duration,
+                ] : null,
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $sessions,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // POST /api/v1/sessions/start
     // ─────────────────────────────────────────────────────────────
 

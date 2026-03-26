@@ -30,6 +30,22 @@ const ReportPage = () => {
     const [period, setPeriod] = useState("30d");
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
+    const [heatmapData, setHeatmapData] = useState(null);
+
+    useEffect(() => {
+        api.get('/v1/profile/me/heatmap').then((res) => {
+            const map = res.data?.data?.heatmap;
+            if (map) {
+                setHeatmapData(
+                    Object.entries(map).map(([date, value]) => ({
+                        date,
+                        sessions: Number(value.count ?? 0),
+                        minutes: Number(value.minutes ?? 0),
+                    }))
+                );
+            }
+        }).catch(() => {});
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -133,7 +149,7 @@ const ReportPage = () => {
 
             <Card padding="spacious">
                 <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2 mb-4"><Calendar size={16} className="text-success" /> Study Consistency</h3>
-                <LearningHeatmap weeks={52} />
+                <LearningHeatmap rawData={heatmapData} />
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

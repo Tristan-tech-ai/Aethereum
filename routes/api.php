@@ -124,6 +124,7 @@ Route::middleware(SupabaseAuth::class)->group(function () {
     // ─── Learning Sessions ───
     Route::prefix('v1/sessions')->group(function () {
         Route::get('/active', [SessionController::class, 'myActiveSessions']);
+        Route::get('/completed', [SessionController::class, 'completedSessions']);
         Route::post('/start', [SessionController::class, 'start']);
         Route::patch('/{id}/progress', [SessionController::class, 'updateProgress']);
         Route::get('/{id}/quiz', [SessionController::class, 'getQuiz']);
