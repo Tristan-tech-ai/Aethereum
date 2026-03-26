@@ -1,79 +1,79 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Shield, Snowflake } from "lucide-react";
+import { Snowflake } from "lucide-react";
 
 /**
- * StreakDisplay — DRD §8.4 Streak Display.
- *
- * - 🔥 flame icon (animated flicker CSS if active — DRD §10.2)
- * - Count number (bold, 20px)
- * - Status label: "Active", "At Risk ⚠️" (if today not yet studied), "Broken 💔"
- * - Weekly goal: mini progress dots (●●●●○○○ = 4/7) — DRD §8.4
- * - Streak freeze button (PRD §5.5 — 1x per week)
- *
- * PRD §5.5:
- *   Daily Streak = Login + minimal 1 completed section per hari.
- *   Weekly Goal default 5 hari/minggu (bisa dikustomisasi: 3/5/7).
- *   Streak Freeze: 1x per minggu.
+ * Streak stage assets — 5 tiers based on streak count.
+ * Images from /public/streak/ (1.webp → 5.webp).
  */
+export const STREAK_STAGES = [
+    { min: 200, image: "/streak/5.webp", label: "Eternal Flame",  color: "#A5B4FC" },
+    { min: 100, image: "/streak/4.webp", label: "Blazing Legend", color: "#EAB308" },
+    { min: 30,  image: "/streak/3.webp", label: "Inferno",        color: "#F97316" },
+    { min: 10,  image: "/streak/2.webp", label: "Rising Flame",   color: "#F59E0B" },
+    { min: 0,   image: "/streak/1.webp", label: "Spark",          color: "#22C55E" },
+];
+
+export function getStreakStage(count) {
+    return STREAK_STAGES.find((s) => count >= s.min) || STREAK_STAGES[STREAK_STAGES.length - 1];
+}
 
 const statusConfig = {
     active: {
         label: "Active",
         color: "text-success",
         bgColor: "bg-success/10",
-        borderColor: "border-success/20",
         flameAnim: true,
     },
     "at-risk": {
         label: "At Risk ⚠️",
         color: "text-warning",
         bgColor: "bg-warning/10",
-        borderColor: "border-warning/20",
         flameAnim: false,
     },
     broken: {
         label: "Broken 💔",
         color: "text-danger",
         bgColor: "bg-danger/10",
-        borderColor: "border-danger/20",
         flameAnim: false,
     },
 };
 
 /**
- * Determine the next milestone from 7, 30, 90, 365.
- * @param {number} count current streak
- * @returns {{ target: number, label: string } | null}
+ * Next milestone thresholds aligned with streak stages.
  */
 export function nextMilestone(count) {
     const milestones = [
-        { target: 7, label: "🔥 Week Warrior" },
-        { target: 30, label: "🔥🔥 Monthly Master" },
-        { target: 90, label: "🔥🔥🔥 Quarter Champion" },
-        { target: 365, label: "🔥🔥🔥🔥 Year Legend" },
+        { target: 10,  label: "Rising Flame",  image: "/streak/2.webp" },
+        { target: 30,  label: "Inferno",        image: "/streak/3.webp" },
+        { target: 100, label: "Blazing Legend", image: "/streak/4.webp" },
+        { target: 200, label: "Eternal Flame",  image: "/streak/5.webp" },
     ];
     return milestones.find((m) => count < m.target) || null;
 }
 
-/* ─── Flame icon with flicker animation ─── */
-const FlameIcon = ({ active, size = "text-xl" }) => (
-    <motion.span
-        className={`${size} inline-block select-none`}
-        animate={
-            active
-                ? { opacity: [1, 0.75, 1], scale: [1, 1.08, 1] }
-                : { opacity: 0.5 }
-        }
-        transition={
-            active
-                ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
-                : { duration: 0.3 }
-        }
-    >
-        🔥
-    </motion.span>
-);
+/* ─── Stage image with pulse animation ─── */
+const StreakFlameImage = ({ count, active, size = "md" }) => {
+    const stage = getStreakStage(count);
+    const sizeClass = { sm: "w-5 h-5", md: "w-8 h-8", lg: "w-14 h-14", xl: "w-20 h-20" }[size] || "w-8 h-8";
+    return (
+        <motion.img
+            src={stage.image}
+            alt={stage.label}
+            className={`${sizeClass} object-contain select-none`}
+            animate={
+                active
+                    ? { scale: [1, 1.07, 1], opacity: [1, 0.88, 1] }
+                    : { opacity: 0.4 }
+            }
+            transition={
+                active
+                    ? { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                    : { duration: 0.3 }
+            }
+        />
+    );
+};
 
 /* ─── Weekly goal progress dots (DRD §8.4: ●●●●○○○ = 4/7) ─── */
 const WeeklyGoalDots = ({ goal, progress }) => (
@@ -115,11 +115,13 @@ const StreakDisplay = ({
     const s = statusConfig[status] || statusConfig.active;
     const milestone = nextMilestone(count);
 
+    const stage = getStreakStage(count);
+
     /* ─── Compact variant (for navbar / header inline) ─── */
     if (compact) {
         return (
             <div className={`flex items-center gap-1.5 ${className}`}>
-                <FlameIcon active={s.flameAnim} size="text-base" />
+                <StreakFlameImage count={count} active={s.flameAnim} size="sm" />
                 <span className="font-bold text-text-primary">{count}</span>
             </div>
         );
@@ -128,33 +130,28 @@ const StreakDisplay = ({
     /* ─── Full variant ─── */
     return (
         <div className={className}>
-            {/* Row 1: Flame + Count + Status */}
-            <div className="flex items-center gap-3 mb-2">
-                <div className="flex items-center gap-1.5">
-                    <FlameIcon active={s.flameAnim} />
-                    <span className="text-xl font-bold text-text-primary">
-                        {count}
-                    </span>
-                    <span className="text-body-sm text-text-secondary">
-                        day streak
-                    </span>
+            {/* Stage image + Count + Status */}
+            <div className="flex items-center gap-3 mb-3">
+                <StreakFlameImage count={count} active={s.flameAnim} size="lg" />
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="text-2xl font-bold text-text-primary">{count}</span>
+                        <span className="text-body-sm text-text-secondary">day streak</span>
+                        <motion.span
+                            key={status}
+                            initial={{ scale: 0.85, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className={`text-caption font-semibold px-2 py-0.5 rounded-full ${s.color} ${s.bgColor}`}
+                        >
+                            {s.label}
+                        </motion.span>
+                    </div>
+                    <p className="text-caption font-semibold" style={{ color: stage.color }}>
+                        {stage.label}
+                    </p>
+                    <p className="text-caption text-text-muted">Best: {bestStreak} days</p>
                 </div>
-
-                {/* Status pill */}
-                <motion.span
-                    key={status}
-                    initial={{ scale: 0.85, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className={`text-caption font-semibold px-2 py-0.5 rounded-full ${s.color} ${s.bgColor}`}
-                >
-                    {s.label}
-                </motion.span>
             </div>
-
-            {/* Best streak */}
-            <p className="text-caption text-text-muted mb-2">
-                Best: {bestStreak} days
-            </p>
 
             {/* Weekly Goal */}
             <WeeklyGoalDots goal={weeklyGoal} progress={weeklyProgress} />
@@ -163,14 +160,16 @@ const StreakDisplay = ({
             {milestone && count > 0 && (
                 <div className="mt-3">
                     <div className="flex items-center justify-between text-caption text-text-muted mb-1">
-                        <span>Next: {milestone.label}</span>
-                        <span>
-                            {count}/{milestone.target}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                            <img src={milestone.image} alt={milestone.label} className="w-4 h-4 object-contain" />
+                            <span>Next: {milestone.label}</span>
+                        </div>
+                        <span>{count}/{milestone.target}</span>
                     </div>
                     <div className="w-full h-1.5 bg-dark-secondary rounded-full overflow-hidden">
                         <motion.div
-                            className="h-full rounded-full bg-accent"
+                            className="h-full rounded-full"
+                            style={{ background: stage.color }}
                             initial={{ width: 0 }}
                             animate={{
                                 width: `${Math.min((count / milestone.target) * 100, 100)}%`,

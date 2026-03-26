@@ -24,48 +24,44 @@ const celebrationEasing = [0.34, 1.56, 0.64, 1];
 
 export const STREAK_MILESTONES = [
     {
-        days: 7,
-        title: "Week Warrior",
-        emoji: "🔥",
-        flames: 1,
-        badge: "🛡️",
-        coins: 100,
-        description: "You studied 7 days in a row!",
-        color: "#22C55E",
+        days: 10,
+        title: "Rising Flame",
+        image: "/streak/2.webp",
+        badge: "🔥",
+        coins: 150,
+        description: "10 days and your flame is rising!",
+        color: "#F59E0B",
         extras: [],
     },
     {
         days: 30,
-        title: "Monthly Master",
-        emoji: "🔥🔥",
-        flames: 2,
+        title: "Inferno",
+        image: "/streak/3.webp",
         badge: "👑",
-        coins: 300,
-        description: "A whole month of learning — you're unstoppable!",
-        color: "#3B82F6",
+        coins: 500,
+        description: "A whole month of pure fire — unstoppable!",
+        color: "#F97316",
         extras: ["Profile Frame unlocked"],
     },
     {
-        days: 90,
-        title: "Quarter Champion",
-        emoji: "🔥🔥🔥",
-        flames: 3,
+        days: 100,
+        title: "Blazing Legend",
+        image: "/streak/4.webp",
         badge: "⚔️",
-        coins: 1000,
-        description: "90 days of pure dedication. Legendary!",
-        color: "#A78BFA",
-        extras: ["Special Rank Color unlocked"],
+        coins: 2000,
+        description: "100 days of relentless dedication. Legendary!",
+        color: "#EAB308",
+        extras: ["Special Rank Color unlocked", "Exclusive avatar border"],
     },
     {
-        days: 365,
-        title: "Year Legend",
-        emoji: "🔥🔥🔥🔥",
-        flames: 4,
+        days: 200,
+        title: "Eternal Flame",
+        image: "/streak/5.webp",
         badge: "🏆",
-        coins: 5000,
-        description: "One full year. You are an Eternal Flame.",
-        color: "#FFD700",
-        extras: ['Exclusive "Eternal Flame" title unlocked'],
+        coins: 10000,
+        description: "200 days. You have become the Eternal Flame.",
+        color: "#A5B4FC",
+        extras: ['"Eternal Flame" title unlocked', "Legendary profile aura"],
     },
 ];
 
@@ -179,45 +175,40 @@ const StreakMilestoneModal = ({ isOpen, onClose, milestone, onShare }) => {
                             {/* Fire particles */}
                             <FireParticles count={10} color={milestone.color} />
 
-                            {/* Badge reveal */}
+                            {/* Stage image reveal */}
                             <motion.div
-                                initial={{ scale: 0, rotate: -45 }}
+                                initial={{ scale: 0, rotate: -15 }}
                                 animate={{ scale: 1, rotate: 0 }}
                                 transition={{
                                     duration: 0.8,
                                     ease: celebrationEasing,
                                     delay: 0.2,
                                 }}
-                                className="text-6xl mb-3 relative inline-block"
+                                className="relative inline-block mb-3"
                             >
-                                {milestone.badge}
-                                {/* Glow ring */}
+                                {/* Glow backdrop */}
                                 <motion.div
-                                    className="absolute inset-0 rounded-full"
+                                    className="absolute inset-0 rounded-full blur-xl"
                                     animate={{
-                                        boxShadow: [
-                                            `0 0 20px ${milestone.color}40`,
-                                            `0 0 40px ${milestone.color}60`,
-                                            `0 0 20px ${milestone.color}40`,
-                                        ],
+                                        opacity: [0.4, 0.8, 0.4],
+                                        scale: [1, 1.2, 1],
                                     }}
                                     transition={{
                                         duration: 2,
                                         repeat: Infinity,
                                         ease: "easeInOut",
                                     }}
-                                    style={{ transform: "scale(1.5)" }}
+                                    style={{ background: milestone.color }}
                                 />
-                            </motion.div>
-
-                            {/* Flames row */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.5 }}
-                                className="text-3xl mb-2"
-                            >
-                                {milestone.emoji}
+                                <motion.img
+                                    src={milestone.image}
+                                    alt={milestone.title}
+                                    className="relative w-24 h-24 object-contain"
+                                    animate={{ scale: [1, 1.05, 1] }}
+                                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                                />
+                                {/* Badge emoji overlay */}
+                                <span className="absolute -bottom-1 -right-1 text-2xl">{milestone.badge}</span>
                             </motion.div>
 
                             {/* Title */}
