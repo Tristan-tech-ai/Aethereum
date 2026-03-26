@@ -84,6 +84,7 @@ const noSidebarPaths = [
 
 // Pages where we hide the entire top bar (auth pages have their own logo)
 const noHeaderPaths = [
+    "/",
     "/login",
     "/register",
     "/forgot-password",

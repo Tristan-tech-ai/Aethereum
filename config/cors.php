@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5175')],
+    'allowed_origins' => array_filter([
+        env('FRONTEND_URL', 'http://localhost:5173'),
+        'https://nexera.dedyn.io',
+        'https://nexera-nine.vercel.app',
+    ]),
 
     'allowed_origins_patterns' => [],
 
