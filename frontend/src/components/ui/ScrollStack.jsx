@@ -177,24 +177,13 @@ const ScrollStack = ({
 
   const setupLenis = useCallback(() => {
     if (useWindowScroll) {
-      const lenis = new Lenis({
-        duration: 1.2,
-        easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        smoothWheel: true,
-        touchMultiplier: 2,
-        infinite: false,
-        wheelMultiplier: 1,
-        lerp: 0.1,
-        syncTouch: true,
-        syncTouchLerp: 0.075,
-      });
-      lenis.on('scroll', handleScroll);
-      const raf = (time) => {
-        lenis.raf(time);
-        animationFrameRef.current = requestAnimationFrame(raf);
+      // In window-scroll mode, use a plain native scroll listener so we never
+      // prevent default scroll or intercept the user's ability to scroll the page.
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      // Store a dummy object so the cleanup path is consistent
+      lenisRef.current = {
+        destroy: () => window.removeEventListener('scroll', handleScroll),
       };
-      animationFrameRef.current = requestAnimationFrame(raf);
-      lenisRef.current = lenis;
     } else {
       const scroller = scrollerRef.current;
       if (!scroller) return;
@@ -250,8 +239,7 @@ const ScrollStack = ({
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (lenisRef.current) lenisRef.current.destroy();
-      stackCompletedRef.current = false;
-      cardsRef.current = [];
+      stackCompletedRef.current = false;      cardsRef.current = [];
       transformsCache.clear();
       isUpdatingRef.current = false;
     };
