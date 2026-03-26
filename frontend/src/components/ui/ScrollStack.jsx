@@ -119,7 +119,7 @@ const ScrollStack = ({
       const pinEnd = endElementTop - containerHeight / 2;
 
       const scaleProgress = calculateProgress(scrollTop, triggerStart, triggerEnd);
-      const targetScale = baseScale + i * itemScale;
+      const targetScale = baseScale + (cardsRef.current.length - 1 - i) * itemScale;
       const scale = 1 - scaleProgress * (1 - targetScale);
       const rotation = rotationAmount ? i * rotationAmount * scaleProgress : 0;
 
@@ -243,6 +243,8 @@ const ScrollStack = ({
       card.style.willChange = 'transform, filter';
       card.style.transformOrigin = 'top center';
       card.style.backfaceVisibility = 'hidden';
+      card.style.position = 'relative';
+      card.style.zIndex = String(cards.length - i); // card[0] = highest z (front), last card = lowest (back)
       card.style.transform = 'translateZ(0)';
       card.style.webkitTransform = 'translateZ(0)';
       card.style.perspective = '1000px';
@@ -284,10 +286,10 @@ const ScrollStack = ({
       }}
     >
       <div
-        className={`scroll-stack-inner px-4 md:px-16 ${
+        className={`scroll-stack-inner max-w-5xl mx-auto px-4 ${
           useWindowScroll
-            ? 'pt-[15vh] pb-[50rem]'         // window mode: scroll buffer for pin animations (needs ~800px below last card)
-            : 'pt-[20vh] pb-[50rem] min-h-screen' // container mode: massive height for internal scroll
+            ? 'pt-[15vh] pb-[50rem]'
+            : 'pt-[20vh] pb-[50rem] min-h-screen'
         }`}
       >
         {children}
