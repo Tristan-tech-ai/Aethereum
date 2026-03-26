@@ -119,7 +119,7 @@ const ScrollStack = ({
       const pinEnd = endElementTop - containerHeight / 2;
 
       const scaleProgress = calculateProgress(scrollTop, triggerStart, triggerEnd);
-      const targetScale = baseScale + (cardsRef.current.length - 1 - i) * itemScale;
+      const targetScale = baseScale + i * itemScale;
       const scale = 1 - scaleProgress * (1 - targetScale);
       const rotation = rotationAmount ? i * rotationAmount * scaleProgress : 0;
 
@@ -147,11 +147,21 @@ const ScrollStack = ({
         translateY = pinEnd - cardTop + stackPositionPx + itemStackDistance * i;
       }
 
+      // Cards below the first one start invisible and fade in only as they approach
+      // their trigger point (i.e. when the card before them has begun to pin).
+      let opacity = 1;
+      if (i > 0) {
+        const fadeStart = triggerStart - containerHeight * 0.9;
+        const fadeEnd   = triggerStart - containerHeight * 0.3;
+        opacity = Math.max(0, Math.min(1, (scrollTop - fadeStart) / Math.max(1, fadeEnd - fadeStart)));
+      }
+
       const newTransform = {
         translateY: Math.round(translateY * 100) / 100,
         scale: Math.round(scale * 1000) / 1000,
         rotation: Math.round(rotation * 100) / 100,
         blur: Math.round(blur * 100) / 100,
+        opacity: Math.round(opacity * 1000) / 1000,
       };
 
       const lastTransform = lastTransformsRef.current.get(i);
@@ -160,11 +170,13 @@ const ScrollStack = ({
         Math.abs(lastTransform.translateY - newTransform.translateY) > 0.1 ||
         Math.abs(lastTransform.scale - newTransform.scale) > 0.001 ||
         Math.abs(lastTransform.rotation - newTransform.rotation) > 0.1 ||
-        Math.abs(lastTransform.blur - newTransform.blur) > 0.1;
+        Math.abs(lastTransform.blur - newTransform.blur) > 0.1 ||
+        Math.abs((lastTransform.opacity ?? 1) - newTransform.opacity) > 0.005;
 
       if (hasChanged) {
         card.style.transform = `translate3d(0, ${newTransform.translateY}px, 0) scale(${newTransform.scale}) rotate(${newTransform.rotation}deg)`;
         card.style.filter = newTransform.blur > 0 ? `blur(${newTransform.blur}px)` : '';
+        card.style.opacity = String(newTransform.opacity);
         lastTransformsRef.current.set(i, newTransform);
       }
 
@@ -240,15 +252,15 @@ const ScrollStack = ({
 
     cards.forEach((card, i) => {
       if (i < cards.length - 1) card.style.marginBottom = `${itemDistance}px`;
-      card.style.willChange = 'transform, filter';
+      card.style.willChange = 'transform, filter, opacity';
       card.style.transformOrigin = 'top center';
       card.style.backfaceVisibility = 'hidden';
-      card.style.position = 'relative';
-      card.style.zIndex = String(cards.length - i); // card[0] = highest z (front), last card = lowest (back)
       card.style.transform = 'translateZ(0)';
       card.style.webkitTransform = 'translateZ(0)';
       card.style.perspective = '1000px';
       card.style.webkitPerspective = '1000px';
+      // Non-first cards start invisible; they fade in as user scrolls to them
+      if (i > 0) card.style.opacity = '0';
     });
 
     setupLenis();
