@@ -38,7 +38,6 @@ const ScrollStack = ({
   const animationFrameRef = useRef(null);
   const lenisRef = useRef(null);
   const cardsRef = useRef([]);
-  const cardOffsetsRef = useRef([]); // natural page offsets cached before transforms (fixes getBoundingClientRect feedback loop)
   const lastTransformsRef = useRef(new Map());
   const isUpdatingRef = useRef(false);
 
@@ -75,8 +74,17 @@ const ScrollStack = ({
   const getElementOffset = useCallback(
     (element) => {
       if (useWindowScroll) {
-        const rect = element.getBoundingClientRect();
-        return rect.top + window.scrollY;
+        // Traverse the offsetParent chain to get the absolute document offset.
+        // This is immune to CSS transforms (unlike getBoundingClientRect which
+        // returns the visual position and creates a feedback loop when cards
+        // have translateY applied).
+        let top = 0;
+        let el = element;
+        while (el) {
+          top += el.offsetTop;
+          el = el.offsetParent;
+        }
+        return top;
       } else {
         return element.offsetTop;
       }
@@ -101,8 +109,8 @@ const ScrollStack = ({
     cardsRef.current.forEach((card, i) => {
       if (!card) return;
 
-      // Use cached natural offset to avoid transform feedback loop
-      const cardTop = cardOffsetsRef.current[i] ?? getElementOffset(card);
+      // Use getElementOffset (offsetParent traversal) — layout-based, immune to transforms
+      const cardTop = getElementOffset(card);
       const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
       const triggerEnd = cardTop - scaleEndPositionPx;
       const pinStart = cardTop - stackPositionPx - itemStackDistance * i;
@@ -117,7 +125,7 @@ const ScrollStack = ({
       if (blurAmount) {
         let topCardIndex = 0;
         for (let j = 0; j < cardsRef.current.length; j++) {
-          const jCardTop = cardOffsetsRef.current[j] ?? getElementOffset(cardsRef.current[j]);
+          const jCardTop = getElementOffset(cardsRef.current[j]);
           const jTriggerStart = jCardTop - stackPositionPx - itemStackDistance * j;
           if (scrollTop >= jTriggerStart) topCardIndex = j;
         }
@@ -223,16 +231,6 @@ const ScrollStack = ({
     );
     cardsRef.current = cards;
     const transformsCache = lastTransformsRef.current;
-
-    // Cache natural page offsets BEFORE any transforms are applied.
-    // getBoundingClientRect() includes visual transform offsets, so reading it
-    // after cards have transforms applied creates a feedback loop where cardTop
-    // keeps shifting. Caching once here (when transforms are still identity) is the fix.
-    cardOffsetsRef.current = cards.map(card =>
-      useWindowScroll
-        ? (card.getBoundingClientRect().top + window.scrollY)
-        : card.offsetTop
-    );
 
     cards.forEach((card, i) => {
       if (i < cards.length - 1) card.style.marginBottom = `${itemDistance}px`;
