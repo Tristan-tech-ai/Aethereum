@@ -76,33 +76,55 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-dark-base overflow-x-hidden">
       {/* ===== GLASSMORPHISM NAVBAR ===== */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-dark-base/80 backdrop-blur-xl border-b border-white/10 shadow-lg'
-          : 'bg-dark-base/50 backdrop-blur-md border-b border-white/5'
-      }`}>
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? 'shadow-[0_4px_30px_rgba(0,0,0,0.5)]'
+            : ''
+        }`}
+        style={{
+          background: scrolled
+            ? 'rgba(13, 8, 32, 0.85)'
+            : 'rgba(13, 8, 32, 0.55)',
+          backdropFilter: 'blur(16px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <img src="/nexera_logo.svg" alt="Nexera" className="h-8 w-auto" />
-          </div>
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#1a0f2e] to-[#0d0820] border border-primary/30"
+              style={{ boxShadow: '0 0 12px rgba(124,58,237,0.35)' }}
+            >
+              <img
+                src="/nexera_logo.svg"
+                alt="Nexera"
+                className="w-6 h-6 object-contain drop-shadow-[0_0_6px_rgba(124,58,237,0.8)]"
+              />
+            </div>
+            <span className="font-heading font-extrabold text-[16px] tracking-wider bg-gradient-to-r from-text-primary to-primary-light bg-clip-text text-transparent">
+              NEXERA
+            </span>
+          </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-8 text-body-sm font-medium text-text-secondary">
-            <button onClick={scrollToFeatures} className="hover:text-text-primary transition-colors cursor-pointer">Features</button>
-            <a href="#how-it-works" className="hover:text-text-primary transition-colors">How It Works</a>
-            <a href="#social" className="hover:text-text-primary transition-colors">Social</a>
+          <div className="hidden md:flex items-center gap-8 text-[14px] font-medium">
+            <button onClick={scrollToFeatures} className="text-text-muted hover:text-text-primary transition-colors cursor-pointer">Features</button>
+            <a href="#how-it-works" className="text-text-muted hover:text-text-primary transition-colors">How It Works</a>
+            <a href="#social" className="text-text-muted hover:text-text-primary transition-colors">Social</a>
           </div>
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-3">
             <Link to="/login">
-              <button className="text-body-sm font-medium text-text-secondary hover:text-text-primary transition-colors px-4 py-2">
+              <button className="text-[14px] font-medium text-text-muted hover:text-text-primary transition-colors px-4 py-2 cursor-pointer">
                 Sign In
               </button>
             </Link>
             <Link to="/register">
-              <Button size="sm" className="shadow-glow-primary">
+              <Button size="sm">
                 Get Started
               </Button>
             </Link>
@@ -110,7 +132,7 @@ const LandingPage = () => {
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden p-2 text-text-secondary hover:text-text-primary transition-colors"
+            className="md:hidden p-2 text-text-muted hover:text-text-primary transition-colors cursor-pointer"
             onClick={() => setMobileMenuOpen(v => !v)}
           >
             {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -119,11 +141,19 @@ const LandingPage = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-dark-base/90 backdrop-blur-xl border-b border-white/10 px-4 pb-4 flex flex-col gap-3">
-            <button onClick={scrollToFeatures} className="text-left py-2 text-body text-text-secondary hover:text-text-primary transition-colors">Features</button>
-            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2 text-body text-text-secondary hover:text-text-primary transition-colors">How It Works</a>
-            <a href="#social" onClick={() => setMobileMenuOpen(false)} className="py-2 text-body text-text-secondary hover:text-text-primary transition-colors">Social</a>
-            <div className="flex gap-3 pt-2 border-t border-white/10">
+          <div
+            className="md:hidden px-5 pb-5 flex flex-col gap-2"
+            style={{
+              background: 'rgba(13, 8, 32, 0.95)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+            }}
+          >
+            <button onClick={scrollToFeatures} className="text-left py-2.5 text-[15px] text-text-muted hover:text-text-primary transition-colors">Features</button>
+            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2.5 text-[15px] text-text-muted hover:text-text-primary transition-colors">How It Works</a>
+            <a href="#social" onClick={() => setMobileMenuOpen(false)} className="py-2.5 text-[15px] text-text-muted hover:text-text-primary transition-colors">Social</a>
+            <div className="flex gap-3 pt-3 mt-1 border-t border-white/10">
               <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1">
                 <Button variant="secondary" size="sm" className="w-full">Sign In</Button>
               </Link>
@@ -359,7 +389,7 @@ const LandingPage = () => {
             <span className="font-heading font-bold text-text-primary text-body">NEXERA</span>
             <span>— Next Era of Fun Learning</span>
           </div>
-          <p>FICPACT CUP 2026 &copy; {new Date().getFullYear()}</p>
+          <p>&copy; {new Date().getFullYear()} Nexera. All rights reserved.</p>
         </div>
       </footer>
     </div>
