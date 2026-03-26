@@ -205,8 +205,7 @@ const Sidebar = ({ open, onClose }) => {
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative shrink-0">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center relative overflow-hidden
-                bg-gradient-to-br from-[#1a0f2e] to-[#0d0820] border border-primary/30"
-                style={{ boxShadow: '0 0 16px rgba(124,58,237,0.4)' }}
+                bg-gradient-to-br from-[#1a0f2e] to-[#0d0820]"
               >
                 <img
                   src="/nexera_logo.svg"

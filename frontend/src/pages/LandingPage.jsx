@@ -1,13 +1,16 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import {
-  Upload, Brain, Crown, Users, Zap, ArrowRight, ChevronDown,
-  BookOpen, Target, Trophy, Menu, X, Flame, Star, Shield,
+  Upload, Brain, Crown, ArrowRight, ChevronDown,
+  Target, Trophy, Menu, X, Flame, Star, Shield,
   FileText, Youtube, Globe, Sparkles, Lock, CheckCircle,
-  TrendingUp, MessageSquare, Swords, Radio, GitBranch, Coffee
+  TrendingUp, MessageSquare, Swords, Radio, GitBranch, Coffee,
+  Cpu, Github, Twitter, BookOpen
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Orb from '../components/ui/Orb';
+import ParticleNeural from '../components/ui/ParticleNeural';
 
 // ── Logo brand colors (from nexera_logo.svg linear gradients)
 const LOGO_BLUE   = '#2CFFF8';  // cyan-blue from secondary gradient
@@ -119,6 +122,46 @@ const xpActivities = [
   { label: 'Full Material Done',  xp: '+100',  color: '#EF4444' },
 ];
 
+// ── Scroll stack deep-dive cards
+const scrollCards = [
+  {
+    num: '01',
+    icon: Upload,
+    title: 'Upload Anything',
+    subtitle: 'Every format, one destination',
+    desc: 'Drag-and-drop PDFs, paste YouTube links, share article URLs, or upload images. Nexera handles every format and converts it into a structured learning path — no prep needed.',
+    features: ['PDF & Documents', 'YouTube & Video URLs', 'Web Articles', 'Images & Slides'],
+    color: LOGO_BLUE,
+  },
+  {
+    num: '02',
+    icon: Brain,
+    title: 'AI Structures It',
+    subtitle: 'Gemini 2.0 does the heavy lifting',
+    desc: 'Our AI analyzes content in seconds — auto-generating sections, MCQ quizzes, summary cards, focus keywords, and learning objectives. You study, not organize.',
+    features: ['Auto-generated quizzes', 'Section summaries', 'Learning objectives', 'Smart flashcards'],
+    color: LOGO_PURPLE,
+  },
+  {
+    num: '03',
+    icon: Swords,
+    title: 'Play. Compete. Win.',
+    subtitle: '6 social modes. Infinite rivalry.',
+    desc: 'Challenge friends to Study Raids, 1v1 Focus Duels, or live Quiz Arenas. Every session earns XP and pushes your rank forward. Social play gives +50% XP bonus.',
+    features: ['Study Raids (2–7 players)', '1v1 Focus Duels', 'Live Quiz Arena', '+50% XP from social play'],
+    color: '#EF4444',
+  },
+  {
+    num: '04',
+    icon: Trophy,
+    title: 'Track. Prove. Grow.',
+    subtitle: 'Your learning history, visualized',
+    desc: 'Every session builds your Knowledge Profile — a GitHub-style heatmap, Knowledge Cards per tier, rank progression, and a public page. Show the world what you know.',
+    features: ['52-week learning heatmap', 'Knowledge Cards (Bronze→Diamond)', '6 rank tiers: Seedling → Sage', 'Public Knowledge Profile'],
+    color: '#F59E0B',
+  },
+];
+
 // ── Knowledge Card tiers
 const cardTiers = [
   { tier: '🥉', name: 'Bronze',  range: '70–79%',  glow: 'rgba(205,127,50,0.4)',  border: '#CD7F32' },
@@ -129,8 +172,34 @@ const cardTiers = [
 
 const LandingPage = () => {
   const featuresRef = useRef(null);
+  const stackRef    = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { scrollYProgress: stackProgress } = useScroll({
+    target: stackRef,
+    offset: ['start start', 'end end'],
+  });
+
+  // Pre-compute transforms for each scroll card (hooks can't be in loops)
+  const N = scrollCards.length;
+  const sc0 = useTransform(stackProgress, [0, 1/N], [1, 0.93]);
+  const sc1 = useTransform(stackProgress, [1/N, 2/N], [1, 0.93]);
+  const sc2 = useTransform(stackProgress, [2/N, 3/N], [1, 0.93]);
+  const sc3 = useTransform(stackProgress, [3/N, 4/N], [1, 0.93]);
+  const cardScales = [sc0, sc1, sc2, sc3];
+
+  const op0 = useTransform(stackProgress, [0, 0.08, 0.22, 0.32], [0, 1, 1, 0]);
+  const op1 = useTransform(stackProgress, [0.25, 0.33, 0.47, 0.57], [0, 1, 1, 0]);
+  const op2 = useTransform(stackProgress, [0.50, 0.58, 0.72, 0.82], [0, 1, 1, 0]);
+  const op3 = useTransform(stackProgress, [0.75, 0.83, 1.0, 1.0], [0, 1, 1, 1]);
+  const cardOpacities = [op0, op1, op2, op3];
+
+  const cy0 = useTransform(stackProgress, [0, 0.12], ['50px', '0px']);
+  const cy1 = useTransform(stackProgress, [0.25, 0.37], ['50px', '0px']);
+  const cy2 = useTransform(stackProgress, [0.50, 0.62], ['50px', '0px']);
+  const cy3 = useTransform(stackProgress, [0.75, 0.87], ['50px', '0px']);
+  const cardYs = [cy0, cy1, cy2, cy3];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -164,12 +233,10 @@ const LandingPage = () => {
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #1a0f2e 0%, #0d0820 100%)',
-                  border: '1px solid rgba(124,58,237,0.35)',
-                  boxShadow: '0 0 14px rgba(124,58,237,0.4)',
+                  background: 'linear-gradient(135deg, rgba(26,15,46,0.85) 0%, rgba(13,8,32,0.85) 100%)',
                 }}
               >
-                <img src="/nexera_logo.svg" alt="Nexera" className="w-6 h-6 object-contain" style={{ filter: 'drop-shadow(0 0 6px rgba(44,255,248,0.6))' }} />
+                <img src="/nexera_logo.svg" alt="Nexera" className="w-6 h-6 object-contain" />
               </div>
               <span className="font-heading font-extrabold text-[16px] tracking-wider" style={{ background: 'linear-gradient(90deg, #F1F5F9, #A78BFA)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 NEXERA
@@ -361,6 +428,113 @@ const LandingPage = () => {
                 <p className="text-[0.875rem] text-[#64748B] leading-relaxed">{step.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          SCROLL STACK — DEEP DIVE
+      ═══════════════════════════════════════════ */}
+      <section id="deep-dive" className="relative px-4 pt-28 pb-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <SectionLabel color="blue">Deep Dive</SectionLabel>
+            <h2 className="font-heading text-[2rem] md:text-[2.75rem] font-bold text-white mt-4 mb-4" style={{ letterSpacing: '-0.02em' }}>
+              The Full Experience
+            </h2>
+            <p className="text-[#64748B] max-w-md mx-auto text-[1rem]">
+              Everything you do on Nexera compounds — scroll through to see each layer.
+            </p>
+          </div>
+        </div>
+
+        {/* Sticky scroll stack */}
+        <div ref={stackRef} className="max-w-3xl mx-auto" style={{ height: `${scrollCards.length * 100}vh` }}>
+          <div className="sticky top-0 h-screen flex items-center justify-center">
+            {/* Progress dots */}
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-2 pr-2 md:pr-0 md:-right-8">
+              {scrollCards.map((card, i) => (
+                <div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full transition-colors duration-300"
+                  style={{ background: `${card.color}40` }}
+                />
+              ))}
+            </div>
+
+            <div className="relative w-full" style={{ height: '420px' }}>
+              {scrollCards.map((card, i) => (
+                <motion.div
+                  key={i}
+                  style={{
+                    scale  : cardScales[i],
+                    opacity: cardOpacities[i],
+                    y      : cardYs[i],
+                    transformOrigin: 'top center',
+                    position: 'absolute',
+                    top: 0, left: 0, right: 0,
+                    zIndex: i,
+                  }}
+                >
+                  <div
+                    className="rounded-3xl p-7 md:p-9"
+                    style={{
+                      background: 'rgba(11, 8, 26, 0.97)',
+                      border: `1px solid ${card.color}18`,
+                      backdropFilter: 'blur(24px)',
+                      boxShadow: `0 24px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04), 0 0 40px ${card.color}08`,
+                    }}
+                  >
+                    <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
+                      {/* Left: number + icon */}
+                      <div className="flex-shrink-0 flex items-center gap-4 md:flex-col md:items-center md:gap-2">
+                        <span
+                          className="font-heading font-black leading-none select-none"
+                          style={{ fontSize: '3.5rem', color: `${card.color}22`, letterSpacing: '-0.05em' }}
+                        >
+                          {card.num}
+                        </span>
+                        <div
+                          className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                          style={{ background: `${card.color}14`, border: `1px solid ${card.color}28` }}
+                        >
+                          <card.icon size={22} style={{ color: card.color }} />
+                        </div>
+                      </div>
+
+                      {/* Right: content */}
+                      <div className="flex-1">
+                        <p className="text-[11px] font-bold tracking-[0.12em] uppercase mb-1.5" style={{ color: card.color }}>
+                          {card.subtitle}
+                        </p>
+                        <h3 className="font-heading font-bold text-white text-[1.35rem] mb-3" style={{ letterSpacing: '-0.01em' }}>
+                          {card.title}
+                        </h3>
+                        <p className="text-[#64748B] text-[0.9rem] leading-relaxed mb-5">
+                          {card.desc}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {card.features.map((f, fi) => (
+                            <span
+                              key={fi}
+                              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full"
+                              style={{
+                                background: `${card.color}0d`,
+                                border: `1px solid ${card.color}22`,
+                                color: card.color,
+                              }}
+                            >
+                              <CheckCircle size={10} />
+                              {f}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -675,31 +849,197 @@ const LandingPage = () => {
       </section>
 
       {/* ═══════════════════════════════════════════
+          PARTICLE NEURAL — AI ENGINE VISUALIZATION
+      ═══════════════════════════════════════════ */}
+      <section className="relative px-4 py-28 overflow-hidden">
+        {/* Separator */}
+        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(44,255,248,0.15), transparent)' }} />
+
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <SectionLabel color="blue">
+              <Cpu size={11} />
+              Neural Engine
+            </SectionLabel>
+            <h2 className="font-heading text-[2rem] md:text-[2.75rem] font-bold text-white mt-4 mb-3" style={{ letterSpacing: '-0.02em' }}>
+              Powered by Intelligence
+            </h2>
+            <p className="text-[#64748B] max-w-sm mx-auto text-[1rem]">
+              Hover to accelerate the neural signal flow.
+            </p>
+          </div>
+
+          {/* Canvas container */}
+          <div
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              height: '420px',
+              background: 'rgba(8,6,18,0.9)',
+              border: '1px solid rgba(255,255,255,0.05)',
+              boxShadow: 'inset 0 0 80px rgba(44,255,248,0.03), 0 0 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            <ParticleNeural className="absolute inset-0 w-full h-full" />
+
+            {/* Corner labels */}
+            <div className="absolute top-5 left-6 pointer-events-none">
+              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(44,255,248,0.3)' }}>Input</p>
+              <p className="font-mono text-[9px]" style={{ color: 'rgba(44,255,248,0.18)' }}>Upload Vector</p>
+            </div>
+            <div className="absolute top-5 right-6 text-right pointer-events-none">
+              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(167,139,250,0.3)' }}>Output</p>
+              <p className="font-mono text-[9px]" style={{ color: 'rgba(167,139,250,0.18)' }}>Course Structure</p>
+            </div>
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none text-center">
+              <p className="font-mono text-[9px] tracking-widest" style={{ color: 'rgba(255,255,255,0.12)' }}>
+                Gemini 2.0 Flash · Real-time Processing
+              </p>
+            </div>
+          </div>
+
+          {/* Stats strip below canvas */}
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'Model', value: 'Gemini 2.0 Flash', color: LOGO_BLUE },
+              { label: 'Quiz Generation', value: '< 3 seconds', color: LOGO_PURPLE },
+              { label: 'Summary Accuracy', value: '94% approval', color: '#22C55E' },
+              { label: 'Supported Formats', value: '5+ types', color: '#F59E0B' },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="p-4 rounded-2xl text-center"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+              >
+                <p className="font-heading font-bold text-[1rem] text-white mb-0.5">{stat.value}</p>
+                <p className="text-[11px] text-[#475569]">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
           FOOTER
       ═══════════════════════════════════════════ */}
-      <footer className="px-4 py-10 border-t border-white/5">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Brand */}
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #1a0f2e, #0d0820)', border: '1px solid rgba(124,58,237,0.3)' }}
-              >
-                <img src="/nexera_logo.svg" alt="Nexera" className="w-5 h-5 object-contain" />
+      <footer style={{ background: 'rgba(6,4,14,0.99)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="max-w-6xl mx-auto px-6 py-16">
+
+          {/* 4-column grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+
+            {/* Brand column */}
+            <div>
+              <Link to="/" className="flex items-center gap-2.5 mb-4">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden"
+                  style={{ background: 'linear-gradient(135deg, rgba(26,15,46,0.85), rgba(13,8,32,0.85))' }}
+                >
+                  <img src="/nexera_logo.svg" alt="Nexera" className="w-6 h-6 object-contain" />
+                </div>
+                <span
+                  className="font-heading font-extrabold text-[16px] tracking-wider"
+                  style={{ background: 'linear-gradient(90deg, #F1F5F9, #A78BFA)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+                >
+                  NEXERA
+                </span>
+              </Link>
+              <p className="text-[#475569] text-[13px] leading-relaxed mb-5">
+                The next era of fun, social, AI-powered learning. Build your Knowledge Empire.
+              </p>
+              {/* Social icons */}
+              <div className="flex gap-2">
+                {[Globe, MessageSquare, Github].map((Icon, i) => (
+                  <a
+                    key={i}
+                    href="#"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-white/10"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}
+                  >
+                    <Icon size={13} className="text-[#475569]" />
+                  </a>
+                ))}
               </div>
-              <span className="font-heading font-bold text-[#F1F5F9]">NEXERA</span>
-              <span className="text-[#475569] text-[13px]">— Next Era of Fun Learning</span>
             </div>
 
-            {/* Nav links */}
-            <div className="flex gap-6 text-[13px] text-[#475569]">
-              <a href="#how-it-works" className="hover:text-[#94A3B8] transition-colors">How It Works</a>
-              <a href="#features" className="hover:text-[#94A3B8] transition-colors">Features</a>
-              <a href="#social" className="hover:text-[#94A3B8] transition-colors">Social</a>
+            {/* Product column */}
+            <div>
+              <h4 className="font-heading font-semibold text-[#94A3B8] text-[11px] uppercase tracking-widest mb-5">Product</h4>
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  ['Upload Content', '#how-it-works'],
+                  ['AI Quizzes',     '#features'],
+                  ['Knowledge Cards','#features'],
+                  ['XP & Ranks',     '#features'],
+                  ['Social Modes',   '#social'],
+                  ['Focus Mode',     '#features'],
+                ].map(([label, href]) => (
+                  <li key={label}>
+                    <a href={href} className="text-[#64748B] text-[13px] hover:text-[#94A3B8] transition-colors leading-none">
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <p className="text-[12px] text-[#475569]">&copy; {new Date().getFullYear()} Nexera. All rights reserved.</p>
+            {/* Community column */}
+            <div>
+              <h4 className="font-heading font-semibold text-[#94A3B8] text-[11px] uppercase tracking-widest mb-5">Community</h4>
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  ['Study Raids',        '#social'],
+                  ['Quiz Arena',         '#social'],
+                  ['Learning Relay',     '#social'],
+                  ['Weekly Challenges',  '#social'],
+                  ['Leaderboard',        '#'],
+                  ['Knowledge Profiles', '#'],
+                ].map(([label, href]) => (
+                  <li key={label}>
+                    <a href={href} className="text-[#64748B] text-[13px] hover:text-[#94A3B8] transition-colors leading-none">
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Company column */}
+            <div>
+              <h4 className="font-heading font-semibold text-[#94A3B8] text-[11px] uppercase tracking-widest mb-5">Company</h4>
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  ['About',           '#'],
+                  ['Blog',            '#'],
+                  ['Changelog',       '#'],
+                  ['Privacy Policy',  '#'],
+                  ['Terms of Service','#'],
+                  ['Contact',         '#'],
+                ].map(([label, href]) => (
+                  <li key={label}>
+                    <a href={href} className="text-[#64748B] text-[13px] hover:text-[#94A3B8] transition-colors leading-none">
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="h-px mb-8" style={{ background: 'rgba(255,255,255,0.05)' }} />
+
+          {/* Bottom bar */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-[12px] text-[#334155]">
+              &copy; {new Date().getFullYear()} Nexera. All rights reserved. Built for learners worldwide.
+            </p>
+            <div className="flex items-center gap-5">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
+                <span className="text-[11px] text-[#475569]">All systems operational</span>
+              </div>
+              <span className="text-[11px] text-[#334155]">v1.0 · Powered by Gemini 2.0</span>
+            </div>
           </div>
         </div>
       </footer>
