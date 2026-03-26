@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import ScrollStack, { ScrollStackItem } from '../components/ui/ScrollStack';
 import {
   Upload, Brain, Crown, ArrowRight, ChevronDown,
   Target, Trophy, Menu, X, Flame, Star, Shield,
@@ -172,25 +173,8 @@ const cardTiers = [
 
 const LandingPage = () => {
   const featuresRef = useRef(null);
-  const stackRef    = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const [activeCard, setActiveCard] = useState(0);
-
-  useEffect(() => {
-    const handleStackScroll = () => {
-      const el = stackRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const scrollable = rect.height - window.innerHeight;
-      if (scrollable <= 0) return;
-      const progress = Math.max(0, Math.min(0.9999, -rect.top / scrollable));
-      setActiveCard(Math.floor(progress * scrollCards.length));
-    };
-    window.addEventListener('scroll', handleStackScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleStackScroll);
-  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -424,184 +408,90 @@ const LandingPage = () => {
       </section>
 
       {/* ═══════════════════════════════════════════
-          PARTICLE NEURAL — AI ENGINE VISUALIZATION
-      ═══════════════════════════════════════════ */}
-      <section className="relative px-4 py-24">
-        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(124,58,237,0.2), transparent)' }} />
-        <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(44,255,248,0.12), transparent)' }} />
-
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <SectionLabel color="blue">
-              <Cpu size={11} />
-              Neural Engine
-            </SectionLabel>
-            <h2 className="font-heading text-[2rem] md:text-[2.75rem] font-bold text-white mt-4 mb-3" style={{ letterSpacing: '-0.02em' }}>
-              Powered by Intelligence
-            </h2>
-            <p className="text-[#64748B] max-w-sm mx-auto">
-              Hover the visualization to accelerate signal flow.
-            </p>
-          </div>
-
-          {/* Canvas container */}
-          <div
-            className="relative rounded-3xl overflow-hidden"
-            style={{
-              height: '380px',
-              background: 'rgba(8,6,18,0.92)',
-              border: '1px solid rgba(255,255,255,0.05)',
-              boxShadow: 'inset 0 0 80px rgba(44,255,248,0.03), 0 0 60px rgba(0,0,0,0.5)',
-            }}
-          >
-            <ParticleNeural className="absolute inset-0 w-full h-full" />
-            <div className="absolute top-5 left-6 pointer-events-none">
-              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(44,255,248,0.3)' }}>Input</p>
-              <p className="font-mono text-[9px]" style={{ color: 'rgba(44,255,248,0.18)' }}>Upload Vector</p>
-            </div>
-            <div className="absolute top-5 right-6 text-right pointer-events-none">
-              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(167,139,250,0.3)' }}>Output</p>
-              <p className="font-mono text-[9px]" style={{ color: 'rgba(167,139,250,0.18)' }}>Course Structure</p>
-            </div>
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none">
-              <p className="font-mono text-[9px] tracking-widest" style={{ color: 'rgba(255,255,255,0.12)' }}>Gemini 2.0 Flash · Real-time Processing</p>
-            </div>
-          </div>
-
-          {/* Stats strip */}
-          <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: 'Model',             value: 'Gemini 2.0 Flash', color: LOGO_BLUE   },
-              { label: 'Quiz Generation',   value: '< 3 seconds',      color: LOGO_PURPLE },
-              { label: 'Summary Accuracy',  value: '94% approval',     color: '#22C55E'   },
-              { label: 'Supported Formats', value: '5+ types',          color: '#F59E0B'   },
-            ].map((s, i) => (
-              <div key={i} className="p-4 rounded-2xl text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <p className="font-heading font-bold text-white text-[1rem] mb-0.5">{s.value}</p>
-                <p className="text-[11px] text-[#475569]">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════
           SCROLL STACK — DEEP DIVE
       ═══════════════════════════════════════════ */}
-      <section id="deep-dive" className="relative px-4 pt-28 pb-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+      <section id="deep-dive" className="relative pt-28 pb-0">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="text-center mb-12">
             <SectionLabel color="blue">Deep Dive</SectionLabel>
             <h2 className="font-heading text-[2rem] md:text-[2.75rem] font-bold text-white mt-4 mb-4" style={{ letterSpacing: '-0.02em' }}>
               The Full Experience
             </h2>
             <p className="text-[#64748B] max-w-md mx-auto text-[1rem]">
-              Everything you do on Nexera compounds — scroll through to see each layer.
+              Everything you do on Nexera compounds — scroll through each layer.
             </p>
           </div>
         </div>
 
-        {/* Sticky scroll stack */}
-        <div ref={stackRef} style={{ height: `${scrollCards.length * 100}vh` }}>
-          <div className="sticky top-0 h-screen flex items-center justify-center px-4">
-            <div className="w-full max-w-3xl">
-
-              {/* Progress indicators */}
-              <div className="flex items-center justify-center gap-2 mb-8">
-                {scrollCards.map((card, i) => (
-                  <div
-                    key={i}
-                    className="transition-all duration-500"
-                    style={{
-                      width: i === activeCard ? '28px' : '6px',
-                      height: '6px',
-                      borderRadius: '3px',
-                      background: i === activeCard ? card.color : 'rgba(255,255,255,0.12)',
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Animated card */}
-              <AnimatePresence mode="wait">
-                {scrollCards.map((card, i) => i !== activeCard ? null : (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 36 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -24 }}
-                    transition={{ duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] }}
+        <ScrollStack
+          useWindowScroll={false}
+          itemDistance={60}
+          itemScale={0.04}
+          itemStackDistance={24}
+          stackPosition="18%"
+          baseScale={0.88}
+          className="h-[90vh]"
+        >
+          {scrollCards.map((card, i) => (
+            <ScrollStackItem
+              key={i}
+              itemClassName=""
+            >
+              {/* Styled card interior */}
+              <div
+                className="h-full flex flex-col md:flex-row gap-8 items-start"
+                style={{
+                  background: `linear-gradient(135deg, rgba(11,8,26,0.0), rgba(11,8,26,0.0))`,
+                }}
+              >
+                {/* Left: number + icon */}
+                <div className="flex-shrink-0 flex items-center gap-4 md:flex-col md:items-center md:gap-3 pt-1">
+                  <span
+                    className="font-heading font-black leading-none select-none"
+                    style={{ fontSize: '3.5rem', color: `${card.color}28`, letterSpacing: '-0.05em' }}
                   >
-                    <div
-                      className="rounded-3xl p-7 md:p-10"
-                      style={{
-                        background: 'rgba(11,8,26,0.97)',
-                        border: `1px solid ${card.color}25`,
-                        backdropFilter: 'blur(24px)',
-                        boxShadow: `0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), 0 0 60px ${card.color}10`,
-                      }}
-                    >
-                      <div className="flex flex-col md:flex-row gap-8 items-start">
-                        {/* Left: number + icon */}
-                        <div className="flex-shrink-0 flex items-center gap-4 md:flex-col md:items-center md:gap-3">
-                          <span
-                            className="font-heading font-black leading-none select-none"
-                            style={{ fontSize: '4rem', color: `${card.color}20`, letterSpacing: '-0.05em' }}
-                          >
-                            {card.num}
-                          </span>
-                          <div
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                            style={{ background: `${card.color}15`, border: `1px solid ${card.color}30` }}
-                          >
-                            <card.icon size={26} style={{ color: card.color }} />
-                          </div>
-                        </div>
+                    {card.num}
+                  </span>
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${card.color}15`, border: `1px solid ${card.color}35` }}
+                  >
+                    <card.icon size={26} style={{ color: card.color }} />
+                  </div>
+                </div>
 
-                        {/* Right: content */}
-                        <div className="flex-1">
-                          <p className="text-[11px] font-bold tracking-[0.14em] uppercase mb-2" style={{ color: card.color }}>
-                            {card.subtitle}
-                          </p>
-                          <h3 className="font-heading font-bold text-white text-[1.5rem] mb-3" style={{ letterSpacing: '-0.02em' }}>
-                            {card.title}
-                          </h3>
-                          <p className="text-[#64748B] text-[0.925rem] leading-relaxed mb-6">
-                            {card.desc}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {card.features.map((f, fi) => (
-                              <span
-                                key={fi}
-                                className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-full"
-                                style={{
-                                  background: `${card.color}10`,
-                                  border: `1px solid ${card.color}28`,
-                                  color: card.color,
-                                }}
-                              >
-                                <CheckCircle size={10} />
-                                {f}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Scroll hint on last card */}
-                    {i < scrollCards.length - 1 && (
-                      <p className="text-center text-[11px] text-[#334155] mt-5 tracking-widest uppercase">
-                        scroll to continue
-                      </p>
-                    )}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-
-            </div>
-          </div>
-        </div>
+                {/* Right: content */}
+                <div className="flex-1">
+                  <p className="text-[11px] font-bold tracking-[0.14em] uppercase mb-2" style={{ color: card.color }}>
+                    {card.subtitle}
+                  </p>
+                  <h3 className="font-heading font-bold text-white text-[1.5rem] mb-3" style={{ letterSpacing: '-0.02em' }}>
+                    {card.title}
+                  </h3>
+                  <p className="text-[#64748B] text-[0.925rem] leading-relaxed mb-6">
+                    {card.desc}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {card.features.map((f, fi) => (
+                      <span
+                        key={fi}
+                        className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-full"
+                        style={{
+                          background: `${card.color}10`,
+                          border: `1px solid ${card.color}30`,
+                          color: card.color,
+                        }}
+                      >
+                        <CheckCircle size={10} />
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </ScrollStackItem>
+          ))}
+        </ScrollStack>
       </section>
 
       {/* ═══════════════════════════════════════════
@@ -865,6 +755,68 @@ const LandingPage = () => {
                 </span>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          PARTICLE NEURAL — AI ENGINE VISUALIZATION
+      ═══════════════════════════════════════════ */}
+      <section className="relative px-4 py-24">
+        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(124,58,237,0.2), transparent)' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(44,255,248,0.12), transparent)' }} />
+
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <SectionLabel color="blue">
+              <Cpu size={11} />
+              Neural Engine
+            </SectionLabel>
+            <h2 className="font-heading text-[2rem] md:text-[2.75rem] font-bold text-white mt-4 mb-3" style={{ letterSpacing: '-0.02em' }}>
+              Powered by Intelligence
+            </h2>
+            <p className="text-[#64748B] max-w-sm mx-auto">
+              Hover the visualization to accelerate signal flow.
+            </p>
+          </div>
+
+          {/* Canvas container */}
+          <div
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              height: '380px',
+              background: 'rgba(8,6,18,0.92)',
+              border: '1px solid rgba(255,255,255,0.05)',
+              boxShadow: 'inset 0 0 80px rgba(44,255,248,0.03), 0 0 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            <ParticleNeural className="absolute inset-0 w-full h-full" />
+            <div className="absolute top-5 left-6 pointer-events-none">
+              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(44,255,248,0.3)' }}>Input</p>
+              <p className="font-mono text-[9px]" style={{ color: 'rgba(44,255,248,0.18)' }}>Upload Vector</p>
+            </div>
+            <div className="absolute top-5 right-6 text-right pointer-events-none">
+              <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(167,139,250,0.3)' }}>Output</p>
+              <p className="font-mono text-[9px]" style={{ color: 'rgba(167,139,250,0.18)' }}>Course Structure</p>
+            </div>
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none">
+              <p className="font-mono text-[9px] tracking-widest" style={{ color: 'rgba(255,255,255,0.12)' }}>Gemini 2.0 Flash · Real-time Processing</p>
+            </div>
+          </div>
+
+          {/* Stats strip */}
+          <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'Model',             value: 'Gemini 2.0 Flash', color: LOGO_BLUE   },
+              { label: 'Quiz Generation',   value: '< 3 seconds',      color: LOGO_PURPLE },
+              { label: 'Summary Accuracy',  value: '94% approval',     color: '#22C55E'   },
+              { label: 'Supported Formats', value: '5+ types',          color: '#F59E0B'   },
+            ].map((s, i) => (
+              <div key={i} className="p-4 rounded-2xl text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="font-heading font-bold text-white text-[1rem] mb-0.5">{s.value}</p>
+                <p className="text-[11px] text-[#475569]">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
