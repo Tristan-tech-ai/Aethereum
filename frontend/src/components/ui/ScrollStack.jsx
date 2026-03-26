@@ -38,8 +38,6 @@ const ScrollStack = ({
   const animationFrameRef = useRef(null);
   const lenisRef = useRef(null);
   const cardsRef = useRef([]);
-  const cardOffsetsRef = useRef([]); // stable page offsets cached at mount, before any transforms
-  const endElementOffsetRef = useRef(0);
   const lastTransformsRef = useRef(new Map());
   const isUpdatingRef = useRef(false);
 
@@ -97,14 +95,23 @@ const ScrollStack = ({
       ? document.querySelector('.scroll-stack-end')
       : scrollerRef.current?.querySelector('.scroll-stack-end');
 
-    const endElementTop = endElementOffsetRef.current;
+    const endElementTop = endElement
+      ? (useWindowScroll
+          ? (endElement.getBoundingClientRect().top + window.scrollY)
+          : getElementOffset(endElement))
+      : 0;
 
     cardsRef.current.forEach((card, i) => {
       if (!card) return;
 
-      // Use stable cached offset captured at mount (before transforms) — immune to
-      // BCR feedback from scale + translateY transforms causing frame-to-frame jitter.
-      const cardTop = cardOffsetsRef.current[i] ?? 0;
+      // For window-scroll mode: BCR gives visual viewport top.
+      // Natural (un-transformed) document top = BCR.top + scrollY - appliedTranslateY.
+      // Subtracting the applied transform makes this immune to the feedback loop.
+      // For container mode: use offsetTop (accurate relative to container).
+      const appliedTranslateY = lastTransformsRef.current.get(i)?.translateY ?? 0;
+      const cardTop = useWindowScroll
+        ? (card.getBoundingClientRect().top + window.scrollY - appliedTranslateY)
+        : getElementOffset(card);
 
       const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
       const triggerEnd = cardTop - scaleEndPositionPx;
@@ -120,7 +127,10 @@ const ScrollStack = ({
       if (blurAmount) {
         let topCardIndex = 0;
         for (let j = 0; j < cardsRef.current.length; j++) {
-          const jCardTop = cardOffsetsRef.current[j] ?? 0;
+          const jApplied = lastTransformsRef.current.get(j)?.translateY ?? 0;
+          const jCardTop = useWindowScroll
+            ? (cardsRef.current[j].getBoundingClientRect().top + window.scrollY - jApplied)
+            : getElementOffset(cardsRef.current[j]);
           const jTriggerStart = jCardTop - stackPositionPx - itemStackDistance * j;
           if (scrollTop >= jTriggerStart) topCardIndex = j;
         }
@@ -137,12 +147,12 @@ const ScrollStack = ({
         translateY = pinEnd - cardTop + stackPositionPx + itemStackDistance * i;
       }
 
-      // Cards below the first one start invisible and fade in only as they are
-      // very close to their trigger point — keeping them hidden for much longer.
+      // Cards below the first one start invisible and fade in only as they approach
+      // their trigger point (i.e. when the card before them has begun to pin).
       let opacity = 1;
       if (i > 0) {
-        const fadeStart = triggerStart - containerHeight * 0.25;
-        const fadeEnd   = triggerStart - containerHeight * 0.02;
+        const fadeStart = triggerStart - containerHeight * 0.45;
+        const fadeEnd   = triggerStart - containerHeight * 0.05;
         opacity = Math.max(0, Math.min(1, (scrollTop - fadeStart) / Math.max(1, fadeEnd - fadeStart)));
       }
 
@@ -240,7 +250,6 @@ const ScrollStack = ({
     cardsRef.current = cards;
     const transformsCache = lastTransformsRef.current;
 
-    // Apply styles FIRST so layout is correct before we measure anything.
     cards.forEach((card, i) => {
       if (i < cards.length - 1) card.style.marginBottom = `${itemDistance}px`;
       card.style.willChange = 'transform, filter, opacity';
@@ -250,46 +259,17 @@ const ScrollStack = ({
       card.style.webkitTransform = 'translateZ(0)';
       card.style.perspective = '1000px';
       card.style.webkitPerspective = '1000px';
+      // Non-first cards start invisible; they fade in as user scrolls to them
       if (i > 0) card.style.opacity = '0';
     });
 
-    // Now cache offsets — margins are applied, layout is settled, transforms are identity.
-    const cacheOffsets = () => {
-      cardOffsetsRef.current = cardsRef.current.map(card =>
-        useWindowScroll
-          ? (card.getBoundingClientRect().top + window.scrollY)
-          : card.offsetTop
-      );
-      const endEl = useWindowScroll
-        ? document.querySelector('.scroll-stack-end')
-        : scrollerRef.current?.querySelector('.scroll-stack-end');
-      endElementOffsetRef.current = endEl
-        ? (useWindowScroll
-            ? (endEl.getBoundingClientRect().top + window.scrollY)
-            : endEl.offsetTop)
-        : 0;
-    };
-
-    // Wait one paint for the browser to apply the margin changes before measuring.
-    requestAnimationFrame(() => {
-      cacheOffsets();
-      updateCardTransforms();
-    });
-
     setupLenis();
-
-    // Recache on resize (page may reflow)
-    const onResize = () => requestAnimationFrame(cacheOffsets);
-    window.addEventListener('resize', onResize);
+    updateCardTransforms();
 
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (lenisRef.current) lenisRef.current.destroy();
-      window.removeEventListener('resize', onResize);
-      stackCompletedRef.current = false;
-      cardsRef.current = [];
-      cardOffsetsRef.current = [];
-      endElementOffsetRef.current = 0;
+      stackCompletedRef.current = false;      cardsRef.current = [];
       transformsCache.clear();
       isUpdatingRef.current = false;
     };
