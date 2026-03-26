@@ -89,19 +89,19 @@ const socialModes = [
 
 // ── Rank tiers
 const ranks = [
-  { icon: '🌱', name: 'Seedling',   levels: '1–5',    color: '#22C55E' },
-  { icon: '📗', name: 'Learner',    levels: '6–15',   color: '#3B82F6' },
-  { icon: '📘', name: 'Scholar',    levels: '16–30',  color: '#8B5CF6' },
-  { icon: '🔬', name: 'Researcher', levels: '31–50',  color: '#06B6D4' },
-  { icon: '🎓', name: 'Expert',     levels: '51–75',  color: '#F59E0B' },
-  { icon: '🏛️', name: 'Sage',       levels: '76–100', color: '#EF4444' },
+  { image: '/rank/bronze (1).webp',           name: 'Bronze',   levels: '1–5',    color: '#CD7F32' },
+  { image: '/rank/silver (2).webp',           name: 'Silver',   levels: '6–15',   color: '#94A3B8' },
+  { image: '/rank/gold (3).webp',             name: 'Gold',     levels: '16–30',  color: '#EAB308' },
+  { image: '/rank/platinum (4).webp',         name: 'Platinum', levels: '31–50',  color: '#7DD3FC' },
+  { image: '/rank/emerald (5).webp',          name: 'Emerald',  levels: '51–75',  color: '#10B981' },
+  { image: '/rank/diamond (tertinggi).webp',  name: 'Diamond',  levels: '76–100', color: '#A5B4FC' },
 ];
 
 // ── Stats
 const stats = [
   { value: '5+',  label: 'Content Types',  desc: 'PDF, YouTube, Articles, Images, Slides' },
   { value: '6',   label: 'Social Modes',   desc: 'Raids, Duels, Arena, Relay, Rooms, Challenges' },
-  { value: '100', label: 'XP Levels',      desc: 'From Seedling to Sage' },
+  { value: '100', label: 'XP Levels',      desc: 'From Bronze to Diamond' },
   { value: 'AI',  label: 'Powered',        desc: 'Gemini 2.0 Flash under the hood' },
 ];
 
@@ -158,7 +158,7 @@ const scrollCards = [
     title: 'Track. Prove. Grow.',
     subtitle: 'Your learning history, visualized',
     desc: 'Every session builds your Knowledge Profile — a GitHub-style heatmap, Knowledge Cards per tier, rank progression, and a public page. Show the world what you know.',
-    features: ['52-week learning heatmap', 'Knowledge Cards (Bronze→Diamond)', '6 rank tiers: Seedling → Sage', 'Public Knowledge Profile'],
+    features: ['52-week learning heatmap', 'Knowledge Cards (Bronze→Diamond)', '6 rank tiers: Bronze → Diamond', 'Public Knowledge Profile'],
     color: '#F59E0B',
   },
 ];
@@ -574,7 +574,7 @@ const LandingPage = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-3 pt-3 border-t border-white/5 text-[11px] text-[#475569]">100 levels · Seedling → Sage</div>
+              <div className="mt-3 pt-3 border-t border-white/5 text-[11px] text-[#475569]">100 levels · Bronze → Diamond</div>
             </BentoCard>
 
             {/* Knowledge Cards */}
@@ -669,7 +669,7 @@ const LandingPage = () => {
                   boxShadow: i === 5 ? `0 0 20px ${rank.color}20` : 'none',
                 }}
               >
-                <span className="text-4xl">{rank.icon}</span>
+                <img src={rank.image} alt={rank.name} className="w-12 h-12 object-contain" />
                 <div className="text-center">
                   <p className="font-heading font-bold text-white text-[0.95rem]">{rank.name}</p>
                   <p className="text-[12px] mt-0.5" style={{ color: rank.color }}>Level {rank.levels}</p>

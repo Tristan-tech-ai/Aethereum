@@ -60,12 +60,12 @@ export default {
 
                 // Rank Colors
                 rank: {
-                    seedling: '#22C55E',    // 🌱 Green
-                    learner: '#3B82F6',     // 📗 Blue
-                    scholar: '#8B5CF6',     // 📘 Violet
-                    researcher: '#06B6D4',  // 🔬 Cyan
-                    expert: '#F59E0B',      // 🎓 Amber
-                    sage: '#EF4444',        // 🏛️ Crimson
+                    bronze:   '#CD7F32',  // Bronze
+                    silver:   '#94A3B8',  // Silver
+                    gold:     '#EAB308',  // Gold
+                    platinum: '#7DD3FC',  // Platinum
+                    emerald:  '#10B981',  // Emerald
+                    diamond:  '#A5B4FC',  // Diamond
                 },
 
                 // Card Tier Colors

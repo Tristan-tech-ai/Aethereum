@@ -22,7 +22,7 @@ const EVENT_CONFIG = {
         emoji: "🎓",
         color: "text-primary-light",
         bgGlow: "from-primary/10 to-transparent",
-        template: (data) => `naik ke Rank ${data.new_rank || "Scholar"}!`,
+        template: (data) => `naik ke Rank ${data.new_rank || "Gold"}!`,
     },
     achievement: {
         emoji: "🏅",

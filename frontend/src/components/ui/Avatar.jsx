@@ -35,7 +35,7 @@ const Avatar = ({
   const colors = [
     'bg-primary', 'bg-secondary', 'bg-success',
     'bg-warning', 'bg-danger', 'bg-info',
-    'bg-rank-scholar', 'bg-subject-art',
+    'bg-rank-gold', 'bg-subject-art',
   ];
   const colorIndex = name
     ? name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length

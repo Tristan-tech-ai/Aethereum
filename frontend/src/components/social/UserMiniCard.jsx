@@ -6,43 +6,19 @@ import Avatar from "../ui/Avatar";
 
 /* ─── Rank config (mirrors LevelBadge.jsx) ─── */
 const rankConfig = {
-    seedling: {
-        name: "Seedling",
-        emoji: "🌱",
-        color: "#22C55E",
-        min: 1,
-        max: 5,
-    },
-    learner: {
-        name: "Learner",
-        emoji: "📗",
-        color: "#3B82F6",
-        min: 6,
-        max: 15,
-    },
-    scholar: {
-        name: "Scholar",
-        emoji: "📘",
-        color: "#8B5CF6",
-        min: 16,
-        max: 30,
-    },
-    researcher: {
-        name: "Researcher",
-        emoji: "🔬",
-        color: "#06B6D4",
-        min: 31,
-        max: 50,
-    },
-    expert: { name: "Expert", emoji: "🎓", color: "#F59E0B", min: 51, max: 75 },
-    sage: { name: "Sage", emoji: "🏛️", color: "#EF4444", min: 76, max: 100 },
+    bronze:   { name: "Bronze",   image: "/rank/bronze (1).webp",          color: "#CD7F32", min: 1,  max: 5   },
+    silver:   { name: "Silver",   image: "/rank/silver (2).webp",          color: "#94A3B8", min: 6,  max: 15  },
+    gold:     { name: "Gold",     image: "/rank/gold (3).webp",            color: "#EAB308", min: 16, max: 30  },
+    platinum: { name: "Platinum", image: "/rank/platinum (4).webp",        color: "#7DD3FC", min: 31, max: 50  },
+    emerald:  { name: "Emerald",  image: "/rank/emerald (5).webp",         color: "#10B981", min: 51, max: 75  },
+    diamond:  { name: "Diamond",  image: "/rank/diamond (tertinggi).webp", color: "#A5B4FC", min: 76, max: 100 },
 };
 
 export const getRankForLevel = (level) => {
     for (const [key, cfg] of Object.entries(rankConfig)) {
         if (level >= cfg.min && level <= cfg.max) return { key, ...cfg };
     }
-    return { key: "seedling", ...rankConfig.seedling };
+    return { key: "bronze", ...rankConfig.bronze };
 };
 
 /**

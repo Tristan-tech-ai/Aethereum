@@ -208,7 +208,7 @@ const KnowledgeProfilePage = () => {
     const unlockedCount = achievementsData.filter(a => a.unlocked).length;
     const totalCards = stats.total_cards ?? cardsData.all.length;
     const level = p?.level ?? user?.level ?? 1;
-    const rankTitle = p?.rank ?? user?.rank ?? "Seedling";
+    const rankTitle = p?.rank ?? user?.rank ?? "Bronze";
     const currentStreak = p?.current_streak ?? 0;
     const longestStreak = p?.longest_streak ?? 0;
     const weeklyGoal = p?.weekly_goal ?? 5;
@@ -258,7 +258,7 @@ const KnowledgeProfilePage = () => {
                         {/* Avatar with rank glow ring */}
                         <div className="relative flex-shrink-0">
                             <div className="ring-[3px] ring-dark-card rounded-full shadow-lg-drd">
-                                <div className="ring-2 ring-rank-scholar/60 rounded-full p-[2px]">
+                                <div className="ring-2 ring-rank-gold/60 rounded-full p-[2px]">
                                     <Avatar
                                         src={avatarUrl ? (avatarUrl.startsWith("http") ? avatarUrl : `/storage/${avatarUrl}`) : null}
                                         name={name}

@@ -127,7 +127,7 @@ class SupabaseAuth
                 'email_verified_at' => !empty($decoded->email_confirmed_at) ? now() : null,
                 'password'          => Hash::make(Str::random(32)),
                 'level'             => 1,
-                'rank'              => 'Seedling',
+                'rank'              => 'Bronze',
                 'xp'                => 0,
                 'total_xp_ever'     => 0,
             ]);

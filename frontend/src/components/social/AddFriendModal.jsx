@@ -6,12 +6,12 @@ import Button from '../ui/Button';
 import api from '../../services/api';
 
 const rankColors = {
-  Seedling: 'text-rank-seedling',
-  Learner: 'text-rank-learner',
-  Scholar: 'text-rank-scholar',
-  Researcher: 'text-rank-researcher',
-  Expert: 'text-rank-expert',
-  Sage: 'text-rank-sage',
+  Bronze:   'text-rank-bronze',
+  Silver:   'text-rank-silver',
+  Gold:     'text-rank-gold',
+  Platinum: 'text-rank-platinum',
+  Emerald:  'text-rank-emerald',
+  Diamond:  'text-rank-diamond',
 };
 
 /**
@@ -26,7 +26,7 @@ const UserItem = ({ user, onSendRequest, sentIds }) => {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-text-primary truncate">{user.name}</p>
         <p className="text-caption text-text-muted">
-          @{user.username} · <span className={rankColors[user.rank?.name || 'Learner'] || 'text-text-muted'}>Lv.{user.level || 1} {user.rank?.name || 'Learner'}</span>
+          @{user.username} · <span className={rankColors[user.rank?.name || 'Silver'] || 'text-text-muted'}>Lv.{user.level || 1} {user.rank?.name || 'Silver'}</span>
         </p>
       </div>
       <div className="shrink-0">

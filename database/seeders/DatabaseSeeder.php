@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'andi_cs',
             'bio' => 'CS Student | Building my knowledge empire 🏰',
             'level' => 42,
-            'rank' => 'Researcher',
+            'rank' => 'Platinum',
             'current_streak' => 45,
             'longest_streak' => 45,
             'total_knowledge_cards' => 28,
@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'budi_learns',
             'bio' => 'Lifelong learner | Math & Physics enthusiast',
             'level' => 35,
-            'rank' => 'Researcher',
+            'rank' => 'Platinum',
         ]);
 
         $newcomer = User::factory()->create([
@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'siti@aethereum.dev',
             'username' => 'siti_scholar',
             'level' => 15,
-            'rank' => 'Learner',
+            'rank' => 'Silver',
             'xp' => 1200,
             'total_xp_ever' => 1500,
             'current_streak' => 7,
@@ -247,7 +247,7 @@ class DatabaseSeeder extends Seeder
         FeedEvent::create([
             'user_id' => $hero->id,
             'event_type' => 'rank_up',
-            'event_data' => ['new_rank' => 'Researcher', 'level' => 42],
+            'event_data' => ['new_rank' => 'Platinum', 'level' => 42],
             'likes' => 12,
         ]);
 

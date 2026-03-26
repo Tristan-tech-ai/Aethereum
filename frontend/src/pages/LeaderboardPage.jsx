@@ -117,7 +117,7 @@ const LeaderboardPage = () => {
                     avatar: initials(entry.name),
                     avatar_url: entry.avatar_url,
                     level: Number(entry.level ?? 0),
-                    rankTitle: entry.rank ?? "Learner",
+                    rankTitle: entry.rank ?? "Silver",
                     streak: Number(entry.current_streak ?? 0),
                     hours: Number(entry.total_learning_hours ?? 0),
                     courses: Number(entry.total_knowledge_cards ?? 0),

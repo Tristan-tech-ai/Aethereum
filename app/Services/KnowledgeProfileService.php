@@ -20,12 +20,12 @@ class KnowledgeProfileService
 
     // ─── Rank thresholds (level → rank) ───
     private const RANKS = [
-        76 => 'Sage',
-        51 => 'Expert',
-        31 => 'Researcher',
-        16 => 'Scholar',
-        6  => 'Learner',
-        1  => 'Seedling',
+        76 => 'Diamond',
+        51 => 'Emerald',
+        31 => 'Platinum',
+        16 => 'Gold',
+        6  => 'Silver',
+        1  => 'Bronze',
     ];
 
     // ─────────────────────────────────────────────────────────────
@@ -252,6 +252,6 @@ class KnowledgeProfileService
                 return $rank;
             }
         }
-        return 'Seedling';
+        return 'Bronze';
     }
 }

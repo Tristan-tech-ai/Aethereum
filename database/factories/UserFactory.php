@@ -31,7 +31,7 @@ class UserFactory extends Factory
             'bio' => fake()->optional(0.7)->sentence(10),
             'xp' => 0,
             'level' => 1,
-            'rank' => 'Seedling',
+            'rank' => 'Bronze',
             'current_streak' => 0,
             'longest_streak' => 0,
             'streak_freeze_available' => true,

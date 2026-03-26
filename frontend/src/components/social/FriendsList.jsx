@@ -6,19 +6,19 @@ import api from '../../services/api';
 
 // Demo friends data
 const demoFriends = [
-  { id: 1, name: 'Budi Santoso', username: 'budi_s', online: true, studying: 'Data Structures', level: 24, rank: 'Scholar' },
-  { id: 2, name: 'Siti Rahma', username: 'siti_r', online: true, studying: 'Organic Chemistry', level: 31, rank: 'Researcher' },
-  { id: 3, name: 'Arief Wicaksono', username: 'arief_w', online: true, studying: null, level: 18, rank: 'Learner' },
-  { id: 4, name: 'Maya Putri', username: 'maya_p', online: false, lastSeen: '2h ago', level: 35, rank: 'Expert' },
+  { id: 1, name: 'Budi Santoso', username: 'budi_s', online: true, studying: 'Data Structures', level: 24, rank: 'Gold' },
+  { id: 2, name: 'Siti Rahma', username: 'siti_r', online: true, studying: 'Organic Chemistry', level: 31, rank: 'Platinum' },
+  { id: 3, name: 'Arief Wicaksono', username: 'arief_w', online: true, studying: null, level: 18, rank: 'Gold' },
+  { id: 4, name: 'Maya Putri', username: 'maya_p', online: false, lastSeen: '2h ago', level: 35, rank: 'Emerald' },
 ];
 
 const rankColors = {
-  Seedling: 'text-rank-seedling',
-  Learner: 'text-rank-learner',
-  Scholar: 'text-rank-scholar',
-  Researcher: 'text-rank-researcher',
-  Expert: 'text-rank-expert',
-  Sage: 'text-rank-sage',
+  Bronze:   'text-rank-bronze',
+  Silver:   'text-rank-silver',
+  Gold:     'text-rank-gold',
+  Platinum: 'text-rank-platinum',
+  Emerald:  'text-rank-emerald',
+  Diamond:  'text-rank-diamond',
 };
 
 /**

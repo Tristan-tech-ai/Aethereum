@@ -33,7 +33,7 @@ return new class extends Migration
             // Gamification — Knowledge Profile
             $table->integer('xp')->default(0);
             $table->integer('level')->default(1);
-            $table->string('rank', 50)->default('Seedling'); // Seedling|Learner|Scholar|Researcher|Expert|Sage
+            $table->string('rank', 50)->default('Bronze'); // Bronze|Silver|Gold|Platinum|Emerald|Diamond
 
             // Streak
             $table->integer('current_streak')->default(0);

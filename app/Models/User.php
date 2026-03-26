@@ -160,12 +160,12 @@ class User extends Authenticatable
     public static function rankForLevel(int $level): string
     {
         return match (true) {
-            $level >= 76 => 'Sage',
-            $level >= 51 => 'Expert',
-            $level >= 31 => 'Researcher',
-            $level >= 16 => 'Scholar',
-            $level >= 6  => 'Learner',
-            default      => 'Seedling',
+            $level >= 76 => 'Diamond',
+            $level >= 51 => 'Emerald',
+            $level >= 31 => 'Platinum',
+            $level >= 16 => 'Gold',
+            $level >= 6  => 'Silver',
+            default      => 'Bronze',
         };
     }
 }
