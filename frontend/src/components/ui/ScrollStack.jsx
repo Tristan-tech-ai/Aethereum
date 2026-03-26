@@ -240,23 +240,7 @@ const ScrollStack = ({
     cardsRef.current = cards;
     const transformsCache = lastTransformsRef.current;
 
-    // Cache absolute page offsets once, BEFORE any transforms are applied.
-    // Using BCR here is safe — transforms are identity at this moment.
-    // We store these and never recompute, so scale/translate feedback can never cause jitter.
-    cardOffsetsRef.current = cards.map(card =>
-      useWindowScroll
-        ? (card.getBoundingClientRect().top + window.scrollY)
-        : card.offsetTop
-    );
-    const endEl = useWindowScroll
-      ? document.querySelector('.scroll-stack-end')
-      : scrollerRef.current?.querySelector('.scroll-stack-end');
-    endElementOffsetRef.current = endEl
-      ? (useWindowScroll
-          ? (endEl.getBoundingClientRect().top + window.scrollY)
-          : endEl.offsetTop)
-      : 0;
-
+    // Apply styles FIRST so layout is correct before we measure anything.
     cards.forEach((card, i) => {
       if (i < cards.length - 1) card.style.marginBottom = `${itemDistance}px`;
       card.style.willChange = 'transform, filter, opacity';
@@ -266,16 +250,42 @@ const ScrollStack = ({
       card.style.webkitTransform = 'translateZ(0)';
       card.style.perspective = '1000px';
       card.style.webkitPerspective = '1000px';
-      // Non-first cards start invisible; they fade in as user scrolls to them
       if (i > 0) card.style.opacity = '0';
     });
 
+    // Now cache offsets — margins are applied, layout is settled, transforms are identity.
+    const cacheOffsets = () => {
+      cardOffsetsRef.current = cardsRef.current.map(card =>
+        useWindowScroll
+          ? (card.getBoundingClientRect().top + window.scrollY)
+          : card.offsetTop
+      );
+      const endEl = useWindowScroll
+        ? document.querySelector('.scroll-stack-end')
+        : scrollerRef.current?.querySelector('.scroll-stack-end');
+      endElementOffsetRef.current = endEl
+        ? (useWindowScroll
+            ? (endEl.getBoundingClientRect().top + window.scrollY)
+            : endEl.offsetTop)
+        : 0;
+    };
+
+    // Wait one paint for the browser to apply the margin changes before measuring.
+    requestAnimationFrame(() => {
+      cacheOffsets();
+      updateCardTransforms();
+    });
+
     setupLenis();
-    updateCardTransforms();
+
+    // Recache on resize (page may reflow)
+    const onResize = () => requestAnimationFrame(cacheOffsets);
+    window.addEventListener('resize', onResize);
 
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (lenisRef.current) lenisRef.current.destroy();
+      window.removeEventListener('resize', onResize);
       stackCompletedRef.current = false;
       cardsRef.current = [];
       cardOffsetsRef.current = [];
