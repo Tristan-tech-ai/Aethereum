@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\KnowledgeCardController;
 use App\Http\Controllers\Api\LeaderboardController;
 use App\Http\Controllers\Api\LeagueController;
 use App\Http\Controllers\Api\LearningRelayController;
+use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\QuizArenaController;
 use App\Http\Controllers\Api\ReportController;
@@ -99,6 +100,18 @@ Route::middleware(SupabaseAuth::class)->group(function () {
     Route::prefix('v1/feed')->group(function () {
         Route::get('/', [FeedController::class, 'index']);
         Route::post('/{id}/like', [FeedController::class, 'toggleLike']);
+    });
+
+    // ─── Community Posts (threads) ───
+    Route::prefix('v1/posts')->group(function () {
+        Route::get('/', [PostController::class, 'index']);
+        Route::post('/', [PostController::class, 'store']);
+        Route::delete('/{id}', [PostController::class, 'destroy']);
+        Route::post('/{id}/like', [PostController::class, 'toggleLike']);
+        Route::get('/{id}/comments', [PostController::class, 'comments']);
+        Route::post('/{id}/comments', [PostController::class, 'addComment']);
+        Route::delete('/{postId}/comments/{commentId}', [PostController::class, 'deleteComment']);
+        Route::post('/upload-image', [PostController::class, 'uploadImage']);
     });
 
     Route::prefix('v1/friends')->group(function () {
