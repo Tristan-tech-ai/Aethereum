@@ -5,9 +5,8 @@
     "dockerfilePath": "./Dockerfile"
   },
   "deploy": {
-    "startCommand": "php artisan migrate --force && php artisan config:cache && php artisan route:cache && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf",
     "healthcheckPath": "/api/health",
-    "healthcheckTimeout": 30,
+    "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }

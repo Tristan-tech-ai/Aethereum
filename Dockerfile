@@ -58,6 +58,10 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Copy PHP config
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
 
+# Copy startup script
+COPY docker/start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Set permissions
 RUN mkdir -p /var/log/supervisor \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
@@ -66,5 +70,5 @@ RUN mkdir -p /var/log/supervisor \
 # Expose port 8080 (Railway default)
 EXPOSE 8080
 
-# Start supervisor (Nginx + PHP-FPM + Queue Worker)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start via entrypoint script
+CMD ["/start.sh"]
