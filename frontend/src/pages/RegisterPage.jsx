@@ -41,7 +41,7 @@ const RegisterPage = () => {
     });
     if (result.success) {
       if (result.needsVerification) {
-        navigate('/login', { replace: true, state: { message: 'Please check your email to verify your account.' } });
+        navigate('/verify-email', { replace: true, state: { email: formData.email } });
       } else {
         navigate('/dashboard', { replace: true });
       }

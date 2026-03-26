@@ -78,6 +78,7 @@ const noSidebarPaths = [
     "/login",
     "/register",
     "/forgot-password",
+    "/verify-email",
     "/auth/callback",
 ];
 
@@ -86,6 +87,7 @@ const noHeaderPaths = [
     "/login",
     "/register",
     "/forgot-password",
+    "/verify-email",
     "/auth/callback",
 ];
 
