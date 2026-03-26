@@ -73,23 +73,12 @@ const ScrollStack = ({
 
   const getElementOffset = useCallback(
     (element) => {
-      if (useWindowScroll) {
-        // Traverse the offsetParent chain to get the absolute document offset.
-        // This is immune to CSS transforms (unlike getBoundingClientRect which
-        // returns the visual position and creates a feedback loop when cards
-        // have translateY applied).
-        let top = 0;
-        let el = element;
-        while (el) {
-          top += el.offsetTop;
-          el = el.offsetParent;
-        }
-        return top;
-      } else {
-        return element.offsetTop;
-      }
+      // Always use offsetTop for container-scroll mode.
+      // For window-scroll mode this is only used for endElement (no transforms applied to it,
+      // so offsetParent traversal is accurate there).
+      return element.offsetTop;
     },
-    [useWindowScroll]
+    []
   );
 
   const updateCardTransforms = useCallback(() => {
@@ -100,17 +89,30 @@ const ScrollStack = ({
     const stackPositionPx = parsePercentage(stackPosition, containerHeight);
     const scaleEndPositionPx = parsePercentage(scaleEndPosition, containerHeight);
 
+    // In window-scroll mode: endElement has no transforms, so BCR + scrollY is accurate.
+    // In container mode: use offsetTop relative to container.
     const endElement = useWindowScroll
       ? document.querySelector('.scroll-stack-end')
       : scrollerRef.current?.querySelector('.scroll-stack-end');
 
-    const endElementTop = endElement ? getElementOffset(endElement) : 0;
+    const endElementTop = endElement
+      ? (useWindowScroll
+          ? (endElement.getBoundingClientRect().top + window.scrollY)
+          : getElementOffset(endElement))
+      : 0;
 
     cardsRef.current.forEach((card, i) => {
       if (!card) return;
 
-      // Use getElementOffset (offsetParent traversal) — layout-based, immune to transforms
-      const cardTop = getElementOffset(card);
+      // For window-scroll mode: BCR gives visual viewport top.
+      // Natural (un-transformed) document top = BCR.top + scrollY - appliedTranslateY.
+      // Subtracting the applied transform makes this immune to the feedback loop.
+      // For container mode: use offsetTop (accurate relative to container).
+      const appliedTranslateY = lastTransformsRef.current.get(i)?.translateY ?? 0;
+      const cardTop = useWindowScroll
+        ? (card.getBoundingClientRect().top + window.scrollY - appliedTranslateY)
+        : getElementOffset(card);
+
       const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
       const triggerEnd = cardTop - scaleEndPositionPx;
       const pinStart = cardTop - stackPositionPx - itemStackDistance * i;
@@ -125,7 +127,10 @@ const ScrollStack = ({
       if (blurAmount) {
         let topCardIndex = 0;
         for (let j = 0; j < cardsRef.current.length; j++) {
-          const jCardTop = getElementOffset(cardsRef.current[j]);
+          const jApplied = lastTransformsRef.current.get(j)?.translateY ?? 0;
+          const jCardTop = useWindowScroll
+            ? (cardsRef.current[j].getBoundingClientRect().top + window.scrollY - jApplied)
+            : getElementOffset(cardsRef.current[j]);
           const jTriggerStart = jCardTop - stackPositionPx - itemStackDistance * j;
           if (scrollTop >= jTriggerStart) topCardIndex = j;
         }
@@ -187,13 +192,14 @@ const ScrollStack = ({
 
   const setupLenis = useCallback(() => {
     if (useWindowScroll) {
-      // In window-scroll mode, use a plain native scroll listener so we never
-      // prevent default scroll or intercept the user's ability to scroll the page.
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      // Store a dummy object so the cleanup path is consistent
-      lenisRef.current = {
-        destroy: () => window.removeEventListener('scroll', handleScroll),
+      // Use a RAF loop — runs every frame, so transforms are applied on every repaint
+      // regardless of scroll event timing. Much more reliable than a scroll listener.
+      const rafLoop = () => {
+        updateCardTransforms();
+        animationFrameRef.current = requestAnimationFrame(rafLoop);
       };
+      animationFrameRef.current = requestAnimationFrame(rafLoop);
+      lenisRef.current = { destroy: () => {} }; // no-op for cleanup consistency
     } else {
       const scroller = scrollerRef.current;
       if (!scroller) return;
@@ -219,7 +225,7 @@ const ScrollStack = ({
       animationFrameRef.current = requestAnimationFrame(raf);
       lenisRef.current = lenis;
     }
-  }, [handleScroll, useWindowScroll]);
+  }, [handleScroll, useWindowScroll, updateCardTransforms]);
 
   useLayoutEffect(() => {
     if (!useWindowScroll && !scrollerRef.current) return;
