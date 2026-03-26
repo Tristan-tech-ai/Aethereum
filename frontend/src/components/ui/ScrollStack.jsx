@@ -147,12 +147,12 @@ const ScrollStack = ({
         translateY = pinEnd - cardTop + stackPositionPx + itemStackDistance * i;
       }
 
-      // Cards below the first one start invisible and fade in only as they approach
-      // their trigger point (i.e. when the card before them has begun to pin).
+      // Cards below the first one start invisible and fade in only as they are
+      // very close to their trigger point — keeping them hidden for much longer.
       let opacity = 1;
       if (i > 0) {
-        const fadeStart = triggerStart - containerHeight * 0.9;
-        const fadeEnd   = triggerStart - containerHeight * 0.3;
+        const fadeStart = triggerStart - containerHeight * 0.25;
+        const fadeEnd   = triggerStart - containerHeight * 0.02;
         opacity = Math.max(0, Math.min(1, (scrollTop - fadeStart) / Math.max(1, fadeEnd - fadeStart)));
       }
 
