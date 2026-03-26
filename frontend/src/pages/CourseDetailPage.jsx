@@ -300,7 +300,7 @@ const CourseDetailPage = () => {
                             )}
                         </div>
 
-                        <h1 className="text-h2 font-heading font-bold text-text-primary mb-1 leading-tight">
+                        <h1 className="text-h2 font-heading font-bold text-text-primary mb-1 leading-tight text-center">
                             {data.title}
                         </h1>
 

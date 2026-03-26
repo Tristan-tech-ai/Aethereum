@@ -126,6 +126,7 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::get('/active', [SessionController::class, 'myActiveSessions']);
         Route::post('/start', [SessionController::class, 'start']);
         Route::patch('/{id}/progress', [SessionController::class, 'updateProgress']);
+        Route::get('/{id}/quiz', [SessionController::class, 'getQuiz']);
         Route::post('/{id}/quiz-attempt', [SessionController::class, 'submitQuizAttempt']);
         Route::post('/{id}/validate-summary', [SessionController::class, 'validateSummary']);
         Route::post('/{id}/complete', [SessionController::class, 'complete']);

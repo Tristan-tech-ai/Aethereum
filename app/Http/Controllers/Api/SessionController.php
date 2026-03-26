@@ -196,6 +196,38 @@ class SessionController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────
+    // GET /api/v1/sessions/{id}/quiz
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Get or generate quiz questions for a specific section.
+     */
+    public function getQuiz(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'section' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $user    = $request->user();
+        $session = LearningSession::where('id', $id)
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['active', 'paused'])
+            ->firstOrFail();
+
+        $content = $session->content;
+        $quiz    = $this->quizGenerator->getOrGenerateQuiz($content, $request->input('section'));
+
+        return response()->json([
+            'data' => [
+                'quiz_id'        => $quiz->id,
+                'questions'      => $quiz->questions,
+                'time_limit'     => $quiz->time_limit_seconds,
+                'pass_threshold' => $quiz->pass_threshold,
+            ],
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // POST /api/v1/sessions/{id}/quiz-attempt
     // ─────────────────────────────────────────────────────────────
 

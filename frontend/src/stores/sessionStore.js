@@ -338,9 +338,11 @@ export const useSessionStore = create((set, get) => ({
                 const res = await api.post(
                     `/v1/sessions/${session.id}/quiz-attempt`,
                     {
-                        section: currentSectionIndex,
-                        answers,
-                        score,
+                        section_index: currentSectionIndex,
+                        answers: answers.map((selected, i) => ({
+                            question_index: i,
+                            selected_index: selected,
+                        })),
                     },
                 );
                 const data = res.data.data ?? res.data;
