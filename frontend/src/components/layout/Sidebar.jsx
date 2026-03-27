@@ -254,6 +254,9 @@ const Sidebar = ({ open, onClose }) => {
 
           <NavItem to="/library" icon={Library} label="My Library" onClick={onClose} />
           <NavItem to="/tasks" icon={ClipboardCheck} label="Active Learning" badge={totalBadge || null} badgeColor="bg-primary/20 text-primary-light font-mono" onClick={onClose} />
+          <div className="px-2">
+            <AssistantButton />
+          </div>
 
           {/* ── SOCIAL ── */}
           <GroupLabel>Social</GroupLabel>
@@ -313,8 +316,6 @@ const Sidebar = ({ open, onClose }) => {
             </div>
           </div>
 
-          {/* Nexera Assistant */}
-          <AssistantButton />
         </div>
       </aside>
     </>
