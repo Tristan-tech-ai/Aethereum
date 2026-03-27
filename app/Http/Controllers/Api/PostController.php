@@ -21,15 +21,28 @@ class PostController extends Controller
     // ──────────────────────────────────────────────────────────────
     public function index(Request $request): JsonResponse
     {
-        $user   = $request->user();
+        $user    = $request->user();
         $perPage = max(5, min(30, (int) $request->input('per_page', 15)));
+        $sort    = $request->input('sort', 'latest'); // latest | top | following
 
         $audienceIds = $this->audienceUserIds($user->id);
 
-        $posts = CommunityPost::with('user:id,name,username,avatar_url,level')
-            ->whereIn('user_id', $audienceIds)
-            ->latest()
-            ->paginate($perPage);
+        // "following" only shows posts from friends (not self)
+        $scopeIds = $sort === 'following'
+            ? array_filter($audienceIds, fn($id) => $id !== $user->id)
+            : $audienceIds;
+
+        $query = CommunityPost::with('user:id,name,username,avatar_url,level,current_streak')
+            ->whereIn('user_id', array_values($scopeIds ?: $audienceIds));
+
+        // Sort order
+        if ($sort === 'top') {
+            $query->orderByDesc('likes_count')->orderByDesc('created_at');
+        } else {
+            $query->latest();
+        }
+
+        $posts = $query->paginate($perPage);
 
         $postIds  = $posts->getCollection()->pluck('id')->all();
         $likedIds = DB::table('post_likes')
@@ -85,7 +98,7 @@ class PostController extends Controller
             'ref_meta'  => $request->input('ref_meta', []),
         ]);
 
-        $post->load('user:id,name,username,avatar_url,level');
+        $post->load('user:id,name,username,avatar_url,level,current_streak');
         $post->liked_by_me = false;
 
         return $this->success(['post' => $post], 'Post created successfully', 201);

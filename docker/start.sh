@@ -20,5 +20,8 @@ php artisan route:cache 2>&1 || echo "[warn] route:cache failed"
 echo "Running migrations..."
 php artisan migrate --force 2>&1 || echo "[warn] migrations failed - continuing anyway"
 
+# Create public storage symlink (needed for uploaded images)
+php artisan storage:link --force 2>&1 || echo "[warn] storage:link failed - continuing anyway"
+
 echo "Starting supervisord (nginx + php-fpm + queue)..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

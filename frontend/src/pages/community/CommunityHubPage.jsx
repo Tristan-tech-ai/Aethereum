@@ -1,22 +1,10 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-    Swords,
-    Timer,
-    Brain,
-    BookOpen,
-    Repeat,
-    Target,
-    Users,
-    Flame,
-    ArrowRight,
-    Newspaper,
-    Loader2,
-    ChevronRight,
-    Heart,
-    LayoutList,
-    Rss,
+    Swords, Timer, Brain, BookOpen, Repeat, Target, Users, Flame,
+    Newspaper, Loader2, ChevronRight, Heart, LayoutList, Rss,
+    TrendingUp, Users2, Clock,
 } from "lucide-react";
 import Avatar from "../../components/ui/Avatar";
 import PostComposer from "../../components/community/PostComposer";
@@ -32,23 +20,29 @@ import useNotifications from "../../hooks/useNotifications";
 import useFeedSocket from "../../hooks/useFeedSocket";
 
 const ACTIVITIES = [
-    { key: "raids",     to: "/community/raids",   Icon: Swords,   label: "Study Raids",     desc: "Real-time group study",        accent: "#7C3AED" },
-    { key: "duels",     to: "/community/duels",   Icon: Timer,    label: "Focus Duels",     desc: "Challenge a friend",           accent: "#EF4444" },
-    { key: "arena",     to: "/community/arena",   Icon: Brain,    label: "Quiz Arena",      desc: "Live competitive quiz",        accent: "#06B6D4" },
-    { key: "rooms",     to: "/community/rooms",   Icon: BookOpen, label: "Study Rooms",     desc: "Virtual study room",           accent: "#22C55E" },
-    { key: "relay",     to: "/community/relay",   Icon: Repeat,   label: "Learning Relay",  desc: "Share content as a team",      accent: "#F59E0B" },
-    { key: "challenge", to: "/challenge",         Icon: Target,   label: "Weekly Challenge",desc: "Community-wide goal",          accent: "#F59E0B" },
+    { key: "raids",     to: "/community/raids",   Icon: Swords,   label: "Study Raids",     accent: "#7C3AED" },
+    { key: "duels",     to: "/community/duels",   Icon: Timer,    label: "Focus Duels",     accent: "#EF4444" },
+    { key: "arena",     to: "/community/arena",   Icon: Brain,    label: "Quiz Arena",      accent: "#06B6D4" },
+    { key: "rooms",     to: "/community/rooms",   Icon: BookOpen, label: "Study Rooms",     accent: "#22C55E" },
+    { key: "relay",     to: "/community/relay",   Icon: Repeat,   label: "Learning Relay",  accent: "#F59E0B" },
+    { key: "challenge", to: "/challenge",         Icon: Target,   label: "Weekly Challenge",accent: "#F59E0B" },
 ];
 
 const EVENT_CONFIG = {
-    rank_up:            { emoji: "ðŸŽ“", color: "text-primary-light", template: (d) => `leveled up to Rank ${d.new_rank || "Gold"}!` },
-    achievement:        { emoji: "ðŸ…", color: "text-accent",        template: (d) => `earned badge "${d.badge_name || "Explorer"}"!` },
-    streak_milestone:   { emoji: "ðŸ”¥", color: "text-warning",       template: (d) => `hit a ${d.streak_days || d.streak_count || 30}-day streak!` },
-    raid_complete:      { emoji: "âš”ï¸", color: "text-danger",        template: (d) => `finished a Study Raid Â· score ${d.team_score || d.score || 95}%!` },
-    duel_complete:      { emoji: "â±ï¸", color: "text-danger",        template: () => "completed a Focus Duel!" },
-    challenge_complete: { emoji: "ðŸŽ¯", color: "text-success",       template: (d) => `completed "${d.challenge_title || d.challenge_name || "Challenge"}"!` },
-    diamond_card:       { emoji: "ðŸ’Ž", color: "text-secondary",     template: (d) => `earned a Diamond card in ${d.subject || "a subject"}!` },
+    rank_up:            { emoji: "\u{1F393}", color: "text-primary-light", template: (d) => `leveled up to Rank ${d.new_rank || "Gold"}!` },
+    achievement:        { emoji: "\u{1F3C5}", color: "text-accent",        template: (d) => `earned badge "${d.badge_name || "Explorer"}"!` },
+    streak_milestone:   { emoji: "\u{1F525}", color: "text-warning",       template: (d) => `hit a ${d.streak_days || d.streak_count || 30}-day streak!` },
+    raid_complete:      { emoji: "\u2694\uFE0F", color: "text-danger",     template: (d) => `finished a Study Raid \u00B7 score ${d.team_score || d.score || 95}%!` },
+    duel_complete:      { emoji: "\u23F1\uFE0F", color: "text-danger",     template: () => "completed a Focus Duel!" },
+    challenge_complete: { emoji: "\u{1F3AF}", color: "text-success",       template: (d) => `completed "${d.challenge_title || d.challenge_name || "Challenge"}"!` },
+    diamond_card:       { emoji: "\u{1F48E}", color: "text-secondary",     template: (d) => `earned a Diamond card in ${d.subject || "a subject"}!` },
 };
+
+const SORT_FILTERS = [
+    { id: "latest",    Icon: Clock,      label: "Latest"    },
+    { id: "top",       Icon: TrendingUp, label: "Top"       },
+    { id: "following", Icon: Users2,     label: "Following" },
+];
 
 function timeAgo(dateStr) {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -97,7 +91,7 @@ const FeedEventCard = ({ event, onLike }) => {
     );
 };
 
-const UnifiedFeed = ({ tab }) => {
+const UnifiedFeed = ({ tab, sort }) => {
     const user = useAuthStore((s) => s.user);
     const { posts, loading: pL, hasMore: pH, fetchPosts, loadMore: pMore } = usePostStore();
     const { feedEvents, loading: eL, hasMore: eH, fetchFeed, loadMore: eMore, likeFeedEvent } = useFeedStore();
@@ -105,9 +99,9 @@ const UnifiedFeed = ({ tab }) => {
     useFeedSocket(user?.id);
 
     useEffect(() => {
-        if (tab === "posts")  fetchPosts(1);
+        if (tab === "posts")  fetchPosts(1, sort);
         if (tab === "events") fetchFeed(1, true);
-    }, [tab]);
+    }, [tab, sort]);
 
     useEffect(() => {
         if (!sentinelRef.current) return;
@@ -175,34 +169,40 @@ const CommunityHubPage = () => {
     const { fetchPosts } = usePostStore();
     const { fetchFeed } = useFeedStore();
     const [feedTab, setFeedTab] = useState("posts");
+    const [postSort, setPostSort] = useState("latest");
     useNotifications(user?.id);
 
     useEffect(() => {
         fetchFriends(); fetchMyRaids(); fetchMyDuels(); fetchCurrentChallenge();
-        fetchPosts(1); fetchFeed(1, true);
+        fetchPosts(1, "latest"); fetchFeed(1, true);
     }, []);
+
+    const handleSortChange = (sort) => {
+        setPostSort(sort);
+        fetchPosts(1, sort);
+    };
 
     const activeRaids   = myRaids.filter((r) => ["active","lobby"].includes(r.status)).length;
     const pendingDuels_ = pendingDuels.length;
     const online        = friends.filter((f) => f.online || f.is_learning_now).length;
 
     const stats = [
-        { Icon: Swords,  label: "Active Raids",   value: String(activeRaids),  color: "text-primary-light", bg: "bg-primary/10"     },
-        { Icon: Timer,   label: "Pending Duels",  value: String(pendingDuels_),color: "text-red-400",       bg: "bg-red-500/10"     },
-        { Icon: Users,   label: "Friends Online", value: String(online),       color: "text-emerald-400",   bg: "bg-emerald-400/10" },
-        { Icon: Flame,   label: "Streak",         value: user?.streak_days ? `${user.streak_days}d` : "0d", color: "text-amber-400", bg: "bg-amber-400/10" },
+        { Icon: Swords,  label: "Active Raids",   value: String(activeRaids),   color: "text-primary-light", bg: "bg-primary/10"     },
+        { Icon: Timer,   label: "Pending Duels",  value: String(pendingDuels_), color: "text-red-400",       bg: "bg-red-500/10"     },
+        { Icon: Users,   label: "Friends Online", value: String(online),        color: "text-emerald-400",   bg: "bg-emerald-400/10" },
+        { Icon: Flame,   label: "Streak",         value: user?.current_streak ? `${user.current_streak}d` : "0d", color: "text-amber-400", bg: "bg-amber-400/10" },
     ];
 
     const activityStat = (key) => {
         const map = {
-            raids:     activeRaids > 0  ? { label: `${activeRaids} active`,   color: "text-primary-light" } : { label: "No active",   color: "text-text-muted" },
-            duels:     pendingDuels_ > 0 ? { label: `${pendingDuels_} pending`, color: "text-red-400" }      : { label: "No pending",  color: "text-text-muted" },
+            raids:     activeRaids > 0   ? { label: `${activeRaids} active`,   color: "text-primary-light" } : { label: "No active",  color: "text-text-muted" },
+            duels:     pendingDuels_ > 0 ? { label: `${pendingDuels_} pending`, color: "text-red-400"       } : { label: "No pending", color: "text-text-muted" },
             arena:     { label: "Ready",  color: "text-text-muted" },
-            rooms:     online > 0       ? { label: `${online} online`,         color: "text-emerald-400" }   : { label: "0 online",   color: "text-text-muted" },
+            rooms:     online > 0        ? { label: `${online} online`,         color: "text-emerald-400"   } : { label: "0 online",  color: "text-text-muted" },
             relay:     { label: "Ready",  color: "text-text-muted" },
-            challenge: currentChallenge ? { label: `${currentChallenge.current_value ?? 0}/${currentChallenge.goal_value ?? "?"}`, color: "text-accent" } : { label: "â€”", color: "text-text-muted" },
+            challenge: currentChallenge  ? { label: `${currentChallenge.current_value ?? 0}/${currentChallenge.goal_value ?? "?"}`, color: "text-accent" } : { label: "--", color: "text-text-muted" },
         };
-        return map[key] || { label: "â€”", color: "text-text-muted" };
+        return map[key] || { label: "--", color: "text-text-muted" };
     };
 
     return (
@@ -280,7 +280,7 @@ const CommunityHubPage = () => {
                     </div>
 
                     {/* Post Composer */}
-                    <PostComposer onPosted={() => setFeedTab("posts")} />
+                    <PostComposer onPosted={() => { setFeedTab("posts"); handleSortChange("latest"); }} />
 
                     {/* Feed tabs */}
                     <div className="flex gap-1 bg-dark-secondary rounded-xl p-1 border border-border/60">
@@ -298,7 +298,30 @@ const CommunityHubPage = () => {
                         ))}
                     </div>
 
-                    <UnifiedFeed tab={feedTab} />
+                    {/* Sort/filter bar — posts tab only */}
+                    {feedTab === "posts" && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-text-muted font-medium shrink-0">Sort by:</span>
+                            <div className="flex gap-1.5 flex-wrap">
+                                {SORT_FILTERS.map(({ id, Icon, label }) => (
+                                    <button
+                                        key={id}
+                                        onClick={() => handleSortChange(id)}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                                            postSort === id
+                                                ? "bg-primary/15 border-primary/40 text-primary-light"
+                                                : "bg-dark-card border-border/50 text-text-muted hover:text-text-primary hover:border-border"
+                                        }`}
+                                    >
+                                        <Icon size={12} />
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <UnifiedFeed tab={feedTab} sort={postSort} />
                 </main>
 
                 {/* Right: friends */}

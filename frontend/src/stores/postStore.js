@@ -27,12 +27,19 @@ export const usePostStore = create((set, get) => ({
     loading: false,
     submitting: false,
     error: null,
+    sort: 'latest', // 'latest' | 'top' | 'following'
+
+    setSort: (sort) => {
+        set({ sort, posts: [], page: 1, hasMore: true });
+        get().fetchPosts(1, sort);
+    },
 
     // ── Fetch paginated posts ────────────────────────────────────
-    fetchPosts: async (page = 1) => {
+    fetchPosts: async (page = 1, sortOverride) => {
+        const sort = sortOverride ?? get().sort ?? 'latest';
         set({ loading: true, error: null });
         try {
-            const res = await api.get('/v1/posts', { params: { page, per_page: 15 } });
+            const res = await api.get('/v1/posts', { params: { page, per_page: 15, sort } });
             const root  = res?.data?.data ?? res?.data ?? {};
             const paged = root?.posts ?? root;
             const items = Array.isArray(paged) ? paged : (paged?.data ?? []);
