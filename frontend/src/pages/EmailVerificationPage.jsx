@@ -60,6 +60,7 @@ const EmailVerificationPage = () => {
     if (result.success) {
       setOtpSent(true);
       setCooldown(60);
+      setTimeout(() => setOtpSent(false), 4000);
     } else {
       setOtpError('Gagal mengirim kode. Coba lagi.');
     }
@@ -202,66 +203,58 @@ const EmailVerificationPage = () => {
 
           {mode === 'otp' && (
             <div className="space-y-4">
-              {!otpSent ? (
-                <>
-                  <p className="text-sm text-text-muted text-center">
-                    Kami akan mengirim kode 6 digit ke emailmu.
-                  </p>
-                  <button
-                    onClick={handleSendOtp}
-                    disabled={sendingOtp || !email}
-                    className="w-full h-11 flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-medium text-sm rounded-[10px] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {sendingOtp ? <RefreshCw size={16} className="animate-spin" /> : <Mail size={16} />}
-                    {sendingOtp ? 'Mengirim...' : 'Kirim kode OTP'}
-                  </button>
-                  {otpError && <p className="text-sm text-red-400 text-center">{otpError}</p>}
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-success text-center flex items-center justify-center gap-1.5">
-                    <CheckCircle size={15} /> Kode terkirim! Cek emailmu.
-                  </p>
+              <p className="text-sm text-text-muted text-center">
+                Masukkan kode 6 digit dari email konfirmasi yang dikirim saat registrasi.
+              </p>
 
-                  {/* OTP input boxes */}
-                  <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
-                    {otp.map((digit, i) => (
-                      <input
-                        key={i}
-                        ref={(el) => (otpRefs.current[i] = el)}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(i, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        className={`w-11 h-13 text-center text-xl font-bold bg-dark-secondary text-text-primary rounded-xl border transition-all outline-none
-                          ${digit ? 'border-primary' : 'border-border'}
-                          focus:border-primary focus:ring-2 focus:ring-primary/20`}
-                        style={{ height: '52px' }}
-                      />
-                    ))}
-                  </div>
+              {/* OTP input boxes */}
+              <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                {otp.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => (otpRefs.current[i] = el)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                    className={`w-11 text-center text-xl font-bold bg-dark-secondary text-text-primary rounded-xl border transition-all outline-none
+                      ${digit ? 'border-primary' : 'border-border'}
+                      focus:border-primary focus:ring-2 focus:ring-primary/20`}
+                    style={{ height: '52px' }}
+                  />
+                ))}
+              </div>
 
-                  {otpError && <p className="text-sm text-red-400 text-center">{otpError}</p>}
+              {otpError && <p className="text-sm text-red-400 text-center">{otpError}</p>}
 
-                  <button
-                    onClick={handleVerifyOtp}
-                    disabled={verifying || otp.join('').length < 6}
-                    className="w-full h-11 flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-medium text-sm rounded-[10px] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {verifying ? <RefreshCw size={16} className="animate-spin" /> : <ArrowRight size={16} />}
-                    {verifying ? 'Memverifikasi...' : 'Verifikasi'}
-                  </button>
+              <button
+                onClick={handleVerifyOtp}
+                disabled={verifying || otp.join('').length < 6}
+                className="w-full h-11 flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-medium text-sm rounded-[10px] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {verifying ? <RefreshCw size={16} className="animate-spin" /> : <ArrowRight size={16} />}
+                {verifying ? 'Memverifikasi...' : 'Verifikasi'}
+              </button>
 
-                  <button
-                    onClick={() => { setOtpSent(false); setOtp(['', '', '', '', '', '']); setOtpError(''); setSendingOtp(false); }}
-                    className="text-sm text-text-muted hover:text-text-secondary transition-colors cursor-pointer block mx-auto"
-                  >
-                    Kirim ulang kode
-                  </button>
-                </>
+              {otpSent && (
+                <p className="text-sm text-success text-center flex items-center justify-center gap-1.5">
+                  <CheckCircle size={15} /> Kode baru berhasil dikirim!
+                </p>
               )}
+
+              <button
+                onClick={handleSendOtp}
+                disabled={sendingOtp || cooldown > 0 || !email}
+                className="text-sm text-text-muted hover:text-text-secondary transition-colors cursor-pointer block mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sendingOtp
+                  ? <span className="inline-flex items-center gap-1"><RefreshCw size={12} className="inline animate-spin" /> Mengirim...</span>
+                  : cooldown > 0
+                  ? `Kirim ulang dalam ${cooldown}d`
+                  : 'Belum terima kode? Kirim ulang'}
+              </button>
             </div>
           )}
 

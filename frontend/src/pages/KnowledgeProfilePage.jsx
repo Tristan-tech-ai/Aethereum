@@ -37,6 +37,7 @@ import LearningHeatmap from "../components/profile/LearningHeatmap";
 import LevelBadge from "../components/profile/LevelBadge";
 import StreakDisplay from "../components/profile/StreakDisplay";
 import AchievementGrid from "../components/profile/AchievementGrid";
+import AchievementBadge from "../components/profile/AchievementBadge";
 
 /* ── Activity icon / color maps ── */
 const activityIconMap = {
@@ -455,14 +456,17 @@ const KnowledgeProfilePage = () => {
                             </div>
                             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                                 {achievementsData.filter(a => a.unlocked).slice(0, 6).map((a, i) => (
-                                    <div key={i} className="flex-shrink-0 w-24 group">
-                                        <div className="bg-dark-card border border-border-subtle rounded-md-drd p-2.5 flex flex-col items-center text-center hover:border-border-hover transition-all duration-normal cursor-default">
-                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-base mb-1.5 ${a.featured ? "bg-accent/10 ring-1 ring-accent/20" : "bg-dark-secondary"}`}>
-                                                {a.emoji}
-                                            </div>
-                                            <p className="text-[10px] font-medium text-text-primary leading-tight">{a.name}</p>
-                                            <p className="text-[9px] text-text-muted mt-0.5">{a.unlockedDate}</p>
-                                        </div>
+                                    <div key={i} className="flex-shrink-0">
+                                        <AchievementBadge
+                                            name={a.name}
+                                            description={a.description}
+                                            emoji={a.emoji}
+                                            icon={a.icon}
+                                            unlocked={a.unlocked}
+                                            featured={a.featured}
+                                            unlockedDate={a.unlockedDate}
+                                            size="sm"
+                                        />
                                     </div>
                                 ))}
                                 {/* "More" card */}

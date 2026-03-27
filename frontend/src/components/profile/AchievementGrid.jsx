@@ -83,6 +83,7 @@ const AchievementGrid = ({
               name={achievement.name}
               description={achievement.description}
               emoji={achievement.emoji}
+              icon={achievement.icon}
               unlocked={achievement.unlocked}
               featured={achievement.featured}
               progress={achievement.progress}
