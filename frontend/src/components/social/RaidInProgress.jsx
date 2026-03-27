@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef, Suspense } from "react";
 import {
     MessageCircle,
     Send,
@@ -19,9 +19,9 @@ import Card from "../ui/Card";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 import Avatar from "../ui/Avatar";
-import ReadingView from "../learning/ReadingView";
-import QuizBattle from "../learning/QuizBattle";
-import SummaryCreation from "../learning/SummaryCreation";
+const ReadingView = React.lazy(() => import("../learning/ReadingView"));
+const QuizBattle = React.lazy(() => import("../learning/QuizBattle"));
+const SummaryCreation = React.lazy(() => import("../learning/SummaryCreation"));
 import { useAuthStore } from "../../stores/authStore";
 import api from "../../services/api";
 
@@ -739,21 +739,23 @@ const RaidInProgress = ({
                                 exit={{ opacity: 0, x: -20 }}
                                 className="flex-1 overflow-hidden"
                             >
-                                <ReadingView
-                                    section={sections[currentSection]}
-                                    sectionIndex={currentSection}
-                                    totalSections={sections.length}
-                                    focusTimer={focusTimer}
-                                    lives={lives}
-                                    focusIntegrity={focusIntegrity}
-                                    readingDone={readingDone}
-                                    minReadTime={minReadTime}
-                                    onTick={tickFocusTimer}
-                                    onTabSwitch={recordTabSwitch}
-                                    onTabReturn={recordTabReturn}
-                                    onDoneReading={handleDoneReading}
-                                    onReportProgress={reportProgress}
-                                />
+                                <Suspense fallback={<div className="p-12 text-center text-text-muted">Preparing content...</div>}>
+                                    <ReadingView
+                                        section={sections[currentSection]}
+                                        sectionIndex={currentSection}
+                                        totalSections={sections.length}
+                                        focusTimer={focusTimer}
+                                        lives={lives}
+                                        focusIntegrity={focusIntegrity}
+                                        readingDone={readingDone}
+                                        minReadTime={minReadTime}
+                                        onTick={tickFocusTimer}
+                                        onTabSwitch={recordTabSwitch}
+                                        onTabReturn={recordTabReturn}
+                                        onDoneReading={handleDoneReading}
+                                        onReportProgress={reportProgress}
+                                    />
+                                </Suspense>
                             </motion.div>
                         )}
 
@@ -766,17 +768,19 @@ const RaidInProgress = ({
                                 exit={{ opacity: 0, y: -20 }}
                                 className="flex-1 overflow-y-auto"
                             >
-                                <QuizBattle
-                                    questions={quizQuestions}
-                                    onSubmit={handleQuizSubmit}
-                                    onRetry={handleQuizRetry}
-                                    onProceed={handleQuizProceed}
-                                    quizScore={quizScore}
-                                    quizPassed={quizPassed}
-                                    quizAttempts={quizAttempts}
-                                    cooldownUntil={quizCooldownUntil}
-                                    passThreshold={60}
-                                />
+                                <Suspense fallback={<div className="p-12 text-center text-text-muted">Preparing battle...</div>}>
+                                    <QuizBattle
+                                        questions={quizQuestions}
+                                        onSubmit={handleQuizSubmit}
+                                        onRetry={handleQuizRetry}
+                                        onProceed={handleQuizProceed}
+                                        quizScore={quizScore}
+                                        quizPassed={quizPassed}
+                                        quizAttempts={quizAttempts}
+                                        cooldownUntil={quizCooldownUntil}
+                                        passThreshold={60}
+                                    />
+                                </Suspense>
                             </motion.div>
                         )}
 
@@ -789,17 +793,19 @@ const RaidInProgress = ({
                                 exit={{ opacity: 0, y: -20 }}
                                 className="flex-1 overflow-y-auto"
                             >
-                                <SummaryCreation
-                                    summaryText={summaryText}
-                                    onSummaryChange={setSummaryText}
-                                    onValidate={handleSummaryValidate}
-                                    onSubmit={handleSummarySubmit}
-                                    summaryScore={summaryScore}
-                                    summaryFeedback={summaryFeedback}
-                                    summaryApproved={summaryApproved}
-                                    loading={summaryLoading}
-                                    contentTitle={contentTitle}
-                                />
+                                <Suspense fallback={<div className="p-12 text-center text-text-muted">Evaluating summary...</div>}>
+                                    <SummaryCreation
+                                        summaryText={summaryText}
+                                        onSummaryChange={setSummaryText}
+                                        onValidate={handleSummaryValidate}
+                                        onSubmit={handleSummarySubmit}
+                                        summaryScore={summaryScore}
+                                        summaryFeedback={summaryFeedback}
+                                        summaryApproved={summaryApproved}
+                                        loading={summaryLoading}
+                                        contentTitle={contentTitle}
+                                    />
+                                </Suspense>
                             </motion.div>
                         )}
                     </AnimatePresence>

@@ -14,7 +14,7 @@ import Badge from "../ui/Badge";
 /*
  * SummaryCreation — Summary writing + AI validation component.
  */
-function SummaryCreation({
+const SummaryCreation = ({
     summaryText = "",
     onSummaryChange,
     onValidate,
@@ -24,7 +24,7 @@ function SummaryCreation({
     summaryApproved = false,
     loading = false,
     contentTitle = "",
-}) {
+}) => {
     const [hasValidated, setHasValidated] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
