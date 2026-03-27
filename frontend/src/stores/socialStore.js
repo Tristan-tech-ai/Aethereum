@@ -99,9 +99,12 @@ export const useSocialStore = create((set, get) => ({
         set({ raidLoading: true, error: null });
         try {
             const res = await api.get(`/v1/raids/${id}`);
-            set({ currentRaid: extractPayload(res, 'raid'), raidLoading: false });
+            const raid = extractPayload(res, 'raid');
+            set({ currentRaid: raid, raidLoading: false });
+            return raid;
         } catch (err) {
             set({ error: parseError(err), raidLoading: false });
+            return null;
         }
     },
 

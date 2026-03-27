@@ -39,6 +39,7 @@ const QuizBattle = ({
     quizPassed = false,
     quizAttempts = 0,
     cooldownUntil = null,
+    passThreshold = 70,
 }) => {
     const [phase, setPhase] = useState("battle"); // 'battle' | 'feedback' | 'results'
     const [currentQ, setCurrentQ] = useState(0);
@@ -69,7 +70,7 @@ const QuizBattle = ({
             });
         }, 1000);
         return () => clearInterval(timerRef.current);
-    }, [currentQ, phase]);
+    }, [currentQ, phase, handleSubmitAnswer]);
 
     // Cooldown timer
     useEffect(() => {
@@ -94,7 +95,7 @@ const QuizBattle = ({
         if (quizScore !== null && phase === "battle" && answers.length === 0) {
             // External score was set (e.g., from retry navigation)
         }
-    }, [quizScore]);
+    }, [quizScore, phase, answers.length]);
 
     const handleSubmitAnswer = useCallback(
         (answerIdx) => {
@@ -449,7 +450,7 @@ const QuizBattle = ({
                             Guardian Stands!
                         </h2>
                         <p className="text-text-secondary mb-2">
-                            You need 70% to pass
+                            You need {passThreshold}% to pass
                         </p>
                     </>
                 )}
@@ -577,7 +578,7 @@ const QuizBattle = ({
                         )}
                         {quizAttempts > 0 && (
                             <span className="text-caption text-text-muted">
-                                Attempt {quizAttempts} • Need ≥70% to pass
+                                Attempt {quizAttempts} • Need ≥{passThreshold}% to pass
                             </span>
                         )}
                     </>
