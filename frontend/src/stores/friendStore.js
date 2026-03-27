@@ -25,6 +25,7 @@ const normalizeListPayload = (res, key = null) => {
 export const useFriendStore = create((set, get) => ({
     friends: [],
     friendRequests: [],
+    outgoingRequests: [],
     searchResults: [],
     loading: false,
     error: null,
@@ -51,11 +52,11 @@ export const useFriendStore = create((set, get) => ({
     },
 
     fetchRequests: async (force = false) => {
-        const { lastFetchedRequests, friendRequests } = get();
+        const { lastFetchedRequests, friendRequests, outgoingRequests } = get();
         const isFresh = lastFetchedRequests && Date.now() - lastFetchedRequests < 60000;
         let background = false;
 
-        if (!force && friendRequests.length > 0) {
+        if (!force && (friendRequests.length > 0 || outgoingRequests.length > 0)) {
             if (isFresh) return;
             background = true;
         }
@@ -63,7 +64,34 @@ export const useFriendStore = create((set, get) => ({
         if (!background) set({ loading: true, error: null });
         try {
             const res = await api.get('/v1/friends/requests');
-            set({ friendRequests: normalizeListPayload(res, 'requests'), loading: false, lastFetchedRequests: Date.now() });
+            const data = res?.data?.data ?? res?.data ?? {};
+            const incomingRaw = Array.isArray(data?.incoming) ? data.incoming : [];
+            const outgoingRaw = Array.isArray(data?.outgoing) ? data.outgoing : [];
+
+            const incoming = incomingRaw.map((req) => ({
+                id: req.id,
+                requester_id: req.requester_id,
+                addressee_id: req.addressee_id,
+                status: req.status,
+                created_at: req.created_at,
+                user: req.requester ?? null,
+            }));
+
+            const outgoing = outgoingRaw.map((req) => ({
+                id: req.id,
+                requester_id: req.requester_id,
+                addressee_id: req.addressee_id,
+                status: req.status,
+                created_at: req.created_at,
+                user: req.addressee ?? null,
+            }));
+
+            set({
+                friendRequests: incoming,
+                outgoingRequests: outgoing,
+                loading: false,
+                lastFetchedRequests: Date.now(),
+            });
         } catch (err) {
             if (!background) set({ error: parseError(err), loading: false });
         }

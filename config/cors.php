@@ -1,5 +1,9 @@
 <?php
 
+$frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+$csvOrigins = env('CORS_ALLOWED_ORIGINS', '');
+$extraOrigins = array_filter(array_map('trim', explode(',', $csvOrigins)));
+
 return [
 
     /*
@@ -19,19 +23,24 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => array_filter([
-        env('FRONTEND_URL', 'http://localhost:5173'),
+    'allowed_origins' => array_values(array_unique(array_filter([
+        $frontendUrl,
         'https://nexera.dedyn.io',
+        'https://www.nexera.dedyn.io',
         'https://nexera-nine.vercel.app',
-    ]),
+        ...$extraOrigins,
+    ]))),
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        '/^https:\/\/([a-z0-9-]+\.)?dedyn\.io$/',
+        '/^https:\/\/([a-z0-9-]+\.)?vercel\.app$/',
+    ],
 
     'allowed_headers' => ['*'],
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    'max_age' => 3600,
 
     'supports_credentials' => true,
 

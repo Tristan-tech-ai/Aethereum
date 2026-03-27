@@ -40,7 +40,17 @@ const FocusDuelsPage = () => {
         },
     );
 
+    const incomingPendingDuels = pendingDuels.filter((d) => d.opponent_id === user?.id);
+    const outgoingPendingDuels = myDuels.filter((d) => d.status === 'pending' && d.challenger_id === user?.id);
+    const activeDuel = myDuels.find((d) => d.status === 'active');
     const pastDuels = myDuels.filter(d => d.status === 'completed');
+
+    useEffect(() => {
+        if (activeDuel && duelPhase === 'idle') {
+            setCurrentDuel(activeDuel);
+            setDuelPhase('inProgress');
+        }
+    }, [activeDuel?.id, duelPhase, setCurrentDuel]);
 
     const myStats = {
         completed: pastDuels.length,
@@ -112,13 +122,13 @@ const FocusDuelsPage = () => {
                     </div>
 
                     {/* Pending Challenges */}
-                    {pendingDuels.length > 0 && (
+                    {incomingPendingDuels.length > 0 && (
                         <div>
                             <h2 className="text-h3 font-heading text-text-primary mb-3">
                                 Pending Challenges
                             </h2>
                             <PendingDuels
-                                duels={pendingDuels.map(d => ({
+                                duels={incomingPendingDuels.map(d => ({
                                     id: d.id,
                                     challenger: d.challenger?.name || d.challenger?.username || 'Someone',
                                     duration: d.duration_minutes,
@@ -129,8 +139,11 @@ const FocusDuelsPage = () => {
                                 onAccept={async (id) => {
                                     const ok = await acceptDuel(id);
                                     if (ok) {
-                                        await startDuel(id);
-                                        setDuelPhase("inProgress");
+                                        const started = await startDuel(id);
+                                        if (started) {
+                                            await fetchMyDuels(true);
+                                            setDuelPhase("inProgress");
+                                        }
                                     }
                                 }}
                                 onDecline={async (id) => {
@@ -138,6 +151,19 @@ const FocusDuelsPage = () => {
                                 }}
                             />
                         </div>
+                    )}
+
+                    {outgoingPendingDuels.length > 0 && (
+                        <Card>
+                            <div className="space-y-2">
+                                <h3 className="text-h4 font-heading text-text-primary">Outgoing Challenges</h3>
+                                {outgoingPendingDuels.map((d) => (
+                                    <div key={d.id} className="text-sm text-text-secondary">
+                                        Waiting for <span className="text-text-primary font-medium">{d.opponent?.name || d.opponent?.username || 'opponent'}</span> to accept your duel.
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
                     )}
 
                     {/* Past Duels */}
@@ -219,8 +245,10 @@ const FocusDuelsPage = () => {
                 onSendChallenge={async ({ friend, duration }) => {
                     const duel = await challengeFriend(friend.id, duration);
                     if (duel) {
+                        setCurrentDuel(duel);
                         setShowChallenge(false);
-                        setDuelPhase("inProgress");
+                        setDuelPhase("idle");
+                        await fetchMyDuels(true);
                     }
                 }}
             />

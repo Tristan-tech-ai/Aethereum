@@ -1,28 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, UserPlus, Check, X } from 'lucide-react';
+import { UserPlus, Check, X, Loader2 } from 'lucide-react';
 import Avatar from '../ui/Avatar';
-import Button from '../ui/Button';
+import { useFriendStore } from '../../stores/friendStore';
 
-// Demo friend requests
-const demoRequests = [
-  { id: 1, name: 'Rizki Aditya', username: 'rizki_a', level: 22, mutualFriends: 3, time: '5m ago' },
-  { id: 2, name: 'Nadia Putri', username: 'nadia_p', level: 15, mutualFriends: 1, time: '2h ago' },
-  { id: 3, name: 'Ahmad Fauzan', username: 'ahmad_f', level: 31, mutualFriends: 5, time: '1d ago' },
-];
+const timeAgo = (value) => {
+  if (!value) return '';
+  const diffMs = Date.now() - new Date(value).getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
+  const hour = Math.floor(min / 60);
+  if (hour < 24) return `${hour}h ago`;
+  const day = Math.floor(hour / 24);
+  return `${day}d ago`;
+};
 
 /**
  * Individual friend request item
  */
 const RequestItem = ({ request, onAccept, onDecline }) => (
   <div className="flex items-start gap-3 p-3 hover:bg-white/[0.02] transition-colors rounded-sm-drd">
-    <Avatar name={request.name} size="sm" />
+    <Avatar name={request.user?.name} src={request.user?.avatar_url} size="sm" />
     <div className="flex-1 min-w-0">
-      <p className="text-sm font-medium text-text-primary truncate">{request.name}</p>
+      <p className="text-sm font-medium text-text-primary truncate">{request.user?.name}</p>
       <p className="text-[11px] text-text-muted">
-        @{request.username} · Lv.{request.level}
-        {request.mutualFriends > 0 && ` · ${request.mutualFriends} mutual`}
+        @{request.user?.username} · Lv.{request.user?.level ?? 1}
       </p>
-      <p className="text-[10px] text-text-muted mt-0.5">{request.time}</p>
+      <p className="text-[10px] text-text-muted mt-0.5">{timeAgo(request.created_at)}</p>
     </div>
     <div className="flex gap-1 shrink-0 mt-0.5">
       <button
@@ -47,14 +51,19 @@ const RequestItem = ({ request, onAccept, onDecline }) => (
  * FriendRequestNotification — navbar bell/badge with dropdown panel
  */
 const FriendRequestNotification = ({
-  requests = demoRequests,
   className = '',
 }) => {
+  const { friendRequests, loading, fetchRequests, acceptRequest, declineRequest } = useFriendStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [localRequests, setLocalRequests] = useState(requests);
   const dropdownRef = useRef(null);
 
-  const unreadCount = localRequests.length;
+  const unreadCount = friendRequests.length;
+
+  useEffect(() => {
+    fetchRequests();
+    const id = setInterval(() => fetchRequests(), 30000);
+    return () => clearInterval(id);
+  }, [fetchRequests]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -69,14 +78,12 @@ const FriendRequestNotification = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  const handleAccept = (id) => {
-    setLocalRequests((prev) => prev.filter((r) => r.id !== id));
-    // In real app: API call to accept friend request
+  const handleAccept = async (id) => {
+    await acceptRequest(id);
   };
 
-  const handleDecline = (id) => {
-    setLocalRequests((prev) => prev.filter((r) => r.id !== id));
-    // In real app: API call to decline friend request
+  const handleDecline = async (id) => {
+    await declineRequest(id);
   };
 
   return (
@@ -109,8 +116,10 @@ const FriendRequestNotification = ({
 
           {/* Request List */}
           <div className="max-h-72 overflow-y-auto">
-            {localRequests.length > 0 ? (
-              localRequests.map((req) => (
+            {loading ? (
+              <div className="flex justify-center py-8"><Loader2 size={18} className="animate-spin text-text-muted" /></div>
+            ) : friendRequests.length > 0 ? (
+              friendRequests.map((req) => (
                 <RequestItem
                   key={req.id}
                   request={req}
@@ -127,11 +136,11 @@ const FriendRequestNotification = ({
           </div>
 
           {/* Footer */}
-          {localRequests.length > 0 && (
+          {friendRequests.length > 0 && (
             <div className="px-4 py-2 border-t border-border-subtle">
-              <button className="w-full text-caption text-primary-light hover:text-primary font-medium py-1 transition-colors">
-                View All Requests
-              </button>
+              <div className="w-full text-center text-caption text-text-muted py-1">
+                Requests update automatically
+              </div>
             </div>
           )}
         </div>

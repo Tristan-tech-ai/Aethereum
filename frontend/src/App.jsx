@@ -222,7 +222,7 @@ function App() {
                                 {user && (
                                 <>
                                 <Link
-                                    to="/social"
+                                    to="/events"
                                     className="relative p-2 text-text-muted hover:text-text-primary transition-colors duration-fast"
                                     title="Notifications"
                                 >

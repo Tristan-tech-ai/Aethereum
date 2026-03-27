@@ -278,7 +278,7 @@ const Sidebar = ({ open, onClose }) => {
           <GroupLabel>Insights</GroupLabel>
 
           <NavItem to="/report" icon={BarChart3} label="Report" onClick={onClose} />
-          <NavItem to="/events" icon={CalendarDays} label="Events" badge="LIVE" badgeColor="bg-primary/20 text-primary-light font-mono" dot onClick={onClose} />
+          <NavItem to="/events" icon={CalendarDays} label="Events" onClick={onClose} />
 
           {/* ── SYSTEM ── */}
           <GroupLabel>System</GroupLabel>
