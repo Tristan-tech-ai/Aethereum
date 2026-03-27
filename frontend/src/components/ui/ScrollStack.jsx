@@ -1,22 +1,30 @@
 import React, { useLayoutEffect, useRef, useCallback } from 'react';
 import Lenis from 'lenis';
 
-export const ScrollStackItem = ({ children, itemClassName = '', itemStyle = {} }) => (
-  <div
-    className={`scroll-stack-card relative w-full my-8 rounded-[32px] box-border origin-top will-change-transform ${itemClassName}`.trim()}
-    style={{
-      backfaceVisibility: 'hidden',
-      transformStyle: 'preserve-3d',
-      background: 'rgba(12,9,28,0.97)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      backdropFilter: 'blur(20px)',
-      padding: '2.5rem 3rem',
-      ...itemStyle,
-    }}
-  >
-    {children}
-  </div>
-);
+export const ScrollStackItem = ({ children, itemClassName = '', itemStyle = {} }) => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  return (
+    <div
+      className={`scroll-stack-card relative w-full rounded-2xl box-border origin-top will-change-transform ${isMobile ? 'my-4' : 'my-8 rounded-[32px]'} ${itemClassName}`.trim()}
+      style={isMobile ? {
+        background: 'rgba(12,9,28,0.97)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        padding: '1.5rem',
+        ...itemStyle,
+      } : {
+        backfaceVisibility: 'hidden',
+        transformStyle: 'preserve-3d',
+        background: 'rgba(12,9,28,0.97)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(20px)',
+        padding: '2.5rem 3rem',
+        ...itemStyle,
+      }}
+    >
+      {children}
+    </div>
+  );
+};
 
 const ScrollStack = ({
   children,
@@ -33,6 +41,8 @@ const ScrollStack = ({
   useWindowScroll = false,
   onStackComplete,
 }) => {
+  // Detect mobile synchronously (ref = no re-render, safe for useLayoutEffect guard)
+  const isMobileRef = useRef(typeof window !== 'undefined' && window.innerWidth < 768);
   const scrollerRef = useRef(null);
   const stackCompletedRef = useRef(false);
   const animationFrameRef = useRef(null);
@@ -240,6 +250,8 @@ const ScrollStack = ({
   }, [handleScroll, useWindowScroll, updateCardTransforms]);
 
   useLayoutEffect(() => {
+    // Skip all animation machinery on mobile — show flat card list instead
+    if (isMobileRef.current) return;
     if (!useWindowScroll && !scrollerRef.current) return;
 
     const cards = Array.from(
@@ -278,6 +290,17 @@ const ScrollStack = ({
     baseScale, scaleDuration, rotationAmount, blurAmount, useWindowScroll,
     onStackComplete, setupLenis, updateCardTransforms,
   ]);
+
+  // Mobile: flat card list, no scroll animation, no backdrop-filter lag
+  if (isMobileRef.current) {
+    return (
+      <div className={`relative w-full ${className}`}>
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

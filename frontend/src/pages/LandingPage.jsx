@@ -790,31 +790,31 @@ const LandingPage = () => {
             <h2 className="font-heading text-[2rem] md:text-[2.75rem] font-bold text-white mt-4 mb-3" style={{ letterSpacing: '-0.02em' }}>
               Powered by Intelligence
             </h2>
-            <p className="text-[#64748B] max-w-sm mx-auto">
+            <p className="text-[#64748B] max-w-sm mx-auto text-sm md:text-base">
               Hover the visualization to accelerate signal flow.
             </p>
           </div>
 
           {/* Canvas container */}
           <div
-            className="relative rounded-3xl overflow-hidden"
+            className="relative rounded-2xl md:rounded-3xl overflow-hidden"
             style={{
-              height: '380px',
+              height: 'clamp(230px, 55vw, 380px)',
               background: 'rgba(8,6,18,0.92)',
               border: '1px solid rgba(255,255,255,0.05)',
               boxShadow: 'inset 0 0 80px rgba(44,255,248,0.03), 0 0 60px rgba(0,0,0,0.5)',
             }}
           >
             <ParticleNeural className="absolute inset-0 w-full h-full" />
-            <div className="absolute top-5 left-6 pointer-events-none">
+            <div className="absolute top-3 left-3 md:top-5 md:left-6 pointer-events-none">
               <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(44,255,248,0.3)' }}>Input</p>
               <p className="font-mono text-[9px]" style={{ color: 'rgba(44,255,248,0.18)' }}>Upload Vector</p>
             </div>
-            <div className="absolute top-5 right-6 text-right pointer-events-none">
+            <div className="absolute top-3 right-3 md:top-5 md:right-6 text-right pointer-events-none">
               <p className="font-mono text-[10px] tracking-widest uppercase" style={{ color: 'rgba(167,139,250,0.3)' }}>Output</p>
               <p className="font-mono text-[9px]" style={{ color: 'rgba(167,139,250,0.18)' }}>Course Structure</p>
             </div>
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none">
+            <div className="absolute bottom-2 md:bottom-5 left-1/2 -translate-x-1/2 pointer-events-none px-4">
               <p className="font-mono text-[9px] tracking-widest" style={{ color: 'rgba(255,255,255,0.12)' }}>Gemini 2.0 Flash · Real-time Processing</p>
             </div>
           </div>
