@@ -93,6 +93,7 @@ class MarketplaceController extends Controller
         $items = $courses->getCollection()->map(function ($c) use ($user, $purchasedIds) {
             $isOwner = $c->user_id === $user->id;
             $isPurchased = in_array($c->id, $purchasedIds);
+            $isAddedToMyCourses = $isPurchased || $isOwner;
 
             return [
                 'id' => $c->id,
@@ -110,6 +111,7 @@ class MarketplaceController extends Controller
                 'is_pro' => $c->is_pro,
                 'is_owner' => $isOwner,
                 'is_purchased' => $isPurchased || $isOwner,
+                'is_added_to_my_courses' => $isAddedToMyCourses,
                 'can_access' => $isOwner || $isPurchased || $c->coin_price === 0,
                 'author' => $c->user ? [
                     'id' => $c->user->id,
@@ -151,11 +153,13 @@ class MarketplaceController extends Controller
         $isPurchased = ContentPurchase::where('user_id', $user->id)
             ->where('content_id', $id)
             ->exists();
+        $isAddedToMyCourses = $isPurchased || $isOwner;
 
         return response()->json([
             'data' => array_merge($course->toArray(), [
                 'is_owner' => $isOwner,
                 'is_purchased' => $isPurchased || $isOwner,
+                'is_added_to_my_courses' => $isAddedToMyCourses,
                 'can_access' => $isOwner || $isPurchased || $course->coin_price === 0,
                 'author' => $course->user ? [
                     'id' => $course->user->id,
@@ -274,7 +278,59 @@ class MarketplaceController extends Controller
             'message' => 'Course purchased successfully!',
             'coins_spent' => $course->coin_price,
             'new_balance' => $wallet->current_balance,
+            'is_added_to_my_courses' => true,
             'can_access' => true,
+        ]);
+    }
+
+    /**
+     * POST /api/v1/marketplace/{id}/add-to-my-courses
+     *
+     * Add free or already purchased course to My Courses / Library.
+     */
+    public function addToMyCourses(Request $request, string $id): JsonResponse
+    {
+        $user = $request->user();
+
+        $course = LearningContent::where('is_public', true)
+            ->where('status', 'ready')
+            ->findOrFail($id);
+
+        if ($course->user_id === $user->id) {
+            return response()->json([
+                'message' => 'This is your own course.',
+                'is_added_to_my_courses' => true,
+            ]);
+        }
+
+        $existing = ContentPurchase::where('user_id', $user->id)
+            ->where('content_id', $course->id)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'Course already in My Courses.',
+                'is_added_to_my_courses' => true,
+            ]);
+        }
+
+        if ($course->coin_price > 0) {
+            return response()->json([
+                'message' => 'Please purchase this course first.',
+            ], 422);
+        }
+
+        ContentPurchase::create([
+            'id' => (string) Str::uuid(),
+            'user_id' => $user->id,
+            'content_id' => $course->id,
+            'coins_paid' => 0,
+            'purchased_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Course added to My Courses.',
+            'is_added_to_my_courses' => true,
         ]);
     }
 

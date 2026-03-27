@@ -182,12 +182,16 @@ const ContentLibraryPage = () => {
     const stats = useMemo(() => {
         const readyCount = contents.filter((c) => c.status === "ready").length;
         const processingCount = contents.filter((c) => c.status === "processing").length;
-        return { total: pagination.total, ready: readyCount, processing: processingCount };
+        const publishedCount = contents.filter((c) => c.is_public).length;
+        const publicSourceCount = contents.filter((c) => c.is_from_marketplace).length;
+        return { total: pagination.total, ready: readyCount, processing: processingCount, published: publishedCount, publicSource: publicSourceCount };
     }, [contents, pagination.total]);
 
     // Active filter count
     const activeFilterCount = [filters.status, filters.content_type, filters.subject_category]
         .filter(Boolean).length + (filters.sort !== "recent" ? 1 : 0);
+
+    const isLibraryTab = activeTab === "library" || activeTab === "published" || activeTab === "public-source";
 
     // Local search filter
     const filteredContents = contents.filter((c) => {
@@ -199,6 +203,12 @@ const ContentLibraryPage = () => {
             c.content_type?.toLowerCase().includes(q)
         );
     });
+
+    const displayContents = activeTab === "published"
+        ? filteredContents.filter((c) => c.is_public)
+        : activeTab === "public-source"
+        ? filteredContents.filter((c) => c.is_from_marketplace)
+        : filteredContents;
 
     // ─── Handlers ─────────────────────────────
     const handleDelete = async (content) => {
@@ -302,6 +312,38 @@ const ContentLibraryPage = () => {
                             </span>
                         )}
                     </button>
+                    <button
+                        onClick={() => handleTabChange("published")}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            activeTab === "published"
+                                ? "bg-primary text-white shadow-sm"
+                                : "text-text-muted hover:text-text-primary"
+                        }`}
+                    >
+                        <Globe size={14} />
+                        Published
+                        {stats.published > 0 && (
+                            <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-white/20 text-[10px] font-bold">
+                                {stats.published}
+                            </span>
+                        )}
+                    </button>
+                    <button
+                        onClick={() => handleTabChange("public-source")}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            activeTab === "public-source"
+                                ? "bg-primary text-white shadow-sm"
+                                : "text-text-muted hover:text-text-primary"
+                        }`}
+                    >
+                        <Globe size={14} />
+                        Public Source
+                        {stats.publicSource > 0 && (
+                            <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-white/20 text-[10px] font-bold">
+                                {stats.publicSource}
+                            </span>
+                        )}
+                    </button>
                 </div>
 
                 {/* ═══ Quick Stats ═══ */}
@@ -365,7 +407,7 @@ const ContentLibraryPage = () => {
             )}
 
             {/* ═══ Search & Filter Toolbar ═══ */}
-            {activeTab === "library" && (
+            {isLibraryTab && (
             <div className="space-y-3">
                 <div className="flex flex-col sm:flex-row gap-3">
                     {/* Enhanced Search */}
@@ -543,19 +585,19 @@ const ContentLibraryPage = () => {
             )}
 
             {/* ═══ Results Count ═══ */}
-            {activeTab === "library" && !loading && filteredContents.length > 0 && (
+            {isLibraryTab && !loading && displayContents.length > 0 && (
                 <div className="flex items-center justify-between">
                     <p className="text-xs text-text-muted">
-                        Showing <span className="text-text-secondary font-medium">{filteredContents.length}</span>
-                        {filteredContents.length !== pagination.total && <> of {pagination.total}</>} material{pagination.total !== 1 ? "s" : ""}
+                        Showing <span className="text-text-secondary font-medium">{displayContents.length}</span>
+                        {activeTab === "library" && displayContents.length !== pagination.total && <> of {pagination.total}</>} material{displayContents.length !== 1 ? "s" : ""}
                     </p>
                 </div>
             )}
 
             {/* ═══ Content Grid / List ═══ */}
-            {activeTab === "library" && (loading && contents.length === 0 ? (
+            {isLibraryTab && (loading && contents.length === 0 ? (
                 <LoadingSkeleton viewMode={viewMode} />
-            ) : filteredContents.length === 0 ? (
+            ) : displayContents.length === 0 ? (
                 <EmptyState
                     onUpload={() => setUploadOpen(true)}
                     hasFilters={!!searchQuery || !!filters.status || !!filters.content_type || !!filters.subject_category}
@@ -567,14 +609,14 @@ const ContentLibraryPage = () => {
                     animate="show"
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
                 >
-                    {filteredContents.map((content) => (
+                    {displayContents.map((content) => (
                         <motion.div key={content.id} variants={fadeUp}>
                             <ContentGridCard
                                 content={content}
                                 onView={() => setDetailContent(content)}
-                                onDelete={() => setDeleteConfirm(content)}
+                                onDelete={content.is_owner ? () => setDeleteConfirm(content) : null}
                                 onStart={() => handleStartLearning(content)}
-                                onVisibility={content.status === "ready" ? () => setVisibilityModal(content) : null}
+                                onVisibility={content.is_owner && content.status === "ready" ? () => setVisibilityModal(content) : null}
                             />
                         </motion.div>
                     ))}
@@ -586,14 +628,14 @@ const ContentLibraryPage = () => {
                     animate="show"
                     className="space-y-2"
                 >
-                    {filteredContents.map((content) => (
+                    {displayContents.map((content) => (
                         <motion.div key={content.id} variants={fadeUp}>
                             <ContentListRow
                                 content={content}
                                 onView={() => setDetailContent(content)}
-                                onDelete={() => setDeleteConfirm(content)}
+                                onDelete={content.is_owner ? () => setDeleteConfirm(content) : null}
                                 onStart={() => handleStartLearning(content)}
-                                onVisibility={content.status === "ready" ? () => setVisibilityModal(content) : null}
+                                onVisibility={content.is_owner && content.status === "ready" ? () => setVisibilityModal(content) : null}
                             />
                         </motion.div>
                     ))}
@@ -855,7 +897,7 @@ const ContentGridCard = ({ content, onView, onDelete, onStart, onVisibility }) =
                         >
                             {content.is_public ? <Globe size={9} /> : <Lock size={9} />}
                             {content.is_public
-                                ? (content.coin_price > 0 ? `${content.coin_price}⚡` : "Public")
+                                ? (content.coin_price > 0 ? `Published • ${content.coin_price}⚡` : "Published")
                                 : "Private"}
                         </span>
                     )}
@@ -870,17 +912,19 @@ const ContentGridCard = ({ content, onView, onDelete, onStart, onVisibility }) =
             {/* Hover overlay actions */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-250 flex items-end justify-between p-4 pointer-events-none group-hover:pointer-events-auto">
                 <div className="flex items-center gap-1.5">
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                        className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 backdrop-blur-sm transition-colors border border-red-500/20"
-                        title="Delete"
-                    >
-                        <Trash2 size={14} />
-                    </button>
+                    {onDelete && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                            className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 backdrop-blur-sm transition-colors border border-red-500/20"
+                            title="Delete"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    )}
                     {onVisibility && (
                         <button
                             onClick={(e) => { e.stopPropagation(); onVisibility(); }}
-                            className={`p-2 rounded-lg backdrop-blur-sm transition-colors border
+                            className={`px-3 py-2 rounded-lg backdrop-blur-sm transition-colors border text-xs font-semibold flex items-center gap-1.5
                                 ${content.is_public
                                     ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/30"
                                     : "bg-white/10 text-text-muted border-white/10 hover:text-text-primary hover:bg-white/15"
@@ -888,6 +932,7 @@ const ContentGridCard = ({ content, onView, onDelete, onStart, onVisibility }) =
                             title="Publish settings"
                         >
                             <Share2 size={14} />
+                            Publish
                         </button>
                     )}
                 </div>
@@ -979,14 +1024,15 @@ const ContentListRow = ({ content, onView, onDelete, onStart, onVisibility }) =>
                 {onVisibility && (
                     <button
                         onClick={(e) => { e.stopPropagation(); onVisibility(); }}
-                        className={`p-1.5 rounded-lg transition-colors
+                        className={`px-2.5 py-1.5 rounded-lg transition-colors text-[11px] font-semibold flex items-center gap-1
                             ${content.is_public
                                 ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                                 : "bg-white/5 text-text-muted hover:bg-white/10 hover:text-text-primary"
                             }`}
                         title="Publish settings"
                     >
-                        {content.is_public ? <Globe size={14} /> : <Lock size={14} />}
+                        <Share2 size={13} />
+                        Publish
                     </button>
                 )}
                 <button
@@ -996,13 +1042,15 @@ const ContentListRow = ({ content, onView, onDelete, onStart, onVisibility }) =>
                 >
                     <Eye size={14} />
                 </button>
-                <button
-                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                    className="p-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
-                    title="Delete"
-                >
-                    <Trash2 size={14} />
-                </button>
+                {onDelete && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                        className="p-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors"
+                        title="Delete"
+                    >
+                        <Trash2 size={14} />
+                    </button>
+                )}
             </div>
         </div>
     );

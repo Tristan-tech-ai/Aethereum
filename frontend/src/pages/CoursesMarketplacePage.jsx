@@ -118,7 +118,7 @@ const FreeBadge = () => (
 
 // ─── Course Card ─────────────────────────────────────────────────────────────
 
-const CourseCard = ({ course, onBuy, onView }) => {
+const CourseCard = ({ course, onBuy, onView, onAddToMyCourses, addingCourseId }) => {
     const TypeIcon = typeIcons[course.content_type] ?? FileText;
     const diff = difficultyConfig[course.difficulty] ?? difficultyConfig.beginner;
 
@@ -127,6 +127,7 @@ const CourseCard = ({ course, onBuy, onView }) => {
     const isPurchased = course.is_purchased;
     const isOwner = course.is_owner;
     const canAccess = course.can_access;
+    const isAdding = addingCourseId === course.id;
 
     return (
         <motion.div
@@ -219,7 +220,18 @@ const CourseCard = ({ course, onBuy, onView }) => {
                         <CoinBadge amount={course.coin_price} />
                     )}
 
-                    {canAccess ? (
+                    {canAccess && !isOwner && !isPurchased ? (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onAddToMyCourses(course); }}
+                            disabled={isAdding}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                                bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/25 hover:border-emerald-500/40
+                                text-emerald-400 text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isAdding ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
+                            Add to My Course
+                        </button>
+                    ) : canAccess ? (
                         <button
                             onClick={(e) => { e.stopPropagation(); onView(course); }}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
@@ -375,6 +387,7 @@ const CoursesMarketplacePage = () => {
         loading,
         purchasedLoading,
         purchasing,
+        addingCourseId,
         error,
         purchaseError,
         pagination,
@@ -384,6 +397,7 @@ const CoursesMarketplacePage = () => {
         fetchPurchased,
         fetchWalletBalance,
         purchaseCourse,
+        addToMyCourses,
         setFilter,
         resetFilters,
     } = useMarketplaceStore();
@@ -440,6 +454,16 @@ const CoursesMarketplacePage = () => {
         if (result.success) {
             setBuyModal(null);
             setSuccessToast(`Course purchased! -${result.coins_spent} coins`);
+            fetchPurchased();
+            setTimeout(() => setSuccessToast(null), 3000);
+        }
+    };
+
+    const handleAddToMyCourses = async (course) => {
+        const result = await addToMyCourses(course.id);
+        if (result.success) {
+            setSuccessToast("Course added to My Courses");
+            fetchPurchased();
             setTimeout(() => setSuccessToast(null), 3000);
         }
     };
@@ -784,6 +808,8 @@ const CoursesMarketplacePage = () => {
                                     course={course}
                                     onBuy={handleBuy}
                                     onView={handleView}
+                                    onAddToMyCourses={handleAddToMyCourses}
+                                    addingCourseId={addingCourseId}
                                 />
                             ))}
                         </motion.div>
@@ -820,6 +846,8 @@ const CoursesMarketplacePage = () => {
                                 course={course}
                                 onBuy={handleBuy}
                                 onView={handleView}
+                                onAddToMyCourses={handleAddToMyCourses}
+                                addingCourseId={addingCourseId}
                             />
                         ))}
                     </motion.div>

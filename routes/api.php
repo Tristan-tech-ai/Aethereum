@@ -144,6 +144,7 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::get('/wallet-balance', [MarketplaceController::class, 'walletBalance']);
         Route::get('/{id}', [MarketplaceController::class, 'show']);
         Route::post('/{id}/purchase', [MarketplaceController::class, 'purchase']);
+        Route::post('/{id}/add-to-my-courses', [MarketplaceController::class, 'addToMyCourses']);
     });
 
     // ─── Learning Sessions ───

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\AnalyzeContentJob;
+use App\Models\ContentPurchase;
 use App\Models\LearningContent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -101,7 +102,18 @@ class ContentController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = LearningContent::where('user_id', $request->user()->id)
+        $userId = $request->user()->id;
+
+        $purchasedContentIds = ContentPurchase::where('user_id', $userId)
+            ->pluck('content_id')
+            ->toArray();
+
+        $query = LearningContent::where(function ($q) use ($userId, $purchasedContentIds) {
+                $q->where('user_id', $userId);
+                if (!empty($purchasedContentIds)) {
+                    $q->orWhereIn('id', $purchasedContentIds);
+                }
+            })
             ->orderByDesc('created_at');
 
         if ($request->filled('content_type')) {
@@ -119,6 +131,16 @@ class ContentController extends Controller
         $perPage = min((int) $request->input('per_page', 15), 50);
         $contents = $query->paginate($perPage);
 
+        $contents->getCollection()->transform(function ($content) use ($userId, $purchasedContentIds) {
+            $isOwner = $content->user_id === $userId;
+            $isFromMarketplace = in_array($content->id, $purchasedContentIds) && !$isOwner;
+
+            $content->is_owner = $isOwner;
+            $content->is_from_marketplace = $isFromMarketplace;
+
+            return $content;
+        });
+
         return response()->json($contents);
     }
 
@@ -129,8 +151,21 @@ class ContentController extends Controller
      */
     public function show(Request $request, string $id): JsonResponse
     {
-        $content = LearningContent::where('user_id', $request->user()->id)
-            ->findOrFail($id);
+        $userId = $request->user()->id;
+
+        $content = LearningContent::findOrFail($id);
+
+        $isOwner = $content->user_id === $userId;
+        $isPurchased = ContentPurchase::where('user_id', $userId)
+            ->where('content_id', $id)
+            ->exists();
+
+        if (!$isOwner && !$isPurchased) {
+            abort(404);
+        }
+
+        $content->is_owner = $isOwner;
+        $content->is_from_marketplace = !$isOwner && $isPurchased;
 
         return response()->json(['data' => $content]);
     }

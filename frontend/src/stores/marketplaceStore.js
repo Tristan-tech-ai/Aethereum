@@ -18,6 +18,8 @@ export const useMarketplaceStore = create((set, get) => ({
     loading: false,
     purchasedLoading: false,
     purchasing: false,
+    addingToMyCourses: false,
+    addingCourseId: null,
     error: null,
     purchaseError: null,
     pagination: { current_page: 1, last_page: 1, total: 0 },
@@ -95,7 +97,7 @@ export const useMarketplaceStore = create((set, get) => ({
             set((s) => ({
                 courses: s.courses.map((c) =>
                     c.id === courseId
-                        ? { ...c, is_purchased: true, can_access: true }
+                        ? { ...c, is_purchased: true, is_added_to_my_courses: true, can_access: true }
                         : c
                 ),
                 purchasing: false,
@@ -105,6 +107,28 @@ export const useMarketplaceStore = create((set, get) => ({
         } catch (err) {
             const msg = err?.response?.data?.message ?? "Purchase failed.";
             set({ purchaseError: msg, purchasing: false });
+            return { success: false, error: msg };
+        }
+    },
+
+    // ─── Add free/owned course to My Courses ───
+    addToMyCourses: async (courseId) => {
+        set({ addingToMyCourses: true, addingCourseId: courseId, purchaseError: null });
+        try {
+            await api.post(`/v1/marketplace/${courseId}/add-to-my-courses`);
+            set((s) => ({
+                courses: s.courses.map((c) =>
+                    c.id === courseId
+                        ? { ...c, is_purchased: true, is_added_to_my_courses: true, can_access: true }
+                        : c
+                ),
+                addingToMyCourses: false,
+                addingCourseId: null,
+            }));
+            return { success: true };
+        } catch (err) {
+            const msg = err?.response?.data?.message ?? "Failed to add course.";
+            set({ addingToMyCourses: false, addingCourseId: null, purchaseError: msg });
             return { success: false, error: msg };
         }
     },
