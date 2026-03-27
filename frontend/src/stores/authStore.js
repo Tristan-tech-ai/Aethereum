@@ -206,9 +206,10 @@ export const useAuthStore = create(
     sendVerificationOtp: async ({ email }) => {
         set({ loading: true, error: null });
         try {
-            const { error } = await supabase.auth.signInWithOtp({
+            // resend({ type: 'signup' }) kirim ulang OTP/link verifikasi signup
+            const { error } = await supabase.auth.resend({
+                type: 'signup',
                 email,
-                options: { shouldCreateUser: false },
             });
             if (error) throw error;
             set({ loading: false });
@@ -226,7 +227,7 @@ export const useAuthStore = create(
             const { data, error } = await supabase.auth.verifyOtp({
                 email,
                 token,
-                type: 'email',
+                type: 'signup',
             });
             if (error) throw error;
             // OTP verification logs the user in — sign them out so they
