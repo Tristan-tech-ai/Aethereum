@@ -1,135 +1,206 @@
-<!DOCTYPE html>
-<html>
+﻿<!DOCTYPE html>
+<html lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify your Nexera account</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Verifikasi Akun Nexera</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0a0a0f;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#0a0a0f;">
+<body style="margin:0;padding:0;background-color:#08080f;font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+
+  <!-- Wrapper -->
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#08080f;min-height:100vh;">
     <tr>
-      <td align="center" style="padding:40px 16px;">
-        <table role="presentation" width="520" cellspacing="0" cellpadding="0" style="max-width:520px;width:100%;">
-          
-          <!-- Logo -->
+      <td align="center" style="padding:48px 16px 32px;">
+
+        <!-- Container -->
+        <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;width:100%;">
+
+          <!-- LOGO -->
           <tr>
-            <td align="center" style="padding-bottom:32px;">
-              <table role="presentation" cellspacing="0" cellpadding="0">
+            <td align="center" style="padding-bottom:36px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="vertical-align:middle;padding-right:10px;">
-                    <img src="{{ .SiteURL }}/nexera_logo.svg" alt="Nexera" width="40" height="40" style="display:block;border:0;" />
+                  <td style="vertical-align:middle;padding-right:12px;">
+                    <img src="{{ .SiteURL }}/nexera_logo.svg" alt="Nexera" width="44" height="44"
+                         style="display:block;border:0;" />
                   </td>
                   <td style="vertical-align:middle;">
-                    <span style="font-size:22px;font-weight:800;letter-spacing:1px;background:linear-gradient(135deg,#7C3AED,#DB4ACD);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">NEXERA</span>
+                    <span style="font-size:24px;font-weight:800;letter-spacing:2px;color:#a78bfa;">NEXERA</span>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- Card -->
+          <!-- CARD -->
           <tr>
-            <td style="background-color:#13131a;border:1px solid #1e1e2e;border-radius:16px;padding:40px 32px;">
-              
-              <!-- Icon -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+            <td style="background-color:#0f0f1a;border:1px solid #1e1e30;border-radius:20px;overflow:hidden;">
+
+              <!-- Top gradient bar -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td align="center" style="padding-bottom:24px;">
-                    <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(219,74,205,0.15));border:1px solid rgba(124,58,237,0.25);display:inline-flex;align-items:center;justify-content:center;line-height:64px;text-align:center;">
-                      <span style="font-size:28px;">&#x2728;</span>
-                    </div>
-                  </td>
+                  <td height="4" style="background:linear-gradient(90deg,#7c3aed,#c047d3,#3b82f6);font-size:0;line-height:0;">&nbsp;</td>
                 </tr>
               </table>
 
-              <!-- Heading -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+              <!-- Card content -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td align="center" style="padding-bottom:8px;">
-                    <h1 style="margin:0;font-size:24px;font-weight:700;color:#f0f0f5;letter-spacing:-0.3px;">Verify your email</h1>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding-bottom:32px;">
-                    <p style="margin:0;font-size:15px;color:#8888a0;line-height:1.6;">
-                      Welcome to Nexera! Tap the button below to confirm your email address and start your learning journey.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+                  <td style="padding:40px 36px 36px;">
 
-              <!-- CTA Button -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td align="center" style="padding-bottom:32px;">
-                    <a href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#7C3AED,#9333EA);color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;letter-spacing:0.3px;box-shadow:0 4px 16px rgba(124,58,237,0.35);">
-                      Verify Email Address
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Divider -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td style="border-top:1px solid #1e1e2e;padding-top:24px;">
-                    <p style="margin:0;font-size:13px;color:#5a5a70;line-height:1.6;text-align:center;">
-                      If the button doesn't work, copy and paste this link into your browser:
-                    </p>
-                    <p style="margin:8px 0 0;font-size:12px;color:#7C3AED;word-break:break-all;text-align:center;">
-                      {{ .ConfirmationURL }}
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-            </td>
-          </tr>
-
-          <!-- Features -->
-          <tr>
-            <td style="padding-top:24px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#13131a;border:1px solid #1e1e2e;border-radius:12px;padding:24px;">
-                <tr>
-                  <td style="padding:20px 24px;">
-                    <p style="margin:0 0 16px;font-size:13px;font-weight:600;color:#8888a0;text-transform:uppercase;letter-spacing:1px;">What awaits you</p>
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                    <!-- Icon badge -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 24px;">
                       <tr>
-                        <td style="padding:6px 0;font-size:14px;color:#c0c0d0;">
-                          <span style="margin-right:8px;">&#x1F4DA;</span> AI-powered learning from any document
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:6px 0;font-size:14px;color:#c0c0d0;">
-                          <span style="margin-right:8px;">&#x1F3AF;</span> Quizzes, challenges & knowledge cards
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:6px 0;font-size:14px;color:#c0c0d0;">
-                          <span style="margin-right:8px;">&#x1F91D;</span> Study rooms, raids & focus duels
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:6px 0;font-size:14px;color:#c0c0d0;">
-                          <span style="margin-right:8px;">&#x1F680;</span> XP, streaks & leaderboards
+                        <td align="center" style="width:72px;height:72px;background-color:#1a1a2e;border:1px solid #2d2d50;border-radius:50%;font-size:32px;line-height:72px;text-align:center;">
+                          ✉️
                         </td>
                       </tr>
                     </table>
+
+                    <!-- Headline -->
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td align="center" style="padding-bottom:8px;">
+                          <h1 style="margin:0;font-size:26px;font-weight:700;color:#f0f0fa;letter-spacing:-0.4px;line-height:1.2;">Verifikasi emailmu</h1>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td align="center" style="padding-bottom:32px;">
+                          <p style="margin:0;font-size:15px;color:#9090a8;line-height:1.6;max-width:380px;">
+                            Gunakan salah satu metode di bawah untuk mengaktifkan akun <strong style="color:#c4b5fd;">Nexera</strong>-mu.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- OTP METHOD -->
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td style="background-color:#13132a;border:1px solid #2a2a45;border-radius:14px;padding:28px 20px;">
+
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td align="center" style="padding-bottom:18px;">
+                                <span style="display:inline-block;padding:4px 12px;background-color:#1e1e40;border:1px solid #3a3a60;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1.5px;color:#8080b0;text-transform:uppercase;">Metode 1 &mdash; Kode OTP</span>
+                              </td>
+                            </tr>
+                          </table>
+
+                          <!-- OTP token display -->
+                          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto;">
+                            <tr>
+                              <td align="center">
+                                <div style="display:inline-block;padding:16px 28px;background-color:#1c1c38;border:2px solid #4c1d95;border-radius:16px;">
+                                  <span style="font-size:44px;font-weight:900;letter-spacing:12px;color:#a78bfa;font-family:'Courier New',Courier,monospace;display:inline-block;">{{ .Token }}</span>
+                                </div>
+                              </td>
+                            </tr>
+                          </table>
+
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td align="center" style="padding-top:14px;">
+                                <p style="margin:0;font-size:12px;color:#6060a0;">
+                                  Masukkan kode ini di halaman verifikasi &bull; Berlaku <strong style="color:#9090b8;">1 jam</strong>
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- DIVIDER -->
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td style="padding:20px 0;">
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td style="border-top:1px solid #1e1e30;font-size:0;">&nbsp;</td>
+                              <td style="padding:0 16px;white-space:nowrap;font-size:11px;font-weight:700;color:#30304a;letter-spacing:2px;text-transform:uppercase;">ATAU</td>
+                              <td style="border-top:1px solid #1e1e30;font-size:0;">&nbsp;</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- LINK METHOD -->
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td style="background-color:#13132a;border:1px solid #2a2a45;border-radius:14px;padding:28px 20px;">
+
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td align="center" style="padding-bottom:18px;">
+                                <span style="display:inline-block;padding:4px 12px;background-color:#1e1e40;border:1px solid #3a3a60;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1.5px;color:#8080b0;text-transform:uppercase;">Metode 2 &mdash; Klik Link</span>
+                              </td>
+                            </tr>
+                          </table>
+
+                          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto;">
+                            <tr>
+                              <td align="center" style="border-radius:12px;background:linear-gradient(135deg,#7c3aed,#9333ea);">
+                                <a href="{{ .ConfirmationURL }}"
+                                   style="display:inline-block;padding:14px 40px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;letter-spacing:0.3px;line-height:1;">
+                                  &#10003; &nbsp;Verifikasi Email
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td align="center" style="padding-top:14px;">
+                                <p style="margin:0 0 4px;font-size:11px;color:#505070;">Atau salin URL ini ke browser kamu:</p>
+                                <p style="margin:0;font-size:10px;word-break:break-all;max-width:460px;color:#50508a;">
+                                  {{ .ConfirmationURL }}
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- NOTICE -->
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td style="padding-top:20px;">
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td style="background-color:#0c0c18;border:1px solid #18182a;border-radius:10px;padding:14px 18px;">
+                                <p style="margin:0;font-size:12px;color:#60607a;line-height:1.7;">
+                                  Jika kamu tidak mendaftar di Nexera, abaikan email ini &mdash; tidak ada tindakan yang diperlukan.
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- FOOTER -->
           <tr>
-            <td align="center" style="padding-top:32px;">
-              <p style="margin:0;font-size:12px;color:#44445a;line-height:1.6;">
-                This email was sent by Nexera. If you didn't create an account, you can safely ignore this email.
+            <td align="center" style="padding-top:28px;padding-bottom:8px;">
+              <p style="margin:0 0 6px;font-size:13px;color:#4a4a6a;font-weight:600;">NEXERA &mdash; Platform Belajar AI</p>
+              <p style="margin:0;font-size:12px;color:#36364e;">
+                <a href="{{ .SiteURL }}" style="color:#6050a0;text-decoration:none;">nexera.dedyn.io</a>
+                &nbsp;&bull;&nbsp;
+                <a href="{{ .SiteURL }}/login" style="color:#6050a0;text-decoration:none;">Masuk</a>
+                &nbsp;&bull;&nbsp;
+                <a href="{{ .SiteURL }}/register" style="color:#6050a0;text-decoration:none;">Daftar</a>
               </p>
-              <p style="margin:8px 0 0;font-size:11px;color:#33334a;">
-                &copy; 2026 Nexera &mdash; Learn smarter, together.
-              </p>
+              <p style="margin:10px 0 0;font-size:11px;color:#28283a;">Email ini dikirim ke {{ .Email }}</p>
             </td>
           </tr>
 
@@ -137,5 +208,6 @@
       </td>
     </tr>
   </table>
+
 </body>
 </html>
