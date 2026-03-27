@@ -156,6 +156,41 @@ class ContentController extends Controller
         return response()->json(['message' => 'Content deleted successfully.']);
     }
 
+    /**
+     * PATCH /api/v1/content/{id}/visibility
+     *
+     * Toggle public/private + set coin price for a course the user owns.
+     */
+    public function updateVisibility(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'is_public'  => ['required', 'boolean'],
+            'coin_price' => ['nullable', 'integer', 'min:0', 'max:9999'],
+        ]);
+
+        $content = LearningContent::where('user_id', $request->user()->id)
+            ->where('status', 'ready')
+            ->findOrFail($id);
+
+        // Pro courses cannot be edited by regular users
+        if ($content->is_pro) {
+            return response()->json(['message' => 'Pro courses cannot be modified.'], 403);
+        }
+
+        $content->is_public = $request->boolean('is_public');
+        $content->coin_price = (int) $request->input('coin_price', 0);
+        $content->save();
+
+        return response()->json([
+            'message' => $content->is_public ? 'Course is now public.' : 'Course is now private.',
+            'data' => [
+                'id' => $content->id,
+                'is_public' => $content->is_public,
+                'coin_price' => $content->coin_price,
+            ],
+        ]);
+    }
+
     // ─── Helpers ─────────────────────────────────────────────
 
     /**

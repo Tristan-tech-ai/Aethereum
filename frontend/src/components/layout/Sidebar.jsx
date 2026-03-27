@@ -247,9 +247,8 @@ const Sidebar = ({ open, onClose }) => {
 
           <DropdownNav icon={BookOpen} label="Course">
             <SubItem to="/generate" icon={<Sparkles size={12} />} label="Generate Course" active onClick={onClose} />
-            <SubItem to="/explore" icon={<Globe size={12} />} label="Public Course" onClick={onClose} />
-            <SubItem icon={<Lock size={12} />} label="Pro Course" locked />
-            <SubItem icon={<Lock size={12} />} label="Private Course" locked />
+            <SubItem to="/marketplace" icon={<Globe size={12} />} label="Public Course" onClick={onClose} />
+            <SubItem to="/explore" icon={<Users size={12} />} label="Explore Learners" onClick={onClose} />
             <SubItem icon={<Lock size={12} />} label="Certificate" locked />
           </DropdownNav>
 

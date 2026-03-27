@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AssistantController;
+use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\DashboardController;
@@ -133,6 +134,16 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::post('/url', [ContentController::class, 'url']);
         Route::get('/{id}', [ContentController::class, 'show']);
         Route::delete('/{id}', [ContentController::class, 'destroy']);
+        Route::patch('/{id}/visibility', [ContentController::class, 'updateVisibility']);
+    });
+
+    // ─── Course Marketplace ───
+    Route::prefix('v1/marketplace')->group(function () {
+        Route::get('/', [MarketplaceController::class, 'index']);
+        Route::get('/purchased', [MarketplaceController::class, 'purchased']);
+        Route::get('/wallet-balance', [MarketplaceController::class, 'walletBalance']);
+        Route::get('/{id}', [MarketplaceController::class, 'show']);
+        Route::post('/{id}/purchase', [MarketplaceController::class, 'purchase']);
     });
 
     // ─── Learning Sessions ───

@@ -24,6 +24,7 @@ const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
 const ChallengePage = lazy(() => import("./pages/ChallengePage"));
 const ContentLibraryPage = lazy(() => import("./pages/ContentLibraryPage"));
 const ExplorePage = lazy(() => import("./pages/ExplorePage"));
+const CoursesMarketplacePage = lazy(() => import("./pages/CoursesMarketplacePage"));
 const GenerateCoursePage = lazy(() => import("./pages/GenerateCoursePage"));
 const CourseDetailPage = lazy(() => import("./pages/CourseDetailPage"));
 const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
@@ -78,6 +79,7 @@ const AppRouter = () => {
                     <Route path="generate" element={<ProtectedRoute><GenerateCoursePage /></ProtectedRoute>} />
                     <Route path="course/:id" element={<ProtectedRoute><CourseDetailPage /></ProtectedRoute>} />
                     <Route path="explore" element={<ProtectedRoute><ExplorePage /></ProtectedRoute>} />
+                    <Route path="marketplace" element={<ProtectedRoute><CoursesMarketplacePage /></ProtectedRoute>} />
                     <Route path="challenge" element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
                     <Route path="leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
                     <Route path="league" element={<ProtectedRoute><LeaguePage /></ProtectedRoute>} />

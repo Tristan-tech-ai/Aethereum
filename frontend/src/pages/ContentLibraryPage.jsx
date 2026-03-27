@@ -35,6 +35,10 @@ import {
     Star,
     Target,
     RotateCcw,
+    Lock,
+    Coins,
+    Share2,
+    ShoppingCart,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContentStore } from "../stores/contentStore";
@@ -132,6 +136,7 @@ const ContentLibraryPage = () => {
         deleteContent,
         setFilter,
         resetFilters,
+        updateVisibility,
     } = useContentStore();
 
     const [viewMode, setViewMode] = useState("grid");
@@ -142,6 +147,10 @@ const ContentLibraryPage = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const searchRef = useRef(null);
+
+    // Visibility modal state
+    const [visibilityModal, setVisibilityModal] = useState(null); // content object
+    const [visibilityToggling, setVisibilityToggling] = useState(false);
 
     // Completed sessions tab
     const [activeTab, setActiveTab] = useState("library");
@@ -204,6 +213,14 @@ const ContentLibraryPage = () => {
     };
 
     const handleUploadSuccess = () => fetchContents(1);
+
+    const handleVisibilityConfirm = async (isPublic, coinPrice) => {
+        if (!visibilityModal) return;
+        setVisibilityToggling(true);
+        await updateVisibility(visibilityModal.id, isPublic, coinPrice);
+        setVisibilityToggling(false);
+        setVisibilityModal(null);
+    };
 
     const handleTypeFilter = (type) => {
         setFilter("content_type", filters.content_type === type ? "" : type);
@@ -557,6 +574,7 @@ const ContentLibraryPage = () => {
                                 onView={() => setDetailContent(content)}
                                 onDelete={() => setDeleteConfirm(content)}
                                 onStart={() => handleStartLearning(content)}
+                                onVisibility={content.status === "ready" ? () => setVisibilityModal(content) : null}
                             />
                         </motion.div>
                     ))}
@@ -575,6 +593,7 @@ const ContentLibraryPage = () => {
                                 onView={() => setDetailContent(content)}
                                 onDelete={() => setDeleteConfirm(content)}
                                 onStart={() => handleStartLearning(content)}
+                                onVisibility={content.status === "ready" ? () => setVisibilityModal(content) : null}
                             />
                         </motion.div>
                     ))}
@@ -642,6 +661,14 @@ const ContentLibraryPage = () => {
                     deleting={deleting}
                     onConfirm={() => handleDelete(deleteConfirm)}
                     onCancel={() => setDeleteConfirm(null)}
+                />
+            )}
+            {visibilityModal && (
+                <VisibilityModal
+                    content={visibilityModal}
+                    toggling={visibilityToggling}
+                    onConfirm={handleVisibilityConfirm}
+                    onClose={() => setVisibilityModal(null)}
                 />
             )}
         </div>
@@ -743,7 +770,7 @@ const CompletedSessionCard = ({ session, onRelearn }) => {
 };
 
 /** Enhanced Grid Card */
-const ContentGridCard = ({ content, onView, onDelete, onStart }) => {
+const ContentGridCard = ({ content, onView, onDelete, onStart, onVisibility }) => {
     const TypeIcon = typeIcons[content.content_type] || FileText;
     const colors = typeColors[content.content_type] || typeColors.article;
     const status = statusConfig[content.status] || statusConfig.processing;
@@ -815,21 +842,55 @@ const ContentGridCard = ({ content, onView, onDelete, onStart }) => {
                             {content.total_pages}p
                         </span>
                     )}
-                    <span className="ml-auto text-text-disabled">
-                        {formatDate(content.created_at)}
-                    </span>
+                    {/* Visibility badge */}
+                    {content.status === "ready" && (
+                        <span
+                            onClick={(e) => { e.stopPropagation(); onVisibility?.(); }}
+                            className={`ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold border cursor-pointer transition-all hover:opacity-80
+                                ${content.is_public
+                                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                    : "bg-dark-secondary border-border/40 text-text-muted"
+                                }`}
+                            title="Toggle public/private"
+                        >
+                            {content.is_public ? <Globe size={9} /> : <Lock size={9} />}
+                            {content.is_public
+                                ? (content.coin_price > 0 ? `${content.coin_price}⚡` : "Public")
+                                : "Private"}
+                        </span>
+                    )}
+                    {!content.is_public && (
+                        <span className="ml-auto text-text-disabled">
+                            {formatDate(content.created_at)}
+                        </span>
+                    )}
                 </div>
             </div>
 
             {/* Hover overlay actions */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-250 flex items-end justify-between p-4 pointer-events-none group-hover:pointer-events-auto">
-                <button
-                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                    className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 backdrop-blur-sm transition-colors border border-red-500/20"
-                    title="Delete"
-                >
-                    <Trash2 size={14} />
-                </button>
+                <div className="flex items-center gap-1.5">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                        className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 backdrop-blur-sm transition-colors border border-red-500/20"
+                        title="Delete"
+                    >
+                        <Trash2 size={14} />
+                    </button>
+                    {onVisibility && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onVisibility(); }}
+                            className={`p-2 rounded-lg backdrop-blur-sm transition-colors border
+                                ${content.is_public
+                                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/30"
+                                    : "bg-white/10 text-text-muted border-white/10 hover:text-text-primary hover:bg-white/15"
+                                }`}
+                            title="Publish settings"
+                        >
+                            <Share2 size={14} />
+                        </button>
+                    )}
+                </div>
                 {content.status === "ready" ? (
                     <button
                         onClick={(e) => { e.stopPropagation(); onStart(); }}
@@ -853,7 +914,7 @@ const ContentGridCard = ({ content, onView, onDelete, onStart }) => {
 };
 
 /** Enhanced List Row */
-const ContentListRow = ({ content, onView, onDelete, onStart }) => {
+const ContentListRow = ({ content, onView, onDelete, onStart, onVisibility }) => {
     const TypeIcon = typeIcons[content.content_type] || FileText;
     const colors = typeColors[content.content_type] || typeColors.article;
     const status = statusConfig[content.status] || statusConfig.processing;
@@ -913,6 +974,19 @@ const ContentListRow = ({ content, onView, onDelete, onStart }) => {
                         title="Start Learning"
                     >
                         <Play size={14} />
+                    </button>
+                )}
+                {onVisibility && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onVisibility(); }}
+                        className={`p-1.5 rounded-lg transition-colors
+                            ${content.is_public
+                                ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                                : "bg-white/5 text-text-muted hover:bg-white/10 hover:text-text-primary"
+                            }`}
+                        title="Publish settings"
+                    >
+                        {content.is_public ? <Globe size={14} /> : <Lock size={14} />}
                     </button>
                 )}
                 <button
@@ -1064,5 +1138,142 @@ const FilterSelect = ({ label, value, onChange, options }) => (
         </select>
     </div>
 );
+
+/** Visibility / Publish Modal */
+const VisibilityModal = ({ content, toggling, onConfirm, onClose }) => {
+    const [isPublic, setIsPublic] = useState(!!content.is_public);
+    const [coinPrice, setCoinPrice] = useState(content.coin_price ?? 0);
+    const [priceInput, setPriceInput] = useState(String(content.coin_price ?? 0));
+
+    const handlePriceChange = (v) => {
+        setPriceInput(v);
+        const n = parseInt(v, 10);
+        if (!isNaN(n) && n >= 0 && n <= 9999) setCoinPrice(n);
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="relative bg-dark-elevated rounded-xl p-6 max-w-sm w-full shadow-2xl border border-border/60"
+            >
+                <button onClick={onClose} className="absolute top-4 right-4 text-text-muted hover:text-text-primary transition-colors">
+                    <X size={18} />
+                </button>
+
+                <div className="flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Share2 size={18} className="text-primary-light" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold text-text-primary">Publish Settings</h3>
+                        <p className="text-xs text-text-muted truncate max-w-[200px]">{content.title}</p>
+                    </div>
+                </div>
+
+                {/* Public toggle */}
+                <div className="rounded-xl border border-border/60 bg-dark-card p-4 mb-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                            {isPublic ? <Globe size={16} className="text-emerald-400" /> : <Lock size={16} className="text-text-muted" />}
+                            <div>
+                                <p className="text-sm font-semibold text-text-primary">
+                                    {isPublic ? "Public Marketplace" : "Private"}
+                                </p>
+                                <p className="text-[11px] text-text-muted">
+                                    {isPublic ? "Visible to all users in the marketplace" : "Only you can see this course"}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => { setIsPublic(!isPublic); if (!isPublic) {} else setCoinPrice(0); }}
+                            className={`relative w-11 h-6 rounded-full transition-all duration-200 ${
+                                isPublic ? "bg-emerald-500" : "bg-dark-secondary border border-border/60"
+                            }`}
+                        >
+                            <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-200
+                                ${isPublic ? "left-[22px]" : "left-0.5"}`}
+                            />
+                        </button>
+                    </div>
+
+                    {/* Coin price input */}
+                    {isPublic && (
+                        <div className="border-t border-border/30 pt-4">
+                            <label className="text-xs text-text-muted mb-2 block font-medium flex items-center gap-1.5">
+                                <Zap size={12} className="text-amber-400" />
+                                Price (Nexera Coins)
+                                <span className="text-text-disabled">(0 = free)</span>
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <div className="relative flex-1">
+                                    <Zap size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-400" />
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="9999"
+                                        value={priceInput}
+                                        onChange={(e) => handlePriceChange(e.target.value)}
+                                        className="w-full pl-8 pr-3 py-2 bg-dark-secondary border border-border/60 rounded-lg text-sm text-amber-400
+                                            font-mono focus:outline-none focus:border-amber-500/40 transition-colors"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="flex gap-1.5">
+                                    {[0, 50, 100, 200].map((preset) => (
+                                        <button
+                                            key={preset}
+                                            onClick={() => { setCoinPrice(preset); setPriceInput(String(preset)); }}
+                                            className={`px-2 py-1.5 rounded text-[10px] font-mono font-semibold border transition-all
+                                                ${coinPrice === preset
+                                                    ? "bg-amber-500/15 border-amber-500/30 text-amber-400"
+                                                    : "bg-dark-secondary border-border/40 text-text-muted hover:text-text-primary hover:border-border"
+                                                }`}
+                                        >
+                                            {preset === 0 ? "Free" : preset}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            {coinPrice > 0 && (
+                                <p className="text-[11px] text-text-muted mt-2 flex items-center gap-1">
+                                    <ShoppingCart size={11} /> Users will spend {coinPrice} coins to access this course
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-2.5 rounded-xl border border-border/60 text-text-secondary hover:text-text-primary text-sm font-medium transition-all"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => onConfirm(isPublic, coinPrice)}
+                        disabled={toggling}
+                        className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold flex items-center justify-center gap-2
+                            hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                        {toggling ? (
+                            <><Loader2 size={15} className="animate-spin" /> Saving...</>
+                        ) : (
+                            <>
+                                {isPublic ? <Globe size={15} /> : <Lock size={15} />}
+                                {isPublic ? "Publish" : "Set Private"}
+                            </>
+                        )}
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
 
 export default ContentLibraryPage;

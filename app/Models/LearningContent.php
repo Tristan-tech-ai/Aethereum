@@ -34,6 +34,9 @@ class LearningContent extends Model
         'difficulty',
         'status',
         'error_message',
+        'is_public',
+        'coin_price',
+        'is_pro',
     ];
 
     protected $appends = ['quiz_count'];
@@ -45,6 +48,9 @@ class LearningContent extends Model
             'structured_sections' => 'array',
             'estimated_duration' => 'integer',
             'total_pages' => 'integer',
+            'is_public' => 'boolean',
+            'coin_price' => 'integer',
+            'is_pro' => 'boolean',
         ];
     }
 
@@ -71,5 +77,10 @@ class LearningContent extends Model
     public function knowledgeCards(): HasMany
     {
         return $this->hasMany(KnowledgeCard::class, 'content_id');
+    }
+
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(ContentPurchase::class, 'content_id');
     }
 }

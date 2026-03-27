@@ -216,6 +216,29 @@ export const useContentStore = create((set, get) => ({
         }
     },
 
+    // ─── Update visibility ───────────────────
+    updateVisibility: async (id, isPublic, coinPrice) => {
+        try {
+            const res = await api.patch(`/v1/content/${id}/visibility`, {
+                is_public: isPublic,
+                coin_price: coinPrice,
+            });
+            const updated = res.data?.data;
+            if (updated) {
+                set((s) => ({
+                    contents: s.contents.map((c) =>
+                        c.id === id
+                            ? { ...c, is_public: updated.is_public, coin_price: updated.coin_price }
+                            : c
+                    ),
+                }));
+            }
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: parseError(err) };
+        }
+    },
+
     // ─── Polling (3 sec interval) ────────────
     startPolling: (id) => {
         const state = get();
