@@ -8,6 +8,7 @@ use App\Traits\ApiResponse;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -31,16 +32,21 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        return $this->success([
-            'quick_stats'       => $this->buildQuickStats($user),
-            'weekly_activity'   => $this->buildWeeklyActivity($user),
-            'xp_trend'          => $this->buildXpTrend($user),
-            'continue_learning' => $this->buildContinueLearning($user),
-            'leaderboard'       => $this->buildLeaderboard($user),
-            'achievements'      => $this->buildAchievements($user),
-            'course_progress'   => $this->buildCourseProgress($user),
-            'community_stats'   => $this->buildCommunityStats($user),
-        ], 'Dashboard data retrieved successfully');
+        $cacheKey = "dashboard:v1:user:{$user->id}";
+        $payload = Cache::remember($cacheKey, now()->addSeconds(30), function () use ($user) {
+            return [
+                'quick_stats'       => $this->buildQuickStats($user),
+                'weekly_activity'   => $this->buildWeeklyActivity($user),
+                'xp_trend'          => $this->buildXpTrend($user),
+                'continue_learning' => $this->buildContinueLearning($user),
+                'leaderboard'       => $this->buildLeaderboard($user),
+                'achievements'      => $this->buildAchievements($user),
+                'course_progress'   => $this->buildCourseProgress($user),
+                'community_stats'   => $this->buildCommunityStats($user),
+            ];
+        });
+
+        return $this->success($payload, 'Dashboard data retrieved successfully');
     }
 
     // ── Quick Stats ─────────────────────────────────────────────────────────────

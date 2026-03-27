@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { User, Camera, Shield, ArrowLeft, Save, Check, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
@@ -13,6 +13,7 @@ const ProfileSettingsPage = () => {
   const fileInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('profile');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
 
   // Profile form
   const [profileData, setProfileData] = useState({
@@ -28,8 +29,25 @@ const ProfileSettingsPage = () => {
     weekly_goal: user?.weekly_goal ?? 5,
   });
 
+  useEffect(() => {
+    if (!user) return;
+
+    setProfileData({
+      name: user.name || '',
+      username: user.username || '',
+      bio: user.bio || '',
+    });
+
+    setSettingsData({
+      is_profile_public: user.is_profile_public ?? true,
+      show_on_leaderboard: user.show_on_leaderboard ?? false,
+      weekly_goal: user.weekly_goal ?? 5,
+    });
+  }, [user?.id, user?.name, user?.username, user?.bio, user?.is_profile_public, user?.show_on_leaderboard, user?.weekly_goal]);
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
+    if (!user) return;
     setSaveSuccess(false);
     const result = await updateProfile(profileData);
     if (result.success) {
@@ -40,6 +58,7 @@ const ProfileSettingsPage = () => {
 
   const handleSettingsSubmit = async (e) => {
     e.preventDefault();
+    if (!user) return;
     setSaveSuccess(false);
     const result = await updateSettings(settingsData);
     if (result.success) {
@@ -51,14 +70,15 @@ const ProfileSettingsPage = () => {
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    setAvatarError('');
 
     // Validate client-side
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      alert('Please upload a JPG, PNG, or WebP image');
+      setAvatarError('Please upload a JPG, PNG, or WebP image');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be smaller than 5MB');
+      setAvatarError('Image must be smaller than 5MB');
       return;
     }
 
@@ -149,6 +169,12 @@ const ProfileSettingsPage = () => {
       {error && (
         <div className="mb-4 p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-md-drd">
           {error}
+        </div>
+      )}
+
+      {avatarError && (
+        <div className="mb-4 p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-md-drd">
+          {avatarError}
         </div>
       )}
 

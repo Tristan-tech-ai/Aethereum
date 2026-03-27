@@ -334,6 +334,7 @@ export const useAuthStore = create(
                 user: { ...state.user, ...payload.user },
                 loading: false,
             }));
+            await get().syncUser();
             return { success: true };
         } catch (err) {
             set({
@@ -357,6 +358,7 @@ export const useAuthStore = create(
                 user: { ...state.user, avatar_url: payload.avatar_url },
                 loading: false,
             }));
+            await get().syncUser();
             return { success: true, avatar_url: payload.full_url };
         } catch (err) {
             set({ error: parseError(err), loading: false });
@@ -374,6 +376,7 @@ export const useAuthStore = create(
                 user: { ...state.user, ...payload.settings },
                 loading: false,
             }));
+            await get().syncUser();
             return { success: true };
         } catch (err) {
             set({ error: parseError(err), loading: false });

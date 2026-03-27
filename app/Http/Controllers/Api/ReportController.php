@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
@@ -15,6 +16,12 @@ class ReportController extends Controller
     public function learning(Request $request): JsonResponse
     {
         $user = $request->user();
+        $period = (string) $request->input('period', '30d');
+        $cacheKey = "report:learning:v1:user:{$user->id}:period:{$period}";
+
+        if (Cache::has($cacheKey)) {
+            return $this->success(Cache::get($cacheKey), 'Learning report retrieved');
+        }
 
         $subjectMastery = $user->knowledgeCards()
             ->select(
@@ -186,7 +193,7 @@ class ReportController extends Controller
             ['skill' => 'Consistency', 'score' => max(0, min(100, (int) round(($user->current_streak / 30) * 100)))],
         ];
 
-        return $this->success([
+        $payload = [
             'stats' => $stats,
             'subject_mastery' => $subjectMastery,
             'skill_radar' => $skillRadar,
@@ -196,6 +203,10 @@ class ReportController extends Controller
             'focus_distribution' => $focusDistribution,
             'session_log' => $sessionLog,
             'milestones' => $milestones,
-        ], 'Learning report retrieved');
+        ];
+
+        Cache::put($cacheKey, $payload, now()->addSeconds(45));
+
+        return $this->success($payload, 'Learning report retrieved');
     }
 }

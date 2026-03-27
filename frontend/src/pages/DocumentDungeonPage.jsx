@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
     ArrowLeft,
@@ -18,6 +18,7 @@ import QuizBattle from "../components/learning/QuizBattle";
 import SummaryCreation from "../components/learning/SummaryCreation";
 import SessionComplete from "../components/learning/SessionComplete";
 import Button from "../components/ui/Button";
+import Modal from "../components/ui/Modal";
 
 /**
  * DocumentDungeonPage — Full-screen immersive learning session.
@@ -37,6 +38,7 @@ import Button from "../components/ui/Button";
 const DocumentDungeonPage = () => {
     const navigate = useNavigate();
     const { materialId } = useParams();
+    const [showExitModal, setShowExitModal] = useState(false);
 
     const {
         session,
@@ -126,15 +128,15 @@ const DocumentDungeonPage = () => {
         if (view === "complete") {
             navigate("/library");
         } else {
-            const confirm = window.confirm(
-                "Exit this session? Your completed sections are saved and you can resume anytime.",
-            );
-            if (confirm) {
-                reportProgress();
-                navigate(-1);
-            }
+            setShowExitModal(true);
         }
-    }, [view, navigate, reportProgress]);
+    }, [view, navigate]);
+
+    const confirmExitSession = useCallback(() => {
+        reportProgress();
+        setShowExitModal(false);
+        navigate(-1);
+    }, [navigate, reportProgress]);
 
     const handleEnterSection = useCallback(
         (index) => {
@@ -573,6 +575,30 @@ const DocumentDungeonPage = () => {
                     </AnimatePresence>
                 </div>
             </div>
+
+            <Modal
+                isOpen={showExitModal}
+                onClose={() => setShowExitModal(false)}
+                title="Exit session?"
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <p className="text-body-sm text-text-secondary">
+                        Your completed sections are saved. You can continue this course anytime from library.
+                    </p>
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowExitModal(false)}
+                        >
+                            Stay
+                        </Button>
+                        <Button onClick={confirmExitSession}>
+                            Exit Course
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };
