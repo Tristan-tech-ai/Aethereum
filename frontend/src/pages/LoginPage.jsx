@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, ArrowRight, Zap, Brain, Target } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Zap, Brain, Target, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 const GoogleIcon = () => (
@@ -16,9 +16,18 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [oauthErrorMessage, setOauthErrorMessage] = useState('');
+  const [verifiedMessage, setVerifiedMessage] = useState('');
   const { login, loginWithGoogle, loading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.verified) {
+      setVerifiedMessage('Email berhasil diverifikasi! Silakan masuk ke akunmu.');
+      // Clear the state so refreshing doesn't re-show the banner
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const oauthError = new URLSearchParams(location.search).get('oauth_error');
@@ -145,6 +154,14 @@ const LoginPage = () => {
               </span>
             </Link>
           </div>
+
+          {/* Email verified success banner */}
+          {verifiedMessage && (
+            <div className="mb-5 flex items-center gap-3 p-3.5 rounded-[10px] bg-success/10 border border-success/30">
+              <CheckCircle size={18} className="text-success shrink-0" />
+              <p className="text-sm text-success font-medium">{verifiedMessage}</p>
+            </div>
+          )}
 
           {/* Header */}
           <div className="mb-7">

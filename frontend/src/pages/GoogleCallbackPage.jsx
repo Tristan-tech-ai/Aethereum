@@ -35,8 +35,20 @@ const AuthCallbackPage = () => {
   useEffect(() => {
     if (!initialized) return;
 
+    // Detect if this callback is from email verification (not OAuth)
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const queryParams = new URLSearchParams(window.location.search);
+    const callbackType = hashParams.get('type') || queryParams.get('type');
+    const isEmailVerification = callbackType === 'signup' || callbackType === 'email' || callbackType === 'recovery';
+
     if (session) {
-      navigate('/dashboard', { replace: true });
+      if (isEmailVerification) {
+        // Email verified — redirect to login with success message
+        navigate('/login', { replace: true, state: { verified: true } });
+      } else {
+        // OAuth (Google) — go to dashboard
+        navigate('/dashboard', { replace: true });
+      }
     } else {
       // Give Supabase a moment to process the hash fragment
       const timer = setTimeout(() => {

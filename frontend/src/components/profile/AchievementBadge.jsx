@@ -1,9 +1,36 @@
 import React, { useState, useRef } from 'react';
 
+// Map icon slug (from backend) → badge image path
+const BADGE_IMAGES = {
+  'rocket':     '/badges/BagdeFirstSteps.webp',
+  'book-open':  '/badges/BagdeBookworm.webp',
+  'library':    '/badges/BagdeCardCollecter.webp',
+  'brain':      '/badges/BagdeKnowlegdeSeeker.webp',
+  'target':     '/badges/BagdeQuizMaster.webp',
+  'globe':      '/badges/BagdePolymath.webp',
+  'diamond':    '/badges/BagdePerfectionist.webp',
+  'eye':        '/badges/BagdeFocusMaster.webp',
+  'zap':        '/badges/BagdeSpeedLearner.webp',
+  'flame':      '/badges/BagdeWeekWarrior.webp',
+  'trophy':     '/badges/BagdeMonthlyMaster.webp',
+  'award':      '/badges/BagdeQuarterChampion.webp',
+  'users':      '/badges/BagdeRaidVeteran.webp',
+  'swords':     '/badges/BagdeDuelChampion.webp',
+  'moon':       '/badges/BagdeNightOwl.webp',
+  'sunrise':    '/badges/BagdeEarlyBird.webp',
+  'crown':      '/badges/BagdeKnowlegdeEmperor.webp',
+  'arena':      '/badges/BagdeArenaHero.webp',
+  'community':  '/badges/BagdeCommunityHero.webp',
+  'relay':      '/badges/BagdeRelayRunner.webp',
+  'social':     '/badges/BagdeSocialLearner.webp',
+  'year':       '/badges/BagdeYearLegend.webp',
+};
+
 const AchievementBadge = ({
   name = 'Achievement',
   description = '',
   emoji = '🏆',
+  icon = null,
   unlocked = false,
   featured = false,
   progress = null, // null = no progress, 0-100 = near-complete
@@ -15,10 +42,12 @@ const AchievementBadge = ({
   const [showTooltip, setShowTooltip] = useState(false);
   const badgeRef = useRef(null);
 
+  const badgeImage = icon ? BADGE_IMAGES[icon] : null;
+
   const sizes = {
-    sm: { container: 'w-12 h-12', emoji: 'text-xl', svgSize: 48 },
-    md: { container: 'w-16 h-16', emoji: 'text-2xl', svgSize: 64 },
-    lg: { container: 'w-20 h-20', emoji: 'text-3xl', svgSize: 80 },
+    sm: { container: 'w-12 h-12', emoji: 'text-xl', svgSize: 48, imgPad: 'p-1' },
+    md: { container: 'w-16 h-16', emoji: 'text-2xl', svgSize: 64, imgPad: 'p-1.5' },
+    lg: { container: 'w-20 h-20', emoji: 'text-3xl', svgSize: 80, imgPad: 'p-2' },
   };
 
   const s = sizes[size] || sizes.md;
@@ -35,7 +64,7 @@ const AchievementBadge = ({
       <div className="relative" ref={badgeRef}>
         <div
           className={`
-            ${s.container} rounded-full flex items-center justify-center
+            ${s.container} rounded-full flex items-center justify-center overflow-hidden
             transition-all duration-200
             ${unlocked
               ? `bg-dark-elevated shadow-[0_0_12px_rgba(124,58,237,0.2)] ${
@@ -43,16 +72,26 @@ const AchievementBadge = ({
                     ? 'ring-2 ring-tier-gold shadow-glow-gold'
                     : 'ring-1 ring-primary/30'
                 }`
-              : 'bg-dark-secondary ring-1 ring-border-subtle grayscale opacity-40 blur-[2px]'
+              : 'bg-dark-secondary ring-1 ring-border-subtle'
             }
             ${unlocked ? 'hover:scale-110 hover:shadow-glow-primary cursor-pointer' : ''}
           `}
         >
-          <span className={unlocked ? '' : 'opacity-50'}>{emoji}</span>
+          {badgeImage ? (
+            <img
+              src={badgeImage}
+              alt={name}
+              className={`w-full h-full object-contain ${s.imgPad} transition-all duration-200 ${
+                !unlocked ? 'grayscale opacity-40' : ''
+              }`}
+            />
+          ) : (
+            <span className={unlocked ? '' : 'opacity-50'}>{emoji}</span>
+          )}
 
-          {/* Lock overlay */}
+          {/* Lock overlay for locked badges without progress */}
           {!unlocked && progress === null && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center bg-dark-secondary/40 rounded-full">
               <span className="text-sm drop-shadow-lg">🔒</span>
             </div>
           )}

@@ -495,6 +495,11 @@ class ProfileController extends Controller
             'crown' => '👑',
             'users' => '🤝',
             'swords' => '⚔️',
+            'arena' => '🏟️',
+            'community' => '🌐',
+            'relay' => '🏃',
+            'social' => '👥',
+            'year' => '🌟',
             default => '⭐',
         };
     }

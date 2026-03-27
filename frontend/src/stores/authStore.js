@@ -202,6 +202,46 @@ export const useAuthStore = create(
         }
     },
 
+    // ─── Send OTP code to email (for verification) ───
+    sendVerificationOtp: async ({ email }) => {
+        set({ loading: true, error: null });
+        try {
+            const { error } = await supabase.auth.signInWithOtp({
+                email,
+                options: { shouldCreateUser: false },
+            });
+            if (error) throw error;
+            set({ loading: false });
+            return { success: true };
+        } catch (err) {
+            set({ error: parseError(err), loading: false });
+            return { success: false };
+        }
+    },
+
+    // ─── Verify OTP code from email ───
+    verifyEmailOtp: async ({ email, token }) => {
+        set({ loading: true, error: null });
+        try {
+            const { data, error } = await supabase.auth.verifyOtp({
+                email,
+                token,
+                type: 'email',
+            });
+            if (error) throw error;
+            // OTP verification logs the user in — sign them out so they
+            // land on the login page after verification (consistent UX)
+            if (data.session) {
+                await supabase.auth.signOut();
+            }
+            set({ loading: false });
+            return { success: true };
+        } catch (err) {
+            set({ error: parseError(err), loading: false });
+            return { success: false };
+        }
+    },
+
     // ─── Login with email + password ───
     login: async ({ email, password }) => {
         set({ loading: true, error: null, fieldErrors: {} });

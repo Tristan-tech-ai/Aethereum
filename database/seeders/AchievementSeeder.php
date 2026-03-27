@@ -153,6 +153,50 @@ class AchievementSeeder extends Seeder
                 'category'          => 'special',
                 'trigger_condition' => ['type' => 'level', 'value' => 100],
             ],
+
+            // ─── Social (extras) ───
+            [
+                'id'                => 'social_learner',
+                'name'              => 'Social Learner',
+                'description'       => 'Add 5 friends',
+                'icon'              => 'social',
+                'category'          => 'social',
+                'trigger_condition' => ['type' => 'friends_count', 'value' => 5],
+            ],
+            [
+                'id'                => 'community_hero',
+                'name'              => 'Community Hero',
+                'description'       => 'Post 10 times in the Community Hub',
+                'icon'              => 'community',
+                'category'          => 'social',
+                'trigger_condition' => ['type' => 'posts_count', 'value' => 10],
+            ],
+            [
+                'id'                => 'arena_hero',
+                'name'              => 'Arena Hero',
+                'description'       => 'Win 10 Quiz Arena matches',
+                'icon'              => 'arena',
+                'category'          => 'social',
+                'trigger_condition' => ['type' => 'arena_wins', 'value' => 10],
+            ],
+            [
+                'id'                => 'relay_runner',
+                'name'              => 'Relay Runner',
+                'description'       => 'Complete 5 Learning Relays',
+                'icon'              => 'relay',
+                'category'          => 'social',
+                'trigger_condition' => ['type' => 'relays_completed', 'value' => 5],
+            ],
+
+            // ─── Streak (extras) ───
+            [
+                'id'                => 'year_legend',
+                'name'              => 'Year Legend',
+                'description'       => 'Achieve a 365-day learning streak',
+                'icon'              => 'year',
+                'category'          => 'streak',
+                'trigger_condition' => ['type' => 'current_streak', 'value' => 365],
+            ],
         ];
 
         foreach ($achievements as $achievement) {
