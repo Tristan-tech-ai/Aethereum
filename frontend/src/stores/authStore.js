@@ -176,9 +176,17 @@ export const useAuthStore = create(
                 password,
                 options: {
                     data: { name },
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
                 },
             });
             if (error) throw error;
+
+            // Supabase returns empty identities array when email already exists
+            // (with "Confirm email" enabled). Detect and inform the user.
+            if (data?.user?.identities?.length === 0) {
+                set({ loading: false, error: 'Email ini sudah terdaftar. Silakan login atau gunakan email lain.' });
+                return { success: false };
+            }
 
             // If Supabase requires email confirmation the session will be null
             const needsVerification = !data.session;
