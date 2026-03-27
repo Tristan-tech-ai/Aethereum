@@ -71,7 +71,7 @@ const EmailVerificationPage = () => {
   const handleOtpChange = (index, value) => {
     if (!/^[a-zA-Z0-9]*$/.test(value)) return;
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1).toUpperCase();
+    newOtp[index] = value.slice(-1);
     setOtp(newOtp);
     setOtpError('');
     if (value && index < OTP_LENGTH - 1) {
@@ -87,7 +87,7 @@ const EmailVerificationPage = () => {
 
   const handleOtpPaste = (e) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData('text').replace(/[^a-zA-Z0-9]/g, '').slice(0, OTP_LENGTH).toUpperCase();
+    const pasted = e.clipboardData.getData('text').replace(/[^a-zA-Z0-9]/g, '').slice(0, OTP_LENGTH);
     const newOtp = [...otp];
     pasted.split('').forEach((char, i) => { newOtp[i] = char; });
     setOtp(newOtp);

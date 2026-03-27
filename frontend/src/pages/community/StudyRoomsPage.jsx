@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import StudyRoomBrowser from "../../components/social/StudyRoomBrowser";
 import StudyRoomView from "../../components/social/StudyRoomView";
+import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import { useStudyRoomStore } from "../../stores/studyRoomStore";

@@ -238,11 +238,23 @@ export const useAuthStore = create(
             // login afterward, so skip one syncUser call to avoid transient
             // 401 while session is being signed out.
             skipNextSignedInSync = true;
-            const { data, error } = await supabase.auth.verifyOtp({
+            let data = null;
+            let error = null;
+
+            ({ data, error } = await supabase.auth.verifyOtp({
                 email,
                 token,
                 type: 'signup',
-            });
+            }));
+
+            if (error) {
+                ({ data, error } = await supabase.auth.verifyOtp({
+                    email,
+                    token,
+                    type: 'email',
+                }));
+            }
+
             if (error) throw error;
             // OTP verification logs the user in — sign them out so they
             // land on the login page after verification (consistent UX)

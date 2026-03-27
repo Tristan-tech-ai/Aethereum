@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import App from "./App";
 import { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
+import AppErrorBoundary from "./components/app/AppErrorBoundary";
 
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
@@ -50,9 +51,10 @@ const PageLoader = () => (
 const AppRouter = () => {
     return (
         <BrowserRouter>
-            <Suspense fallback={<PageLoader />}>
-                <Routes>
-                <Route path="/" element={<App />}>
+            <AppErrorBoundary>
+                <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                    <Route path="/" element={<App />}>
                     {/* Landing — Guest sees landing, authed redirects to dashboard */}
                     <Route
                         index
@@ -127,19 +129,20 @@ const AppRouter = () => {
                         element={<GoogleCallbackPage />}
                     />
                     <Route path="*" element={<NotFound />} />
-                </Route>
+                    </Route>
 
-                {/* Document Dungeon — full-screen, outside App layout (aslinya ada protected route)*/}
-                <Route
-                    path="learn/:materialId"
-                    element={
-                        <ProtectedRoute>
-                            <DocumentDungeonPage />
-                        </ProtectedRoute>
-                    }
-                />
-            </Routes>
-            </Suspense>
+                    {/* Document Dungeon — full-screen, outside App layout (aslinya ada protected route)*/}
+                    <Route
+                        path="learn/:materialId"
+                        element={
+                            <ProtectedRoute>
+                                <DocumentDungeonPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                </Routes>
+                </Suspense>
+            </AppErrorBoundary>
         </BrowserRouter>
     );
 };

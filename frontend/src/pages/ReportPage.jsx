@@ -26,14 +26,33 @@ const ChartTooltip = ({ active, payload, label }) => {
     );
 };
 
+const HeatmapSkeleton = () => (
+    <div className="space-y-4 animate-pulse">
+        <div className="flex items-center justify-between">
+            <div>
+                <div className="h-5 w-40 bg-dark-secondary rounded" />
+                <div className="h-3 w-32 bg-dark-secondary rounded mt-2" />
+            </div>
+            <div className="h-8 w-28 bg-dark-secondary rounded-full" />
+        </div>
+        <div className="h-[120px] bg-dark-secondary rounded" />
+        <div className="h-4 w-48 bg-dark-secondary rounded" />
+    </div>
+);
+
 const ReportPage = () => {
     const [period, setPeriod] = useState("30d");
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
     const [heatmapData, setHeatmapData] = useState(null);
+    const [heatmapLoading, setHeatmapLoading] = useState(true);
 
     useEffect(() => {
+        let active = true;
+        setHeatmapLoading(true);
+
         api.get('/v1/profile/me/heatmap').then((res) => {
+            if (!active) return;
             const map = res.data?.data?.heatmap;
             if (map) {
                 setHeatmapData(
@@ -43,8 +62,20 @@ const ReportPage = () => {
                         minutes: Number(value.minutes ?? 0),
                     }))
                 );
+            } else {
+                setHeatmapData([]);
             }
-        }).catch(() => {});
+        }).catch(() => {
+            if (!active) return;
+            setHeatmapData([]);
+        }).finally(() => {
+            if (!active) return;
+            setHeatmapLoading(false);
+        });
+
+        return () => {
+            active = false;
+        };
     }, []);
 
     useEffect(() => {
@@ -149,7 +180,7 @@ const ReportPage = () => {
 
             <Card padding="spacious">
                 <h3 className="text-h4 font-heading text-text-primary flex items-center gap-2 mb-4"><Calendar size={16} className="text-success" /> Study Consistency</h3>
-                <LearningHeatmap rawData={heatmapData} />
+                {heatmapLoading ? <HeatmapSkeleton /> : <LearningHeatmap rawData={heatmapData} />}
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

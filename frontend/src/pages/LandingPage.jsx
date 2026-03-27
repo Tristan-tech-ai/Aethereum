@@ -7,7 +7,7 @@ import {
   Target, Trophy, Menu, X, Flame, Star, Shield,
   FileText, Youtube, Globe, Sparkles, Lock, CheckCircle,
   TrendingUp, MessageSquare, Swords, Radio, GitBranch, Coffee,
-  Cpu, Github, Twitter, BookOpen
+  Cpu, Github, Twitter, BookOpen, Loader2
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Orb from '../components/ui/Orb';
@@ -171,14 +171,87 @@ const cardTiers = [
   { tier: '💎', name: 'Diamond', range: '100%',    glow: 'rgba(167,139,250,0.5)', border: 'url(#diamondGrad)' },
 ];
 
+const LANDING_CACHE_KEY = 'landing_assets_warmed_v1';
+const LANDING_PRELOAD_TIMEOUT = 3000;
+const LANDING_ASSETS_TO_PRELOAD = [
+  '/nexera_logo.svg',
+  '/rank/bronze (1).webp',
+  '/rank/silver (2).webp',
+  '/rank/gold (3).webp',
+  '/rank/platinum (4).webp',
+  '/rank/emerald (5).webp',
+  '/rank/diamond (tertinggi).webp',
+];
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const preloadImage = (src) =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = resolve;
+    img.onerror = resolve;
+    img.src = src;
+  });
+
 const LandingPage = () => {
   const featuresRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
+    let active = true;
+    const hasWarmCache = sessionStorage.getItem(LANDING_CACHE_KEY) === '1';
+
+    const runPreload = async () => {
+      const warmAssetsTask = hasWarmCache
+        ? Promise.resolve()
+        : Promise.allSettled(LANDING_ASSETS_TO_PRELOAD.map(preloadImage));
+
+      const loadingTask = Promise.all([
+        warmAssetsTask,
+        delay(hasWarmCache ? 350 : 900),
+      ]);
+
+      await Promise.race([
+        loadingTask,
+        delay(LANDING_PRELOAD_TIMEOUT),
+      ]);
+
+      if (!active) return;
+      sessionStorage.setItem(LANDING_CACHE_KEY, '1');
+      setInitialLoading(false);
+    };
+
+    runPreload();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!initialLoading) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousDocOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousDocOverflow;
+    };
+  }, [initialLoading]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const next = window.scrollY > 20;
+      setScrolled((prev) => (prev === next ? prev : next));
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
@@ -186,6 +259,24 @@ const LandingPage = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
     setMobileMenuOpen(false);
   };
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen w-full bg-[#0A0A14] flex items-center justify-center px-4">
+        <div className="w-full max-w-sm rounded-2xl border border-border-subtle bg-dark-secondary/80 backdrop-blur-md p-6 text-center">
+          <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center bg-primary/15 border border-primary/25">
+            <img src="/nexera_logo.svg" alt="Nexera" className="w-7 h-7 object-contain" />
+          </div>
+          <h2 className="text-h4 font-heading text-text-primary">Preparing Nexera</h2>
+          <p className="text-body-sm text-text-secondary mt-1">Optimizing assets for smooth scrolling…</p>
+          <div className="mt-5 flex items-center justify-center gap-2 text-primary-light text-sm font-medium">
+            <Loader2 size={16} className="animate-spin" />
+            Loading (max 3s)
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A14] overflow-x-hidden font-body">

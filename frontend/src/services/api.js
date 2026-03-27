@@ -19,6 +19,7 @@ let currentAccessToken = null;
 let refreshPromise = null;
 let tokenReady = null;            // resolves when first auth event fires
 let tokenReadyResolve = null;
+let didFirstTokenGate = false;
 
 // Create a one-shot promise that resolves when the first token arrives.
 const resetTokenReady = () => {
@@ -56,14 +57,24 @@ const refreshAccessToken = async () => {
 export const getAuthToken = () => currentAccessToken;
 api.interceptors.request.use(async (config) => {
     try {
-        // Wait for the first auth event (INITIAL_SESSION) so we have a token.
-        // This only blocks on the very first request after hard refresh.
-        // Timeout after 4s so we don't block forever if user is unauthenticated.
-        if (!currentAccessToken && tokenReady) {
+        // Gate only once on first request after reload.
+        // Avoid repeated 1.5s waits on every request when auth event is delayed.
+        if (!currentAccessToken && tokenReady && !didFirstTokenGate) {
+            didFirstTokenGate = true;
             await Promise.race([
                 tokenReady,
-                new Promise((r) => setTimeout(r, 1500)),
+                new Promise((r) => setTimeout(r, 700)),
             ]);
+
+            // If auth event has not arrived yet, try direct session read once.
+            if (!currentAccessToken) {
+                try {
+                    const { data } = await supabase.auth.getSession();
+                    currentAccessToken = data?.session?.access_token ?? null;
+                } catch {
+                    // proceed without auth
+                }
+            }
         }
         if (currentAccessToken) {
             config.headers.Authorization = `Bearer ${currentAccessToken}`;
