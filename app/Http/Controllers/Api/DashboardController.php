@@ -159,34 +159,20 @@ class DashboardController extends Controller
     {
         $weeks = collect();
 
-        // Get XP per week for the last 7 weeks
+        // Get XP per week for the last 7 weeks (DB-agnostic: no DATE_PART/DATE_TRUNC)
         $startDate = Carbon::now()->subWeeks(6)->startOfWeek();
-
-        $rows = DB::table('xp_events')
-            ->where('user_id', $user->id)
-            ->where('created_at', '>=', $startDate)
-            ->select(
-                DB::raw("DATE_PART('isoyear', DATE_TRUNC('week', created_at)) as yr"),
-                DB::raw("DATE_PART('week', DATE_TRUNC('week', created_at)) as wk"),
-                DB::raw('SUM(xp_amount) as total_xp'),
-                DB::raw("DATE_TRUNC('week', created_at) as week_start")
-            )
-            ->groupBy(DB::raw("DATE_TRUNC('week', created_at)"))
-            ->orderBy('week_start')
-            ->get()
-            ->keyBy(function ($r) {
-                $weekStart = Carbon::parse($r->week_start);
-                return $weekStart->isoWeekYear . '-' . str_pad($weekStart->isoWeek(), 2, '0', STR_PAD_LEFT);
-            });
-
         for ($i = 0; $i < 7; $i++) {
             $weekStart = $startDate->copy()->addWeeks($i);
-            $key = $weekStart->isoWeekYear . '-' . str_pad($weekStart->isoWeek(), 2, '0', STR_PAD_LEFT);
-            $row = $rows->get($key);
+            $weekEnd = $weekStart->copy()->endOfWeek();
+
+            $xp = (int) DB::table('xp_events')
+                ->where('user_id', $user->id)
+                ->whereBetween('created_at', [$weekStart, $weekEnd])
+                ->sum('xp_amount');
 
             $weeks->push([
                 'week' => 'W' . ($i + 1),
-                'xp'   => $row ? (int) $row->total_xp : 0,
+                'xp'   => $xp,
             ]);
         }
 
