@@ -128,7 +128,11 @@ class StudyRaidController extends Controller
         ]);
 
         $user = $request->user();
-        $raid = StudyRaid::where('id', $id)->where('status', 'active')->firstOrFail();
+        $raid = StudyRaid::findOrFail($id);
+        
+        if ($raid->status === 'lobby') {
+            return $this->error('Raid has not started yet', 400);
+        }
 
         $raid->participants()->updateExistingPivot($user->id, [
             'progress_percentage' => $request->progress_percentage,
@@ -146,7 +150,11 @@ class StudyRaidController extends Controller
         ]);
 
         $user = $request->user();
-        $raid = StudyRaid::where('id', $id)->where('status', 'active')->firstOrFail();
+        $raid = StudyRaid::findOrFail($id);
+        
+        if ($raid->status === 'lobby') {
+            return $this->error('Raid has not started yet', 400);
+        }
 
         $raid->participants()->updateExistingPivot($user->id, [
             'quiz_score' => $request->quiz_score,
@@ -158,7 +166,16 @@ class StudyRaidController extends Controller
     public function complete(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
-        $raid = StudyRaid::where('id', $id)->where('status', 'active')->firstOrFail();
+        $raid = StudyRaid::findOrFail($id);
+        
+        if ($raid->status === 'lobby') {
+            return $this->error('Raid has not started yet', 400);
+        }
+
+        // If already completed, just return success
+        if ($raid->status === 'completed') {
+            return $this->success(['all_completed' => true], 'Raid already completed');
+        }
 
         $raid->participants()->updateExistingPivot($user->id, [
             'status' => 'completed',
