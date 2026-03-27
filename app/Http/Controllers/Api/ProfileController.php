@@ -165,11 +165,26 @@ class ProfileController extends Controller
         ], 'Public profile retrieved successfully');
     }
 
+    // ─── Get Public Heatmap ───
+    public function publicHeatmap(Request $request, string $username): JsonResponse
+    {
+        $user = User::where('username', $username)->firstOrFail();
+
+        if (!$user->is_profile_public && $request->user()?->id !== $user->id) {
+            return $this->error('This profile is private', 403);
+        }
+
+        return $this->buildHeatmapResponse($user);
+    }
+
     // ─── Get Learning Heatmap ───
     public function heatmap(Request $request): JsonResponse
     {
-        $user = $request->user();
-        
+        return $this->buildHeatmapResponse($request->user());
+    }
+
+    private function buildHeatmapResponse(User $user): JsonResponse
+    {
         // Fetch sessions from the last 365 days
         $startDate = Carbon::now()->subDays(365)->startOfDay();
         

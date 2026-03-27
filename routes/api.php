@@ -69,6 +69,7 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::get('/me/xp-history', [ProfileController::class, 'xpHistory']);
         Route::post('/me/share-card/generate', [ProfileController::class, 'generateShareCard']);
         Route::get('/{username}', [ProfileController::class, 'show']);
+        Route::get('/{username}/heatmap', [ProfileController::class, 'publicHeatmap']);
     });
 
     // ─── Knowledge Cards (Public Interactions) ───

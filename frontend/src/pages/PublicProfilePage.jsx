@@ -20,6 +20,7 @@ const PublicProfilePage = () => {
   const { username } = useParams();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
+  const [heatmapRaw, setHeatmapRaw] = useState([]);
   const [duelOpen, setDuelOpen] = useState(false);
   const [friendStatus, setFriendStatus] = useState(null); // null | 'sending' | 'sent' | 'friends'
   const { sendFriendRequest, friends, fetchFriends } = useFriendStore();
@@ -29,8 +30,25 @@ const PublicProfilePage = () => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/v1/profile/${username}`);
-        setProfile(res.data?.data ?? res.data);
+        const [profileRes, heatRes] = await Promise.allSettled([
+          api.get(`/v1/profile/${username}`),
+          api.get(`/v1/profile/${username}/heatmap`),
+        ]);
+
+        if (profileRes.status === 'fulfilled') {
+          setProfile(profileRes.value.data?.data ?? profileRes.value.data);
+        }
+
+        if (heatRes.status === 'fulfilled' && heatRes.value.data?.data?.heatmap) {
+          const map = heatRes.value.data.data.heatmap;
+          setHeatmapRaw(
+            Object.entries(map).map(([date, value]) => ({
+              date,
+              sessions: Number(value.count ?? 0),
+              minutes: Number(value.minutes ?? 0),
+            }))
+          );
+        }
       } catch (err) {
         console.error('Profile fetch error:', err?.response?.status, err?.response?.data);
         setProfile(null);
@@ -188,7 +206,7 @@ const PublicProfilePage = () => {
 
       <section className="mb-10">
         <Card padding="spacious">
-          <LearningHeatmap weeks={52} />
+          <LearningHeatmap rawData={heatmapRaw} />
         </Card>
       </section>
 
