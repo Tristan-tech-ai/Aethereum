@@ -3,12 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, RefreshCw, CheckCircle, Sparkles, KeyRound, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
+const OTP_LENGTH = 8;
+
 const EmailVerificationPage = () => {
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [mode, setMode] = useState('link'); // 'link' | 'otp'
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [otpSent, setOtpSent] = useState(false);
   const [otpError, setOtpError] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
@@ -67,12 +69,12 @@ const EmailVerificationPage = () => {
   };
 
   const handleOtpChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
+    if (!/^[a-zA-Z0-9]*$/.test(value)) return;
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
+    newOtp[index] = value.slice(-1).toUpperCase();
     setOtp(newOtp);
     setOtpError('');
-    if (value && index < 5) {
+    if (value && index < OTP_LENGTH - 1) {
       otpRefs.current[index + 1]?.focus();
     }
   };
@@ -85,17 +87,17 @@ const EmailVerificationPage = () => {
 
   const handleOtpPaste = (e) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const pasted = e.clipboardData.getData('text').replace(/[^a-zA-Z0-9]/g, '').slice(0, OTP_LENGTH).toUpperCase();
     const newOtp = [...otp];
     pasted.split('').forEach((char, i) => { newOtp[i] = char; });
     setOtp(newOtp);
-    otpRefs.current[Math.min(pasted.length, 5)]?.focus();
+    otpRefs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
   };
 
   const handleVerifyOtp = async () => {
     const token = otp.join('');
-    if (token.length < 6) {
-      setOtpError('Masukkan 6 digit kode verifikasi.');
+    if (token.length < OTP_LENGTH) {
+      setOtpError(`Masukkan ${OTP_LENGTH} karakter kode verifikasi.`);
       return;
     }
     setVerifying(true);
@@ -106,7 +108,7 @@ const EmailVerificationPage = () => {
       navigate('/login', { replace: true, state: { verified: true } });
     } else {
       setOtpError('Kode salah atau sudah kadaluarsa. Coba kirim ulang.');
-      setOtp(['', '', '', '', '', '']);
+      setOtp(Array(OTP_LENGTH).fill(''));
       otpRefs.current[0]?.focus();
     }
   };
@@ -140,7 +142,7 @@ const EmailVerificationPage = () => {
           </h1>
           <p className="text-body-sm text-text-muted mb-1 max-w-[340px] mx-auto">
             {mode === 'otp'
-              ? 'Kode 6 digit telah dikirim ke'
+              ? `Kode ${OTP_LENGTH} karakter telah dikirim ke`
               : 'Kami telah mengirim link verifikasi ke'}
           </p>
           {email && <p className="text-sm font-medium text-primary mb-6">{email}</p>}
@@ -204,7 +206,7 @@ const EmailVerificationPage = () => {
           {mode === 'otp' && (
             <div className="space-y-4">
               <p className="text-sm text-text-muted text-center">
-                Masukkan kode 6 digit dari email konfirmasi yang dikirim saat registrasi.
+                Masukkan kode {OTP_LENGTH} karakter dari email konfirmasi yang dikirim saat registrasi.
               </p>
 
               {/* OTP input boxes */}
@@ -214,7 +216,7 @@ const EmailVerificationPage = () => {
                     key={i}
                     ref={(el) => (otpRefs.current[i] = el)}
                     type="text"
-                    inputMode="numeric"
+                    inputMode="text"
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(i, e.target.value)}
@@ -231,7 +233,7 @@ const EmailVerificationPage = () => {
 
               <button
                 onClick={handleVerifyOtp}
-                disabled={verifying || otp.join('').length < 6}
+                disabled={verifying || otp.join('').length < OTP_LENGTH}
                 className="w-full h-11 flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-medium text-sm rounded-[10px] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {verifying ? <RefreshCw size={16} className="animate-spin" /> : <ArrowRight size={16} />}
