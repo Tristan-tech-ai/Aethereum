@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { UserPlus, Swords, Copy, ExternalLink, Loader2 } from 'lucide-react';
+import { UserPlus, Swords, Copy, ExternalLink, Loader2, Check } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Avatar from '../components/ui/Avatar';
@@ -9,7 +9,10 @@ import LearningHeatmap from '../components/profile/LearningHeatmap';
 import LevelBadge from '../components/profile/LevelBadge';
 import StreakDisplay from '../components/profile/StreakDisplay';
 import AchievementBadge from '../components/profile/AchievementBadge';
+import ChallengeDuelModal from '../components/social/ChallengeDuelModal';
 import api from '../services/api';
+import { useFriendStore } from '../stores/friendStore';
+import { useAuthStore } from '../stores/authStore';
 
 const toTier = (tier = 'Bronze') => String(tier).toLowerCase();
 
@@ -17,6 +20,10 @@ const PublicProfilePage = () => {
   const { username } = useParams();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
+  const [duelOpen, setDuelOpen] = useState(false);
+  const [friendStatus, setFriendStatus] = useState(null); // null | 'sending' | 'sent' | 'friends'
+  const { sendFriendRequest, friends, fetchFriends } = useFriendStore();
+  const currentUser = useAuthStore((s) => s.user);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -24,7 +31,8 @@ const PublicProfilePage = () => {
       try {
         const res = await api.get(`/v1/profile/${username}`);
         setProfile(res.data?.data ?? res.data);
-      } catch {
+      } catch (err) {
+        console.error('Profile fetch error:', err?.response?.status, err?.response?.data);
         setProfile(null);
       } finally {
         setLoading(false);
@@ -33,6 +41,18 @@ const PublicProfilePage = () => {
 
     if (username) fetchProfile();
   }, [username]);
+
+  // Check friendship status
+  useEffect(() => {
+    fetchFriends();
+  }, [fetchFriends]);
+
+  useEffect(() => {
+    if (profile?.user && friends.length > 0) {
+      const isFriend = friends.some(f => f.username === profile.user.username);
+      if (isFriend) setFriendStatus('friends');
+    }
+  }, [profile, friends]);
 
   const user = profile?.user ?? {};
   const stats = profile?.stats ?? {};
@@ -57,6 +77,15 @@ const PublicProfilePage = () => {
   const handleCopyLink = () => {
     navigator.clipboard?.writeText(window.location.href);
   };
+
+  const handleAddFriend = async () => {
+    if (friendStatus) return;
+    setFriendStatus('sending');
+    const ok = await sendFriendRequest(user.username);
+    setFriendStatus(ok ? 'sent' : null);
+  };
+
+  const isOwnProfile = currentUser?.username === username;
 
   if (loading) {
     return (
@@ -119,12 +148,28 @@ const PublicProfilePage = () => {
         </div>
 
         <div className="flex gap-3">
-          <Button>
-            <UserPlus size={16} className="mr-1.5" /> Add Friend
-          </Button>
-          <Button variant="secondary">
-            <Swords size={16} className="mr-1.5" /> Challenge to Duel
-          </Button>
+          {!isOwnProfile && (
+            <>
+              {friendStatus === 'friends' ? (
+                <Button variant="secondary" disabled>
+                  <Check size={16} className="mr-1.5" /> Friends
+                </Button>
+              ) : (
+                <Button onClick={handleAddFriend} disabled={friendStatus === 'sending' || friendStatus === 'sent'}>
+                  {friendStatus === 'sending' ? (
+                    <><Loader2 size={16} className="mr-1.5 animate-spin" /> Sending...</>
+                  ) : friendStatus === 'sent' ? (
+                    <><Check size={16} className="mr-1.5" /> Request Sent</>
+                  ) : (
+                    <><UserPlus size={16} className="mr-1.5" /> Add Friend</>
+                  )}
+                </Button>
+              )}
+              <Button variant="secondary" onClick={() => setDuelOpen(true)}>
+                <Swords size={16} className="mr-1.5" /> Challenge to Duel
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -177,6 +222,8 @@ const PublicProfilePage = () => {
           </Button>
         </div>
       </Card>
+
+      <ChallengeDuelModal isOpen={duelOpen} onClose={() => setDuelOpen(false)} />
     </div>
   );
 };

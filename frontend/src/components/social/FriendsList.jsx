@@ -29,7 +29,7 @@ const MiniProfilePopover = ({ friend, position = 'right' }) => {
         <div className="flex items-center gap-3 mb-3">
           <Avatar name={friend.name} src={friend.avatar_url} size="lg" online={friend.online ?? friend.is_learning_now} />
           <div className="min-w-0">
-            <Link to={`/profile/${friend.username}`} className="text-sm font-semibold text-text-primary truncate hover:underline block">
+            <Link to={`/u/${friend.username}`} className="text-sm font-semibold text-text-primary truncate hover:underline block">
               {friend.name}
             </Link>
             <p className="text-caption text-text-muted">@{friend.username}</p>
@@ -90,7 +90,7 @@ const FriendItem = ({ friend }) => {
         <Avatar name={friend.name} src={friend.avatar_url} size="sm" online={friend.online ?? friend.is_learning_now} />
       </Link>
       <div className="flex-1 min-w-0">
-        <Link to={`/profile/${friend.username}`} className="text-sm text-text-primary font-medium truncate hover:underline block">
+        <Link to={`/u/${friend.username}`} className="text-sm text-text-primary font-medium truncate hover:underline block">
           {friend.name}
         </Link>
         {(friend.online || friend.is_learning_now) && friend.studying ? (
