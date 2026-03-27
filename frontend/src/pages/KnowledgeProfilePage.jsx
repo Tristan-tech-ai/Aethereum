@@ -238,10 +238,10 @@ const KnowledgeProfilePage = () => {
                ╚══════════════════════════════════════════════════╝ */}
             <div className="relative rounded-lg-drd overflow-hidden bg-dark-card border border-border">
                 {/* Animated mesh gradient banner */}
-                <div className="h-36 sm:h-44 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-accent/20 to-info/30" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(124,58,237,0.3),transparent_50%)]" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(6,182,212,0.25),transparent_50%)]" />
+                <div className="h-32 sm:h-44 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-accent/20 to-info/30 z-0" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(124,58,237,0.3),transparent_50%)] z-0" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(6,182,212,0.25),transparent_50%)] z-0" />
                     {/* Subtle grid overlay */}
                     <div className="absolute inset-0 opacity-[0.04]" style={{
                         backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
@@ -254,12 +254,12 @@ const KnowledgeProfilePage = () => {
                 </div>
 
                 {/* Profile content below banner */}
-                <div className="px-5 sm:px-6 pb-6">
+                <div className="px-5 sm:px-6 pb-6 relative z-10">
                     <div className="flex flex-col sm:flex-row items-start gap-5 -mt-14 sm:-mt-12">
                         {/* Avatar with rank glow ring */}
-                        <div className="relative flex-shrink-0">
-                            <div className="ring-[3px] ring-dark-card rounded-full shadow-lg-drd">
-                                <div className="ring-2 ring-rank-gold/60 rounded-full p-[2px]">
+                        <div className="relative flex-shrink-0 z-10">
+                            <div className="bg-dark-card rounded-full p-1 shadow-lg-drd ring-1 ring-border/20">
+                                <div className="ring-2 ring-primary/40 rounded-full p-1">
                                     <Avatar
                                         src={avatarUrl ? (avatarUrl.startsWith("http") ? avatarUrl : `/storage/${avatarUrl}`) : null}
                                         name={name}
@@ -289,13 +289,13 @@ const KnowledgeProfilePage = () => {
                                     <p className="text-body-sm text-text-muted mt-0.5">@{username}</p>
                                 </div>
                                 {/* Action buttons */}
-                                <div className="flex gap-2 flex-shrink-0">
-                                    <Link to="/settings">
-                                        <Button variant="secondary" size="sm">
+                                <div className="flex gap-2 flex-shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
+                                    <Link to="/settings" className="flex-1 sm:flex-none">
+                                        <Button variant="secondary" size="sm" className="w-full">
                                             <Edit size={14} className="mr-1.5" /> Edit Profile
                                         </Button>
                                     </Link>
-                                    <Button size="sm" onClick={handleShare}>
+                                    <Button size="sm" onClick={handleShare} className="flex-1 sm:flex-none">
                                         <Share2 size={14} className="mr-1.5" /> Share
                                     </Button>
                                 </div>
@@ -324,7 +324,7 @@ const KnowledgeProfilePage = () => {
 
                     {/* ── Social Stats Bar ── */}
                     <div className="mt-5 pt-5 border-t border-border-subtle">
-                        <div className="flex flex-wrap gap-6 sm:gap-8">
+                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:gap-8">
                             {[
                                 { icon: Users, color: "text-primary-light", value: stats.friends_count ?? 0, label: "Friends" },
                                 { icon: Heart, color: "text-danger", value: stats.total_likes ?? 0, label: "Likes Received" },
@@ -333,13 +333,13 @@ const KnowledgeProfilePage = () => {
                                 { icon: Trophy, color: "text-accent", value: unlockedCount, label: "Achievements" },
                                 { icon: Clock, color: "text-info", value: `${stats.total_study_time_hours ?? 0}h`, label: "Study Time" },
                             ].map((stat, i) => (
-                                <div key={i} className="group flex items-center gap-2.5 cursor-default">
-                                    <div className="w-9 h-9 rounded-lg bg-dark-secondary/80 flex items-center justify-center group-hover:scale-110 transition-transform duration-fast">
+                                <div key={i} className="group flex items-center gap-2.5 cursor-default min-w-0">
+                                    <div className="w-9 h-9 rounded-lg bg-dark-secondary/80 flex items-center justify-center group-hover:scale-110 transition-transform duration-fast flex-shrink-0">
                                         <stat.icon size={15} className={stat.color} />
                                     </div>
-                                    <div>
-                                        <p className="text-body-sm font-bold text-text-primary leading-none">{stat.value}</p>
-                                        <p className="text-[11px] text-text-muted">{stat.label}</p>
+                                    <div className="min-w-0 overflow-hidden">
+                                        <p className="text-body-sm font-bold text-text-primary leading-none truncate">{stat.value}</p>
+                                        <p className="text-[10px] text-text-muted truncate">{stat.label}</p>
                                     </div>
                                 </div>
                             ))}

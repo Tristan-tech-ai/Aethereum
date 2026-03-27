@@ -135,6 +135,18 @@ function App() {
         setUserMenuOpen(false);
     }, [location.pathname]);
 
+    // Lock body scroll when sidebar is open (mobile)
+    useEffect(() => {
+        if (sidebarOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [sidebarOpen]);
+
     useEffect(() => {
         const handleOutsideClick = (event) => {
             if (
@@ -222,7 +234,7 @@ function App() {
                                 {user && (
                                 <>
                                 <Link
-                                    to="/events"
+                                    to="/notifications"
                                     className="relative p-2 text-text-muted hover:text-text-primary transition-colors duration-fast"
                                     title="Notifications"
                                 >

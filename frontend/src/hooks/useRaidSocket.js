@@ -16,6 +16,7 @@ const useRaidSocket = (raidId, { onProgress, onChat, onCompleted } = {}) => {
 
         const subscribe = async () => {
             const echo = await refreshEchoAuth();
+            if (!echo) return;
             channel = echo.private(`raid.${raidId}`);
 
             channel.listen('.RaidMemberProgress', (data) => {

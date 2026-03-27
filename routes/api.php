@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\LeaderboardController;
 use App\Http\Controllers\Api\LeagueController;
 use App\Http\Controllers\Api\LearningRelayController;
 use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\QuizArenaController;
 use App\Http\Controllers\Api\ReportController;
@@ -39,6 +40,13 @@ Route::prefix('v1/auth')->group(function () {
 
 // ─── Protected Routes (Supabase JWT) ───
 Route::middleware(SupabaseAuth::class)->group(function () {
+
+    Route::prefix('v1/notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
+        Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    });
 
     Route::prefix('v1/auth')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);

@@ -33,6 +33,7 @@ const LeaguePage = lazy(() => import("./pages/LeaguePage"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
 const TasksPage = lazy(() => import("./pages/TasksPage"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import GuestRoute from "./components/auth/GuestRoute";
 const NotFound = () => (
@@ -88,6 +89,7 @@ const AppRouter = () => {
                     <Route path="events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
                     <Route path="support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
                     <Route path="tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+                    <Route path="notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
                     {/* Public Profile (no auth required) */}
                     <Route path="u/:username" element={<PublicProfilePage />} />
                     {/* Guest Routes */}

@@ -159,7 +159,7 @@ const KnowledgeCard = ({
             whileTap={{ scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className={`
-        relative w-full max-w-[280px] bg-dark-card
+        relative w-full sm:max-w-[280px] bg-dark-card
         rounded-md-drd overflow-hidden cursor-pointer select-none
         ${className}
       `}

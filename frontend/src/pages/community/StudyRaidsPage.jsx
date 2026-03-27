@@ -307,13 +307,12 @@ const StudyRaidsPage = () => {
                     onProgressUpdate={(progress) => updateRaidProgress(currentRaid.id, progress)}
                     onSendChat={handleSendRaidChat}
                     onComplete={async (data) => {
-                        // Report final quiz score if available
-                        if (data?.quizScore && currentRaid?.id) {
-                            try {
-                                await useSocialStore.getState().submitRaidQuiz?.(currentRaid.id, data.quizScore);
-                            } catch { /* non-critical */ }
+                        try {
+                            // Pass quiz score and focus integrity to completeRaid
+                            await completeRaid(currentRaid.id, data?.quizScore, data?.focusIntegrity);
+                        } catch (err) {
+                            console.error("Failed to complete raid:", err);
                         }
-                        await completeRaid(currentRaid.id);
                         const results = await fetchRaidResults(currentRaid.id);
                         setRaidResult(results);
                         setRaidPhase("complete");

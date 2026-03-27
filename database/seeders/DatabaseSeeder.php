@@ -16,6 +16,7 @@ use App\Models\UserWallet;
 use App\Models\XpEvent;
 use App\Models\FeedEvent;
 use App\Models\Friendship;
+use App\Models\Notification;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -270,6 +271,31 @@ class DatabaseSeeder extends Seeder
             'event_type' => 'raid_complete',
             'event_data' => ['raid_id' => $completedRaid->id, 'team_score' => 90],
             'likes' => 6,
+        ]);
+
+        // 11. Notifications
+        Notification::create([
+            'user_id' => $hero->id,
+            'type' => 'xp_awarded',
+            'data' => ['title' => 'XP Awarded', 'message' => 'You earned 150 XP for completing a Study Raid!', 'amount' => 150],
+        ]);
+
+        Notification::create([
+            'user_id' => $hero->id,
+            'type' => 'achievement_unlocked',
+            'data' => ['title' => 'Achievement Unlocked', 'message' => 'Congratulations! You unlocked the "Polymath" achievement.'],
+        ]);
+
+        Notification::create([
+            'user_id' => $hero->id,
+            'type' => 'streak_alert',
+            'data' => ['title' => 'Streak at Risk!', 'message' => 'Your 45-day streak is about to expire. Complete a session now!'],
+        ]);
+
+        Notification::create([
+            'user_id' => $hero->id,
+            'type' => 'friend_request',
+            'data' => ['title' => 'New Friend Request', 'message' => 'Siti Aminah sent you a friend request.', 'username' => 'siti_scholar'],
         ]);
 
         $this->command->info('🏰 Aethereum demo data seeded successfully!');

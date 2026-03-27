@@ -146,20 +146,20 @@ const PublicProfilePage = () => {
           />
         </div>
 
-        <div className="flex gap-6 mb-6">
-          <div className="text-center">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:gap-6 mb-6 w-full max-w-lg mx-auto">
+          <div className="text-center p-3 bg-dark-card rounded-xl border border-border/40 sm:bg-transparent sm:p-0 sm:border-0">
             <p className="text-h4 font-bold text-text-primary">{Number(stats.total_cards ?? 0)}</p>
             <p className="text-caption text-text-muted">Cards</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-3 bg-dark-card rounded-xl border border-border/40 sm:bg-transparent sm:p-0 sm:border-0">
             <p className="text-h4 font-bold text-text-primary">{Number(stats.total_hours ?? 0)}</p>
             <p className="text-caption text-text-muted">Hours</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-3 bg-dark-card rounded-xl border border-border/40 sm:bg-transparent sm:p-0 sm:border-0">
             <p className="text-h4 font-bold text-text-primary">{Number(stats.total_materials ?? 0)}</p>
             <p className="text-caption text-text-muted">Materials</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-3 bg-dark-card rounded-xl border border-border/40 sm:bg-transparent sm:p-0 sm:border-0">
             <p className="text-h4 font-bold text-text-primary">{Number(stats.avg_mastery ?? 0)}%</p>
             <p className="text-caption text-text-muted">Avg Mastery</p>
           </div>
@@ -223,19 +223,19 @@ const PublicProfilePage = () => {
         )}
       </section>
 
-      <Card className="flex items-center justify-between flex-wrap gap-4">
+      <Card className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-sm text-text-secondary">Share this profile</p>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={handleCopyLink}>
+        <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
+          <Button variant="ghost" size="sm" onClick={handleCopyLink} className="flex justify-center">
             <Copy size={14} className="mr-1.5" /> Copy Link
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="flex justify-center">
             <ExternalLink size={14} className="mr-1.5" /> WhatsApp
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="flex justify-center">
             <ExternalLink size={14} className="mr-1.5" /> Twitter
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="flex justify-center">
             <ExternalLink size={14} className="mr-1.5" /> Instagram
           </Button>
         </div>

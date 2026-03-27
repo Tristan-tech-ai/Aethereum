@@ -7,22 +7,14 @@ import {
     AlertTriangle,
     FileText,
     Lightbulb,
-    Loader2,
 } from "lucide-react";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 
-/**
+/*
  * SummaryCreation — Summary writing + AI validation component.
- *
- * DRD 7.6 Summary sub-view:
- *   - Textarea (min 50 chars), live char count
- *   - "Check with AI" button → inline AI feedback card
- *   - "Submit & Complete" (enabled after AI approval)
- *
- * PRD Principle: Summary quality check (min 50 chars + AI coherence score ≥40%)
  */
-const SummaryCreation = ({
+function SummaryCreation({
     summaryText = "",
     onSummaryChange,
     onValidate,
@@ -32,7 +24,7 @@ const SummaryCreation = ({
     summaryApproved = false,
     loading = false,
     contentTitle = "",
-}) => {
+}) {
     const [hasValidated, setHasValidated] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);

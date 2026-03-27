@@ -55,6 +55,46 @@ const QuizBattle = ({
     const timerRef = useRef(null);
     const feedbackTimerRef = useRef(null);
 
+    const handleSubmitAnswer = useCallback(
+        (answerIdx) => {
+            if (showFeedback) return;
+            clearInterval(timerRef.current);
+
+            const q = questions[currentQ];
+            const correct = q?.correct ?? q?.correct_index ?? 0;
+            const isCorrect = answerIdx === correct;
+
+            setSelectedAnswer(answerIdx);
+            setFeedbackCorrect(isCorrect);
+            setShowFeedback(true);
+
+            // Show feedback: 1.5s for correct, 3s for wrong (so user can read explanation)
+            const feedbackDuration = isCorrect ? 1500 : 3000;
+            feedbackTimerRef.current = setTimeout(() => {
+                const newAnswers = [...answers, answerIdx];
+                setAnswers(newAnswers);
+                setAnswerCorrectness((prev) => [...prev, isCorrect]);
+                setShowFeedback(false);
+                setSelectedAnswer(null);
+
+                if (currentQ < questions.length - 1) {
+                    setCurrentQ((q) => q + 1);
+                } else {
+                    // Submit all answers
+                    setPhase("results");
+                    setResultsLoading(true);
+                    onSubmit?.(newAnswers).then((res) => {
+                        setResults(res);
+                        setResultsLoading(false);
+                    });
+                }
+            }, feedbackDuration);
+
+            return () => clearTimeout(feedbackTimerRef.current);
+        },
+        [currentQ, questions, answers, showFeedback, onSubmit],
+    );
+
     // Timer per question
     useEffect(() => {
         if (phase !== "battle") return;
@@ -96,46 +136,6 @@ const QuizBattle = ({
             // External score was set (e.g., from retry navigation)
         }
     }, [quizScore, phase, answers.length]);
-
-    const handleSubmitAnswer = useCallback(
-        (answerIdx) => {
-            if (showFeedback) return;
-            clearInterval(timerRef.current);
-
-            const q = questions[currentQ];
-            const correct = q?.correct ?? q?.correct_index ?? 0;
-            const isCorrect = answerIdx === correct;
-
-            setSelectedAnswer(answerIdx);
-            setFeedbackCorrect(isCorrect);
-            setShowFeedback(true);
-
-            // Show feedback: 1.5s for correct, 3s for wrong (so user can read explanation)
-            const feedbackDuration = isCorrect ? 1500 : 3000;
-            feedbackTimerRef.current = setTimeout(() => {
-                const newAnswers = [...answers, answerIdx];
-                setAnswers(newAnswers);
-                setAnswerCorrectness((prev) => [...prev, isCorrect]);
-                setShowFeedback(false);
-                setSelectedAnswer(null);
-
-                if (currentQ < questions.length - 1) {
-                    setCurrentQ((q) => q + 1);
-                } else {
-                    // Submit all answers
-                    setPhase("results");
-                    setResultsLoading(true);
-                    onSubmit?.(newAnswers).then((res) => {
-                        setResults(res);
-                        setResultsLoading(false);
-                    });
-                }
-            }, feedbackDuration);
-
-            return () => clearTimeout(feedbackTimerRef.current);
-        },
-        [currentQ, questions, answers, showFeedback, onSubmit],
-    );
 
     const handleRetry = () => {
         setPhase("battle");
