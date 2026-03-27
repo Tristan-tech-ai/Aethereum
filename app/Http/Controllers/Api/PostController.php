@@ -25,15 +25,14 @@ class PostController extends Controller
         $perPage = max(5, min(30, (int) $request->input('per_page', 15)));
         $sort    = $request->input('sort', 'latest'); // latest | top | following
 
-        $audienceIds = $this->audienceUserIds($user->id);
+        $query = CommunityPost::with('user:id,name,username,avatar_url,level,current_streak');
 
-        // "following" only shows posts from friends (not self)
-        $scopeIds = $sort === 'following'
-            ? array_filter($audienceIds, fn($id) => $id !== $user->id)
-            : $audienceIds;
-
-        $query = CommunityPost::with('user:id,name,username,avatar_url,level,current_streak')
-            ->whereIn('user_id', array_values($scopeIds ?: $audienceIds));
+        // "following" only shows posts from friends (not self); latest/top show ALL posts
+        if ($sort === 'following') {
+            $audienceIds = $this->audienceUserIds($user->id);
+            $friendOnly  = array_filter($audienceIds, fn($id) => $id !== $user->id);
+            $query->whereIn('user_id', array_values($friendOnly ?: $audienceIds));
+        }
 
         // Sort order
         if ($sort === 'top') {
@@ -133,11 +132,6 @@ class PostController extends Controller
         $user = $request->user();
         $post = CommunityPost::findOrFail($id);
 
-        $audienceIds = $this->audienceUserIds($user->id);
-        if (!in_array($post->user_id, $audienceIds, true)) {
-            return $this->error('You cannot interact with this post', 403);
-        }
-
         $exists = DB::table('post_likes')
             ->where('post_id', $post->id)
             ->where('user_id', $user->id)
@@ -186,12 +180,6 @@ class PostController extends Controller
     public function addComment(Request $request, string $id): JsonResponse
     {
         $post = CommunityPost::findOrFail($id);
-
-        // Allow commenting on any visible post (self + friends)
-        $audienceIds = $this->audienceUserIds($request->user()->id);
-        if (!in_array($post->user_id, $audienceIds, true)) {
-            return $this->error('You cannot comment on this post', 403);
-        }
 
         $request->validate([
             'body' => ['required', 'string', 'max:500'],

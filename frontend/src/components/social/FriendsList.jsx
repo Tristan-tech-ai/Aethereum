@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Swords, Users, MessageSquare, MoreHorizontal, Search, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
-import api from '../../services/api';
-
-// Demo friends data
-const demoFriends = [
-  { id: 1, name: 'Budi Santoso', username: 'budi_s', online: true, studying: 'Data Structures', level: 24, rank: 'Gold' },
-  { id: 2, name: 'Siti Rahma', username: 'siti_r', online: true, studying: 'Organic Chemistry', level: 31, rank: 'Platinum' },
-  { id: 3, name: 'Arief Wicaksono', username: 'arief_w', online: true, studying: null, level: 18, rank: 'Gold' },
-  { id: 4, name: 'Maya Putri', username: 'maya_p', online: false, lastSeen: '2h ago', level: 35, rank: 'Emerald' },
-];
+import { useFriendStore } from '../../stores/friendStore';
 
 const rankColors = {
   Bronze:   'text-rank-bronze',
@@ -34,9 +27,11 @@ const MiniProfilePopover = ({ friend, position = 'right' }) => {
       <div className="bg-dark-elevated border border-border rounded-md-drd shadow-lg-drd p-4 pointer-events-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-3">
-          <Avatar name={friend.name} size="lg" src={friend.avatar_url} online={friend.online ?? friend.is_learning_now} />
+          <Avatar name={friend.name} src={friend.avatar_url} size="lg" online={friend.online ?? friend.is_learning_now} />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-text-primary truncate">{friend.name}</p>
+            <Link to={`/profile/${friend.username}`} className="text-sm font-semibold text-text-primary truncate hover:underline block">
+              {friend.name}
+            </Link>
             <p className="text-caption text-text-muted">@{friend.username}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className={`text-caption font-medium ${rankColors[friend.rank] || 'text-text-muted'}`}>
@@ -91,9 +86,13 @@ const FriendItem = ({ friend }) => {
       onMouseEnter={() => setShowPopover(true)}
       onMouseLeave={() => setShowPopover(false)}
     >
-      <Avatar name={friend.name} src={friend.avatar_url} size="sm" online={friend.online ?? friend.is_learning_now} />
+      <Link to={`/profile/${friend.username}`} className="shrink-0">
+        <Avatar name={friend.name} src={friend.avatar_url} size="sm" online={friend.online ?? friend.is_learning_now} />
+      </Link>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-text-primary font-medium truncate">{friend.name}</p>
+        <Link to={`/profile/${friend.username}`} className="text-sm text-text-primary font-medium truncate hover:underline block">
+          {friend.name}
+        </Link>
         {(friend.online || friend.is_learning_now) && friend.studying ? (
           <p className="text-[11px] text-success truncate">📖 {friend.studying}</p>
         ) : (friend.online || friend.is_learning_now) ? (
@@ -133,32 +132,13 @@ const FriendsList = ({
   collapsed = false,
   onAddFriend,
 }) => {
-  const [friends, setFriends] = useState([]);
+  const { friends, loading, fetchFriends } = useFriendStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all'); // 'all' | 'online'
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-      const fetchFriends = async () => {
-          try {
-              const res = await api.get('/v1/friends');
-              const data = res.data?.data ?? res.data;
-              if (Array.isArray(data) && data.length > 0) {
-                  setFriends(data);
-              } else {
-                  setFriends(demoFriends);
-              }
-          } catch {
-              setFriends(demoFriends);
-          } finally {
-              setLoading(false);
-          }
-      };
-      
-      // Delay fetching slightly if UI is animating
-      const t = setTimeout(fetchFriends, 100);
-      return () => clearTimeout(t);
-  }, []);
+      fetchFriends();
+  }, [fetchFriends]);
 
   const onlineFriends = friends.filter((f) => f.online || f.is_learning_now);
   const offlineFriends = friends.filter((f) => !f.online && !f.is_learning_now);

@@ -1,17 +1,9 @@
-import React, { useState } from 'react';
-import { Swords, Clock, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Swords, Clock, Search, Loader2 } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
-
-// Demo friends for selection
-const demoFriends = [
-  { id: 1, name: 'Budi Santoso', username: 'budi_s', online: true, level: 24 },
-  { id: 2, name: 'Siti Rahma', username: 'siti_r', online: true, level: 31 },
-  { id: 3, name: 'Arief Wicaksono', username: 'arief_w', online: true, level: 18 },
-  { id: 4, name: 'Maya Putri', username: 'maya_p', online: false, level: 35 },
-  { id: 5, name: 'Gita Lestari', username: 'gita_l', online: true, level: 19 },
-];
+import { useFriendStore } from '../../stores/friendStore';
 
 const durations = [
   { value: 25, label: '25 min', desc: 'Quick focus' },
@@ -20,11 +12,16 @@ const durations = [
 ];
 
 const ChallengeDuelModal = ({ isOpen, onClose, onSendChallenge }) => {
+  const { friends, loading, fetchFriends } = useFriendStore();
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState(25);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filtered = demoFriends.filter(
+  useEffect(() => {
+    if (isOpen) fetchFriends();
+  }, [isOpen, fetchFriends]);
+
+  const filtered = friends.filter(
     (f) =>
       f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       f.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -60,7 +57,15 @@ const ChallengeDuelModal = ({ isOpen, onClose, onSendChallenge }) => {
         </div>
 
         <div className="max-h-44 overflow-y-auto space-y-1 -mx-1 px-1">
-          {filtered.map((friend) => (
+          {loading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 size={20} className="animate-spin text-text-muted" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="text-center text-caption text-text-muted py-4">
+              {searchQuery ? 'No friends found' : 'No friends yet — add friends first!'}
+            </p>
+          ) : filtered.map((friend) => (
             <button
               key={friend.id}
               onClick={() => setSelectedFriend(friend)}
@@ -80,9 +85,6 @@ const ChallengeDuelModal = ({ isOpen, onClose, onSendChallenge }) => {
               )}
             </button>
           ))}
-          {filtered.length === 0 && (
-            <p className="text-center text-caption text-text-muted py-4">No friends found</p>
-          )}
         </div>
       </div>
 

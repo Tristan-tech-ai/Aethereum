@@ -99,10 +99,14 @@ const CommentItem = ({ comment, postId, canDelete }) => {
     const { deleteComment } = usePostStore();
     return (
         <div className="flex gap-2 group">
-            <Avatar name={comment.user?.name} src={comment.user?.avatar_url} size="xs" className="shrink-0 mt-0.5" />
+            <Link to={`/profile/${comment.user?.username}`} className="shrink-0 mt-0.5">
+                <Avatar name={comment.user?.name} src={comment.user?.avatar_url} size="xs" />
+            </Link>
             <div className="flex-1 min-w-0">
                 <div className="bg-dark-secondary rounded-xl px-3 py-2">
-                    <p className="text-xs font-semibold text-text-primary">{comment.user?.name}</p>
+                    <Link to={`/profile/${comment.user?.username}`} className="text-xs font-semibold text-text-primary hover:underline">
+                        {comment.user?.name}
+                    </Link>
                     <p className="text-xs text-text-secondary mt-0.5 leading-relaxed break-words">{comment.body}</p>
                 </div>
                 <div className="flex items-center gap-2 mt-1 px-1">
@@ -191,20 +195,20 @@ const PostCard = ({ post }) => {
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2.5">
                         {/* Avatar */}
-                        <div className="relative shrink-0">
+                        <Link to={`/profile/${post.user?.username}`} className="relative shrink-0">
                             <Avatar name={post.user?.name} src={post.user?.avatar_url} size="sm" />
                             {/* Level ring */}
                             <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-dark-card border border-border/60 flex items-center justify-center`}>
                                 <span className={`text-[8px] font-bold leading-none ${rankColor}`}>{lvl}</span>
                             </div>
-                        </div>
+                        </Link>
 
                         <div className="min-w-0">
                             {/* Name + rank badge */}
                             <div className="flex items-center gap-1.5 flex-wrap">
-                                <p className="text-sm font-semibold text-text-primary leading-tight">
+                                <Link to={`/profile/${post.user?.username}`} className="text-sm font-semibold text-text-primary leading-tight hover:underline">
                                     {post.user?.name ?? "Unknown"}
-                                </p>
+                                </Link>
                                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-dark-secondary ${rankColor} border border-current/20`}>
                                     {rankLabel}
                                 </span>
