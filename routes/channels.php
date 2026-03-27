@@ -45,12 +45,21 @@ Broadcast::channel('relay.{relayId}', function (User $user, string $relayId) {
 Broadcast::channel('room.{roomId}', function (User $user, string $roomId) {
     $room = StudyRoom::find($roomId);
     if (!$room) return false;
-    if ($room->members()->where('user_id', $user->id)->exists()) {
+
+    $membership = $room->members()
+        ->where('user_id', $user->id)
+        ->first();
+
+    if ($membership) {
         return [
             'id' => $user->id,
             'name' => $user->name,
             'username' => $user->username,
             'avatar_url' => $user->avatar_url,
+            'is_online' => (bool) ($membership->pivot->is_online ?? true),
+            'current_material' => $membership->pivot->current_material,
+            'joined_at' => optional($membership->pivot->joined_at)?->toISOString(),
+            'last_active_at' => optional($membership->pivot->last_active_at)?->toISOString(),
         ];
     }
     return false;

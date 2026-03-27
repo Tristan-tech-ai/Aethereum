@@ -12,6 +12,18 @@ use Illuminate\Support\Str;
 
 class StudyRoomService
 {
+    private function memberPayload(User $user, ?string $material = null): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'avatar_url' => $user->avatar_url,
+            'current_material' => $material,
+            'is_online' => true,
+        ];
+    }
+
     public function generateRoomCode(): string
     {
         do {
@@ -32,16 +44,17 @@ class StudyRoomService
             ],
         ]);
 
-        broadcast(new StudyRoomPresenceUpdate($room->id, $user->id, 'joined', $material))->toOthers();
+        broadcast(new StudyRoomPresenceUpdate($room->id, $user->id, 'joined', $material, $this->memberPayload($user, $material)))->toOthers();
     }
 
     public function removeMember(StudyRoom $room, User $user): void
     {
         $room->members()->updateExistingPivot($user->id, [
             'is_online' => false,
+            'last_active_at' => now(),
         ]);
 
-        broadcast(new StudyRoomPresenceUpdate($room->id, $user->id, 'left', null))->toOthers();
+        broadcast(new StudyRoomPresenceUpdate($room->id, $user->id, 'left', null, $this->memberPayload($user)))->toOthers();
     }
 
     public function updatePresence(StudyRoom $room, User $user, ?string $material): void
@@ -52,7 +65,7 @@ class StudyRoomService
             'is_online' => true,
         ]);
 
-        broadcast(new StudyRoomPresenceUpdate($room->id, $user->id, 'updated', $material))->toOthers();
+        broadcast(new StudyRoomPresenceUpdate($room->id, $user->id, 'updated', $material, $this->memberPayload($user, $material)))->toOthers();
     }
 
     public function sendReaction(StudyRoom $room, User $user, string $emoji): void
@@ -87,7 +100,7 @@ class StudyRoomService
 
             foreach ($inactive as $member) {
                 $room->members()->updateExistingPivot($member->id, ['is_online' => false]);
-                broadcast(new StudyRoomPresenceUpdate($room->id, $member->id, 'inactive', null))->toOthers();
+                broadcast(new StudyRoomPresenceUpdate($room->id, $member->id, 'inactive', null, $this->memberPayload($member)))->toOthers();
                 $count++;
             }
         }

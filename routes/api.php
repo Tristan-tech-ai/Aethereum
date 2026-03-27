@@ -212,10 +212,12 @@ Route::middleware(SupabaseAuth::class)->group(function () {
     // ─── Study Rooms ───
     Route::prefix('v1/rooms')->group(function () {
         Route::get('/public', [StudyRoomController::class, 'publicRooms']);
+        Route::get('/{id}', [StudyRoomController::class, 'show']);
         Route::post('/', [StudyRoomController::class, 'create']);
         Route::post('/join', [StudyRoomController::class, 'join']);
         Route::post('/{id}/presence', [StudyRoomController::class, 'updatePresence']);
         Route::post('/{id}/react', [StudyRoomController::class, 'react']);
+        Route::post('/{id}/pomodoro', [StudyRoomController::class, 'togglePomodoro']);
         Route::post('/{id}/leave', [StudyRoomController::class, 'leave']);
         Route::post('/{id}/close', [StudyRoomController::class, 'close']);
     });

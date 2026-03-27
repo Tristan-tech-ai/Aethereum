@@ -17,6 +17,7 @@ class StudyRoomPresenceUpdate implements ShouldBroadcast
         public string $memberId,
         public string $action,
         public ?string $currentMaterial,
+        public array $member,
     ) {}
 
     public function broadcastOn(): array
@@ -30,6 +31,7 @@ class StudyRoomPresenceUpdate implements ShouldBroadcast
             'member_id' => $this->memberId,
             'action' => $this->action,
             'current_material' => $this->currentMaterial,
+            'member' => $this->member,
         ];
     }
 }

@@ -15,9 +15,12 @@ const useStudyRoomSocket = (roomId, { onReaction, onPomodoro } = {}) => {
         if (!roomId) return;
 
         let channel = null;
+        let echoRef = null;
 
         const subscribe = async () => {
             const echo = await refreshEchoAuth();
+            if (!echo) return;
+            echoRef = echo;
             channel = echo.join(`room.${roomId}`);
 
             // Presence channel built-in events
@@ -26,16 +29,16 @@ const useStudyRoomSocket = (roomId, { onReaction, onPomodoro } = {}) => {
             });
 
             channel.joining((member) => {
-                updateMember(member.id, 'joined', null);
+                updateMember(member, 'joined', member.current_material ?? null);
             });
 
             channel.leaving((member) => {
-                updateMember(member.id, 'left', null);
+                updateMember(member, 'left', null);
             });
 
             // Custom broadcast events
             channel.listen('.StudyRoomPresenceUpdate', (data) => {
-                updateMember(data.member_id, data.action, data.current_material);
+                updateMember(data.member ?? data.member_id, data.action, data.current_material);
             });
 
             channel.listen('.StudyRoomPomodoro', (data) => {
@@ -55,6 +58,9 @@ const useStudyRoomSocket = (roomId, { onReaction, onPomodoro } = {}) => {
                 channel.stopListening('.StudyRoomPresenceUpdate');
                 channel.stopListening('.StudyRoomPomodoro');
                 channel.stopListening('.StudyRoomReaction');
+            }
+            if (echoRef) {
+                echoRef.leave(`room.${roomId}`);
             }
         };
     }, [roomId, onReaction, onPomodoro, setRoomMembers, updateMember, setPomodoroPhase]);

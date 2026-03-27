@@ -7,9 +7,13 @@ import Avatar from '../ui/Avatar';
 
 const musicIcons = {
   'Lo-fi': '🎵',
+  'lofi': '🎵',
   'Classical': '🎻',
+  'classical': '🎻',
   'Nature': '🌿',
+  'nature': '🌿',
   'Silence': '🔇',
+  'silence': '🔇',
 };
 
 const subjectColors = {
@@ -78,7 +82,7 @@ const StudyRoomBrowser = ({
                   </span>
                   {/* Music */}
                   <span className="flex items-center gap-1">
-                    {musicIcons[room.music] || '🎵'} {room.music}
+                    {musicIcons[room.music] || '🎵'} {String(room.music || 'lofi').toLowerCase()}
                   </span>
                   {/* Host */}
                   <span>by @{room.host}</span>
@@ -88,7 +92,7 @@ const StudyRoomBrowser = ({
                 {room.participants.length > 0 && (
                   <div className="flex items-center mt-2 -space-x-1.5">
                     {room.participants.slice(0, 5).map((p, i) => (
-                      <Avatar key={i} name={p} size="xs" className="ring-2 ring-dark-card" />
+                      <Avatar key={p?.id ?? i} name={p?.name || p?.username || 'Member'} src={p?.avatar_url} size="xs" className="ring-2 ring-dark-card" />
                     ))}
                     {room.participants.length > 5 && (
                       <span className="text-[10px] text-text-muted ml-2">

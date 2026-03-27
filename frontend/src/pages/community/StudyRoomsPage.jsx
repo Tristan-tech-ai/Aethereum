@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     BookOpen,
@@ -20,6 +20,7 @@ import StudyRoomView from "../../components/social/StudyRoomView";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import { useStudyRoomStore } from "../../stores/studyRoomStore";
+import { useAuthStore } from "../../stores/authStore";
 import useStudyRoomSocket from "../../hooks/useStudyRoomSocket";
 
 /* ═══════════════════════════════════════════
@@ -40,6 +41,7 @@ const QUICK_PRESETS = [
 ];
 
 const StudyRoomsPage = () => {
+    const currentUser = useAuthStore((s) => s.user);
     const [roomPhase, setRoomPhase] = useState("browse"); // 'browse' | 'inRoom'
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [roomName, setRoomName] = useState("");
@@ -55,11 +57,18 @@ const StudyRoomsPage = () => {
         roomMembers,
         pomodoroPhase,
         loading: roomLoading,
+        syncingRoom,
         fetchPublicRooms,
+        fetchRoom,
         createRoom,
         joinRoom,
         leaveRoom,
+        updatePresence,
+        sendReaction,
+        togglePomodoro,
     } = useStudyRoomStore();
+
+    const [incomingReaction, setIncomingReaction] = useState(null);
 
     const handleCreateRoom = async () => {
         if (!roomName.trim()) {
@@ -101,33 +110,65 @@ const StudyRoomsPage = () => {
         fetchPublicRooms();
     }, [fetchPublicRooms]);
 
+    const handleSocketReaction = useCallback((data) => {
+        if (data?.emoji) {
+            setIncomingReaction({ emoji: data.emoji, user_name: data.user_name, at: Date.now() });
+        }
+    }, []);
+
     useStudyRoomSocket(
         currentRoom?.id && roomPhase === "inRoom" ? currentRoom.id : null,
-        {},
+        {
+            onReaction: handleSocketReaction,
+        },
     );
+
+    useEffect(() => {
+        if (roomPhase !== 'inRoom' || !currentRoom?.id) return;
+
+        fetchRoom(currentRoom.id);
+
+        const interval = setInterval(() => {
+            fetchRoom(currentRoom.id);
+        }, 20000);
+
+        return () => clearInterval(interval);
+    }, [roomPhase, currentRoom?.id, fetchRoom]);
 
     const normalizedRooms = useMemo(
         () => publicRooms.map((room) => ({
             id: room.id,
             name: room.name || room.title || "Study Room",
             host: room.creator?.username || room.host?.username || room.creator?.name || "host",
-            members: room.participants_count || room.current_participants || room.members_count || room.participants?.length || 0,
+            members: room.online_members_count || room.current_participants || room.members_count || room.participants?.length || 0,
             max: room.max_capacity || room.max_participants || room.capacity || 10,
             subject: room.subject_category || room.subject || "General",
             music: room.music_preset || room.music_type || room.music || "Lo-fi",
             active: room.status ? room.status !== "closed" : true,
             roomCode: room.room_code,
-            participants: (room.participants || []).map((participant) => participant.name || participant.username || "Member"),
+            participants: (room.online_members_preview || room.participants || []).map((participant) => ({
+                id: participant.id,
+                name: participant.name || participant.username || 'Member',
+                username: participant.username,
+                avatar_url: participant.avatar_url,
+            })),
             raw: room,
         })),
         [publicRooms],
     );
 
     const normalizedCurrentRoom = currentRoom ? {
+        id: currentRoom.id,
         name: currentRoom.name || currentRoom.title || "Study Room",
         host: currentRoom.creator?.username || currentRoom.host?.username || currentRoom.creator?.name || "host",
         subject: currentRoom.subject_category || currentRoom.subject || "General",
-        music: currentRoom.music_preset || currentRoom.music_type || currentRoom.music || "Lo-fi",
+        music: currentRoom.music_preset || currentRoom.music_type || currentRoom.music || "lofi",
+        is_host: currentRoom.is_host,
+        online_members_count: currentRoom.online_members_count,
+        members_count: currentRoom.members_count,
+        max_capacity: currentRoom.max_capacity,
+        current_pomodoro_phase: currentRoom.current_pomodoro_phase,
+        pomodoro_started_at: currentRoom.pomodoro_started_at,
     } : null;
 
     const normalizedMembers = roomMembers.length > 0
@@ -135,11 +176,15 @@ const StudyRoomsPage = () => {
             id: member.id || index,
             name: member.name || member.username || `Member ${index + 1}`,
             material: member.current_material || "Studying",
-            timer: "00:00",
-            online: member.is_online ?? true,
-            isMe: false,
+            current_material: member.current_material || "Studying",
+            joined_at: member.joined_at,
+            last_active_at: member.last_active_at,
+            is_online: member.is_online ?? true,
+            avatar_url: member.avatar_url,
+            username: member.username,
+            isMe: String(member.id) === String(currentUser?.id),
         }))
-        : [{ id: "me", name: "You", material: "Studying", timer: "00:00", online: true, isMe: true }];
+        : [];
 
     const roomStats = {
         totalHours: publicRooms.reduce((acc, room) => acc + (Number(room.total_hours) || 0), 0),
@@ -222,11 +267,17 @@ const StudyRoomsPage = () => {
                 <StudyRoomView
                     room={normalizedCurrentRoom}
                     participants={normalizedMembers}
+                    syncing={syncingRoom}
+                    incomingReaction={incomingReaction}
+                    onSendReaction={(emoji) => currentRoom?.id ? sendReaction(currentRoom.id, emoji) : false}
+                    onUpdateStatus={(material) => currentRoom?.id ? updatePresence(currentRoom.id, material) : false}
+                    onTogglePomodoro={(phase) => currentRoom?.id ? togglePomodoro(currentRoom.id, phase) : false}
                     onLeave={async () => {
                         if (currentRoom?.id) {
                             await leaveRoom(currentRoom.id);
                         }
                         setRoomPhase("browse");
+                        setIncomingReaction(null);
                         fetchPublicRooms();
                     }}
                 />
