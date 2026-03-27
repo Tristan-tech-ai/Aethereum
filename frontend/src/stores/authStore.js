@@ -39,6 +39,7 @@ const saveOAuthError = (message) => {
 
 let authInitPromise = null;
 let syncUserPromise = null;
+let skipNextSignedInSync = false;
 
 export const useAuthStore = create(
     persist(
@@ -108,6 +109,10 @@ export const useAuthStore = create(
                 // SIGNED_IN after already initialized (e.g. fresh login)
                 if (event === 'SIGNED_IN' && session) {
                     set({ session });
+                    if (skipNextSignedInSync) {
+                        skipNextSignedInSync = false;
+                        return;
+                    }
                     get().syncUser();
                     return;
                 }
@@ -141,6 +146,11 @@ export const useAuthStore = create(
      * The backend auto-creates the local user + wallet on first call.
      */
     syncUser: async () => {
+        const activeSession = get().session;
+        if (!activeSession?.access_token) {
+            return;
+        }
+
         if (syncUserPromise) return syncUserPromise;
 
         syncUserPromise = (async () => {
@@ -224,6 +234,10 @@ export const useAuthStore = create(
     verifyEmailOtp: async ({ email, token }) => {
         set({ loading: true, error: null });
         try {
+            // verifyOtp emits SIGNED_IN. We intentionally redirect user to
+            // login afterward, so skip one syncUser call to avoid transient
+            // 401 while session is being signed out.
+            skipNextSignedInSync = true;
             const { data, error } = await supabase.auth.verifyOtp({
                 email,
                 token,
@@ -238,6 +252,7 @@ export const useAuthStore = create(
             set({ loading: false });
             return { success: true };
         } catch (err) {
+            skipNextSignedInSync = false;
             set({ error: parseError(err), loading: false });
             return { success: false };
         }
