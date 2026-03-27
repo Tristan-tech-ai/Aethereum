@@ -14,6 +14,7 @@ import {
     Headphones,
     Volume2,
     VolumeX,
+    RefreshCw,
 } from "lucide-react";
 import StudyRoomBrowser from "../../components/social/StudyRoomBrowser";
 import StudyRoomView from "../../components/social/StudyRoomView";
@@ -44,6 +45,7 @@ const StudyRoomsPage = () => {
     const currentUser = useAuthStore((s) => s.user);
     const [roomPhase, setRoomPhase] = useState("browse"); // 'browse' | 'inRoom'
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [quickJoinCode, setQuickJoinCode] = useState("");
     const [roomName, setRoomName] = useState("");
     const [roomDescription, setRoomDescription] = useState("");
     const [musicPreset, setMusicPreset] = useState("lofi");
@@ -249,17 +251,56 @@ const StudyRoomsPage = () => {
 
             {/* Browse Phase */}
             {roomPhase === "browse" && (
-                <StudyRoomBrowser
-                    rooms={normalizedRooms}
-                    onJoin={(room) => {
-                        joinRoom(room.roomCode || room.raw?.room_code || room.raw?.code).then((joinedRoom) => {
-                            if (joinedRoom) {
-                                setRoomPhase("inRoom");
-                            }
-                        });
-                    }}
-                    onCreate={() => setShowCreateModal(true)}
-                />
+                <div className="space-y-4">
+                    <Card className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+                        <div>
+                            <p className="text-sm font-semibold text-text-primary">Quick Join Room</p>
+                            <p className="text-caption text-text-muted mt-0.5">Masukkan kode room untuk langsung masuk.</p>
+                        </div>
+                        <div className="flex gap-2 w-full lg:w-auto">
+                            <input
+                                type="text"
+                                value={quickJoinCode}
+                                onChange={(e) => setQuickJoinCode(e.target.value.toUpperCase())}
+                                placeholder="ROOM CODE"
+                                maxLength={8}
+                                className="flex-1 lg:w-52 bg-dark-secondary border border-border rounded-lg px-3 py-2.5 text-sm font-mono tracking-widest text-text-primary text-center placeholder:text-text-muted focus:outline-none focus:border-primary"
+                            />
+                            <Button
+                                variant="secondary"
+                                disabled={quickJoinCode.length < 4 || roomLoading}
+                                onClick={async () => {
+                                    const joined = await joinRoom(quickJoinCode);
+                                    if (joined) {
+                                        setQuickJoinCode("");
+                                        setRoomPhase("inRoom");
+                                    }
+                                }}
+                            >
+                                Join
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                onClick={() => fetchPublicRooms(true)}
+                                title="Refresh room list"
+                            >
+                                <RefreshCw size={16} />
+                            </Button>
+                        </div>
+                    </Card>
+
+                    <StudyRoomBrowser
+                        rooms={normalizedRooms}
+                        onJoin={(room) => {
+                            joinRoom(room.roomCode || room.raw?.room_code || room.raw?.code).then((joinedRoom) => {
+                                if (joinedRoom) {
+                                    setRoomPhase("inRoom");
+                                }
+                            });
+                        }}
+                        onCreate={() => setShowCreateModal(true)}
+                    />
+                </div>
             )}
 
             {/* In-Room Phase */}

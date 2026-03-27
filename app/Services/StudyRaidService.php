@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\RaidCompleted;
+use App\Events\RaidChatMessage;
 use App\Events\RaidMemberProgress;
 use App\Models\StudyRaid;
 use App\Models\User;
@@ -70,5 +71,10 @@ class StudyRaidService
     public function broadcastProgress(string $raidId, string $participantId, float $progress): void
     {
         broadcast(new RaidMemberProgress($raidId, $participantId, $progress))->toOthers();
+    }
+
+    public function broadcastChat(string $raidId, User $user, string $message): void
+    {
+        broadcast(new RaidChatMessage($raidId, $user->id, $user->name, $message))->toOthers();
     }
 }

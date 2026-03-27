@@ -4,9 +4,7 @@ import {
     Users,
     BookOpen,
     Search,
-    Copy,
     Check,
-    Link2,
 } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
@@ -24,8 +22,6 @@ const CreateRaidModal = ({ isOpen, onClose, onCreateRaid }) => {
     const [selectedContent, setSelectedContent] = useState(null);
     const [maxParticipants, setMaxParticipants] = useState(5);
     const [searchQuery, setSearchQuery] = useState("");
-    const [inviteCode, setInviteCode] = useState(null);
-    const [codeCopied, setCodeCopied] = useState(false);
     const [creating, setCreating] = useState(false);
 
     const { contents, fetchContents } = useContentStore();
@@ -49,51 +45,19 @@ const CreateRaidModal = ({ isOpen, onClose, onCreateRaid }) => {
     const handleCreate = () => {
         if (!selectedContent) return;
         setCreating(true);
-
-        // Generate a random 8-char invite code (would come from backend in prod)
-        const code = Array.from({ length: 8 }, () =>
-            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".charAt(
-                Math.floor(Math.random() * 32),
-            ),
-        ).join("");
-
-        // Simulate creation delay
-        setTimeout(() => {
-            setInviteCode(code);
-            setCreating(false);
-        }, 800);
-    };
-
-    const handleCopyCode = () => {
-        if (!inviteCode) return;
-        navigator.clipboard.writeText(inviteCode);
-        setCodeCopied(true);
-        setTimeout(() => setCodeCopied(false), 2000);
-    };
-
-    const handleCopyLink = () => {
-        if (!inviteCode) return;
-        const link = `${window.location.origin}/social?raid=${inviteCode}`;
-        navigator.clipboard.writeText(link);
-        setCodeCopied(true);
-        setTimeout(() => setCodeCopied(false), 2000);
-    };
-
-    const handleStartRaid = () => {
-        onCreateRaid?.({
+        Promise.resolve(onCreateRaid?.({
             content: selectedContent,
             maxParticipants,
-            inviteCode,
+        })).finally(() => {
+            setCreating(false);
+            handleClose();
         });
-        handleClose();
     };
 
     const handleClose = () => {
         setSelectedContent(null);
         setMaxParticipants(5);
         setSearchQuery("");
-        setInviteCode(null);
-        setCodeCopied(false);
         setCreating(false);
         onClose();
     };
@@ -105,7 +69,7 @@ const CreateRaidModal = ({ isOpen, onClose, onCreateRaid }) => {
             title="⚔️ Create Study Raid"
             size="md"
         >
-            {!inviteCode ? (
+            (
                 <>
                     {/* Step 1: Select Content */}
                     <div className="mb-5">
@@ -244,71 +208,7 @@ const CreateRaidModal = ({ isOpen, onClose, onCreateRaid }) => {
                         Create Raid
                     </Button>
                 </>
-            ) : (
-                /* Step 3: Share Invite Code */
-                <div className="text-center">
-                    <div className="text-4xl mb-3">⚔️</div>
-                    <h3 className="text-h3 font-heading text-text-primary mb-1">
-                        Raid Created!
-                    </h3>
-                    <p className="text-sm text-text-secondary mb-5">
-                        Share this code with your raid party
-                    </p>
-
-                    {/* Invite Code Display */}
-                    <div className="inline-flex items-center gap-3 bg-dark-card border border-border rounded-md-drd px-5 py-3.5 mb-4">
-                        <span className="text-h2 font-mono text-text-primary tracking-[0.2em]">
-                            {inviteCode}
-                        </span>
-                        <button
-                            onClick={handleCopyCode}
-                            className="p-1.5 text-text-muted hover:text-primary-light transition-colors"
-                            title="Copy code"
-                        >
-                            {codeCopied ? (
-                                <Check size={18} className="text-success" />
-                            ) : (
-                                <Copy size={18} />
-                            )}
-                        </button>
-                    </div>
-
-                    <div className="flex gap-3 justify-center mb-6">
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={handleCopyCode}
-                        >
-                            <Copy size={14} className="mr-1.5" />
-                            {codeCopied ? "Copied!" : "Copy Code"}
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={handleCopyLink}
-                        >
-                            <Link2 size={14} className="mr-1.5" />
-                            Copy Link
-                        </Button>
-                    </div>
-
-                    <div className="bg-dark-secondary rounded-md-drd p-3 mb-5 text-left border border-border-subtle">
-                        <p className="text-caption text-text-muted mb-1">
-                            Material
-                        </p>
-                        <p className="text-sm text-text-primary font-medium truncate">
-                            {selectedContent?.title}
-                        </p>
-                        <p className="text-caption text-text-muted mt-1">
-                            {maxParticipants} max players
-                        </p>
-                    </div>
-
-                    <Button className="w-full" onClick={handleStartRaid}>
-                        Go to Lobby
-                    </Button>
-                </div>
-            )}
+            )
         </Modal>
     );
 };

@@ -170,6 +170,7 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::post('/', [StudyRaidController::class, 'create']);
         Route::post('/join', [StudyRaidController::class, 'join']);
         Route::get('/{id}', [StudyRaidController::class, 'show']);
+        Route::post('/{id}/chat', [StudyRaidController::class, 'chat']);
         Route::post('/{id}/start', [StudyRaidController::class, 'start']);
         Route::post('/{id}/progress', [StudyRaidController::class, 'updateProgress']);
         Route::post('/{id}/quiz-complete', [StudyRaidController::class, 'quizComplete']);

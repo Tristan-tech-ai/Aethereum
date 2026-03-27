@@ -149,6 +149,16 @@ export const useSocialStore = create((set, get) => ({
         }
     },
 
+    sendRaidChat: async (id, message) => {
+        try {
+            const res = await api.post(`/v1/raids/${id}/chat`, { message });
+            return (res.data?.data ?? res.data)?.message ?? null;
+        } catch (err) {
+            set({ error: parseError(err) });
+            return null;
+        }
+    },
+
     // ─── Focus Duel Actions ──────────────────
     fetchMyDuels: async (force = false) => {
         const { lastFetchedDuels, myDuels } = get();
@@ -419,7 +429,11 @@ export const useSocialStore = create((set, get) => ({
     },
 
     // ─── Setters (for WebSocket updates) ─────
-    setCurrentRaid: (raid) => set({ currentRaid: raid }),
+    setCurrentRaid: (raidOrUpdater) => set((state) => ({
+        currentRaid: typeof raidOrUpdater === 'function'
+            ? raidOrUpdater(state.currentRaid)
+            : raidOrUpdater,
+    })),
     setCurrentDuel: (duel) => set({ currentDuel: duel }),
     setCurrentArena: (arena) => set({ currentArena: arena }),
     setArenaLiveScore: (scores) => set({ arenaLiveScore: scores }),

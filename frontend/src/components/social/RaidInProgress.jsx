@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { MessageCircle, Send, BookOpen, AlertTriangle, ChevronRight, Users, X } from "lucide-react";
+import React, { useMemo, useState, useEffect } from "react";
+import { MessageCircle, Send, AlertTriangle, ChevronRight, Users, X } from "lucide-react";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
@@ -20,7 +20,15 @@ const normalizeSections = (raid) => {
     return [{ id: 1, title: raid?.content?.title || "Study Content", content: fallback }];
 };
 
-const RaidInProgress = ({ raid = {}, participants: externalParticipants, onComplete, className = "" }) => {
+const RaidInProgress = ({
+    raid = {},
+    participants: externalParticipants,
+    chatMessages: externalChatMessages = [],
+    onComplete,
+    onProgressUpdate,
+    onSendChat,
+    className = "",
+}) => {
     const authUser = useAuthStore((s) => s.user);
     const sections = useMemo(() => normalizeSections(raid), [raid]);
 
@@ -31,7 +39,6 @@ const RaidInProgress = ({ raid = {}, participants: externalParticipants, onCompl
             return {
                 id: p.id,
                 name: p.name || p.username || "Member",
-                level: p.level || 1,
                 progress: Number(pivot.progress_percentage ?? 0),
                 status: String(pivot.status || "learning"),
                 isMe: p.id === authUser?.id,
@@ -45,16 +52,23 @@ const RaidInProgress = ({ raid = {}, participants: externalParticipants, onCompl
     const [chatInput, setChatInput] = useState("");
     const [showChat, setShowChat] = useState(false);
 
+    useEffect(() => {
+        setChatMessages(externalChatMessages || []);
+    }, [externalChatMessages]);
+
     const myProgress = Math.round((completedSections.size / Math.max(1, sections.length)) * 100);
+
+    useEffect(() => {
+        onProgressUpdate?.(myProgress);
+    }, [myProgress, onProgressUpdate]);
+
     const teamProgress = Math.round((participants.reduce((sum, p) => sum + (p.isMe ? myProgress : p.progress), 0)) / Math.max(1, participants.length || 1));
 
     const getStatusEmoji = (status) => {
-        switch (status) {
-            case "learning": return "📖";
-            case "quiz": return "⚔️";
-            case "completed": return "✅";
-            default: return "⏳";
-        }
+        if (status === "learning") return "📖";
+        if (status === "quiz") return "⚔️";
+        if (status === "completed") return "✅";
+        return "⏳";
     };
 
     const handleCompleteSection = () => {
@@ -70,11 +84,19 @@ const RaidInProgress = ({ raid = {}, participants: externalParticipants, onCompl
         if (nextIdx !== -1) setCurrentSection(nextIdx);
     };
 
-    const handleSendChat = () => {
+    const handleSendChat = async () => {
         const text = chatInput.trim();
         if (!text) return;
-        setChatMessages((prev) => [...prev, { id: Date.now(), user: "You", text, time: "now" }]);
+        const localMessage = {
+            id: Date.now(),
+            user_id: authUser?.id,
+            user_name: authUser?.name || "You",
+            message: text,
+        };
+
+        setChatMessages((prev) => [...prev, localMessage]);
         setChatInput("");
+        await onSendChat?.(text);
     };
 
     return (
@@ -106,7 +128,7 @@ const RaidInProgress = ({ raid = {}, participants: externalParticipants, onCompl
                         <Card key={p.id} padding="compact" className={p.isMe ? "ring-1 ring-primary/30" : ""}>
                             <div className="flex items-center gap-2 mb-2">
                                 <Avatar name={p.name} size="xs" />
-                                <div className="flex-1 min-w-0"><p className="text-[11px] font-medium text-text-primary truncate">{p.name}</p><p className="text-[10px] text-text-muted">Lv.{p.level}</p></div>
+                                <div className="flex-1 min-w-0"><p className="text-[11px] font-medium text-text-primary truncate">{p.name}</p><p className="text-[10px] text-text-muted">Status: {p.status}</p></div>
                                 <span className="text-sm" title={p.status}>{getStatusEmoji(p.status)}</span>
                             </div>
                             <div className="w-full h-1.5 bg-dark-secondary rounded-full overflow-hidden"><div className="h-full bg-primary" style={{ width: `${p.isMe ? myProgress : p.progress}%` }} /></div>
@@ -131,8 +153,8 @@ const RaidInProgress = ({ raid = {}, participants: externalParticipants, onCompl
                 <div className={`fixed inset-y-0 right-0 w-[86%] max-w-sm z-40 bg-dark-base border-l border-border transform transition-transform duration-300 lg:static lg:translate-x-0 lg:w-80 lg:max-w-none lg:border lg:rounded-xl lg:bg-transparent ${showChat ? "translate-x-0" : "translate-x-full lg:translate-x-0"}`}>
                     <div className="h-full flex flex-col">
                         <div className="px-4 py-3 border-b border-border flex items-center justify-between"><h4 className="text-sm font-semibold text-text-primary">Team Chat</h4><button onClick={() => setShowChat(false)} className="lg:hidden text-text-muted"><X size={16} /></button></div>
-                        <div className="flex-1 overflow-auto p-3 space-y-2">{chatMessages.length === 0 ? <p className="text-xs text-text-muted text-center py-6">No messages yet.</p> : chatMessages.map((m) => (<div key={m.id} className="bg-dark-card border border-border rounded-lg p-2.5"><p className="text-[11px] text-text-muted">{m.user}</p><p className="text-sm text-text-primary">{m.text}</p></div>))}</div>
-                        <div className="p-3 border-t border-border flex items-end gap-2"><textarea value={chatInput} onChange={(e) => setChatInput(e.target.value.slice(0, 200))} placeholder="Type a message..." rows={2} className="flex-1 bg-dark-secondary border border-border rounded-lg px-3 py-2 text-sm text-text-primary resize-none focus:outline-none focus:border-primary" /><Button size="sm" onClick={handleSendChat}><Send size={14} /></Button></div>
+                        <div className="flex-1 overflow-auto p-3 space-y-2">{chatMessages.length === 0 ? <p className="text-xs text-text-muted text-center py-6">No messages yet.</p> : chatMessages.map((m, idx) => (<div key={m.id || idx} className="bg-dark-card border border-border rounded-lg p-2.5"><p className="text-[11px] text-text-muted">{m.user_name || m.user || "Member"}</p><p className="text-sm text-text-primary">{m.message || m.text}</p></div>))}</div>
+                        <div className="p-3 border-t border-border flex items-end gap-2"><textarea value={chatInput} onChange={(e) => setChatInput(e.target.value.slice(0, 500))} placeholder="Type a message..." rows={2} className="flex-1 bg-dark-secondary border border-border rounded-lg px-3 py-2 text-sm text-text-primary resize-none focus:outline-none focus:border-primary" /><Button size="sm" onClick={handleSendChat}><Send size={14} /></Button></div>
                     </div>
                 </div>
             </div>
