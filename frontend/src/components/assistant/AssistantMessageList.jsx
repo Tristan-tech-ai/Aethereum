@@ -116,26 +116,33 @@ const RichAssistantBubble = ({ structured }) => {
             {data.user_data?.show && <MetricsBar metrics={data.user_data.metrics} />}
             {data.sections?.map((sec, i) => <SectionCard key={i} section={sec} />)}
             
-            {data.ui_type === 'quiz_ready' && data.payload?.quiz_id && (
+            {(data.ui_type === 'quiz_ready' || data.phase === 'quiz_active') && (
                 <button
-                    onClick={() => setAssistantStore({ 
-                        quizReady: { 
-                            quizId: data.payload.quiz_id, 
-                            materialId: data.payload.content_id 
-                        } 
-                    })}
+                    onClick={() => {
+                        const qId = data.payload?.quiz_id;
+                        const mId = data.payload?.content_id;
+                        if (qId && mId) {
+                            setAssistantStore({ 
+                                quizReady: { quizId: qId, materialId: mId } 
+                            });
+                        } else {
+                            // Fallback: try to redirect anyway if we have materialId
+                            if (mId) window.location.href = `/learn/${mId}`;
+                        }
+                    }}
                     className="w-full mt-3 flex items-center justify-center gap-2 py-3 rounded-xl
                         bg-gradient-to-r from-primary to-indigo-600 text-white font-bold text-sm
                         shadow-lg shadow-primary/25 hover:shadow-primary/40 
                         hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                    <Sparkles size={16} />
+                    <span>🚀</span>
                     Mulai Selesaikan Quiz
                 </button>
             )}
 
             <CtaButtons cta={data.cta} />
         </div>
+
 
     );
 };

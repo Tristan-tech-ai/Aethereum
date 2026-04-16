@@ -7,8 +7,9 @@ use App\Models\AssistantMessage;
 use App\Models\LearningSession;
 use App\Models\User;
 use App\Services\AssistantConversationStateStoreService;
-use App\Services\QuizAssistantAdapter;
+use App\Services\QuizAssistantAdapterInterface;
 use Illuminate\Support\Str;
+
 
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -25,8 +26,9 @@ class AssistantOrchestratorService
         protected AssistantConversationStateStoreService $stateStore,
         protected QuizConfigurationFlowService $configFlow,
         protected QuizIntentDetectorService $intentDetector,
-        protected QuizAssistantAdapter $quizAdapter,
+        protected QuizAssistantAdapterInterface $quizAdapter,
     ) {}
+
 
 
     /**
@@ -183,13 +185,16 @@ class AssistantOrchestratorService
         // 🎯 TERMINAL ACTION: If phase is quiz_active, we create the quiz session
         if ($flowResponse['next_phase'] === 'quiz_active') {
              try {
+                 Log::debug('Creating quiz session with payload:', $newPayload);
                  $quizSession = $this->quizAdapter->createSession($newPayload, $user->id);
+                 Log::debug('Quiz session created:', $quizSession);
                  // Rename session_id to quiz_id for frontend compatibility
                  $newPayload['quiz_id'] = $quizSession['session_id'];
              } catch (\Exception $e) {
                  Log::error('Failed to create quiz session from assistant: ' . $e->getMessage());
              }
         }
+
 
         $newState = [
             'phase' => $flowResponse['next_phase'],
