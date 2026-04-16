@@ -7,6 +7,10 @@ import AssistantQuickActions from './AssistantQuickActions';
 import StudyPlanCard from './StudyPlanCard';
 import { useAuthStore } from '../../stores/authStore';
 import ReactMarkdown from 'react-markdown';
+import Modal from '../ui/Modal';
+import Button from '../ui/Button';
+import { Sparkles } from 'lucide-react';
+
 
 const TABS = [
     { key: 'chat',    label: 'Chat',     icon: MessageSquare },
@@ -116,7 +120,10 @@ const AssistantPanel = () => {
         loadConversation,
         deleteConversation,
         getReflection,
+        quizReady,
+        clearQuizReady,
     } = useAssistantStore();
+
 
     const messagesEndRef = useRef(null);
     const [showHistory, setShowHistory] = useState(false);
@@ -353,7 +360,48 @@ const AssistantPanel = () => {
                     </div>
                 )}
             </div>
+
+            {/* ── QUIZ READY MODAL ───────────────────────────────────── */}
+            <Modal
+                isOpen={!!quizReady}
+                onClose={clearQuizReady}
+                title="Quiz Sudah Siap! 🚀"
+                size="sm"
+            >
+                <div className="text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                        <Sparkles size={32} className="text-primary-light animate-pulse" />
+                    </div>
+                    <div>
+                        <p className="text-text-primary font-semibold mb-1">
+                            Latihan Soal Telah Berhasil Dibuat
+                        </p>
+                        <p className="text-text-muted text-xs">
+                            Siapkan dirimu! Kamu akan masuk ke mode kuis interaktif untuk menguji pemahamanmu tentang materi ini.
+                        </p>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 pt-2">
+                        <Button 
+                            onClick={() => {
+                                const { materialId, quizId } = quizReady;
+                                window.location.href = `/learn/${materialId}?quiz=${quizId}`;
+                                clearQuizReady();
+                            }}
+                        >
+                            Mulai Sekarang
+                        </Button>
+                        <Button 
+                            variant="ghost" 
+                            onClick={clearQuizReady}
+                        >
+                            Nanti Saja
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </>
+
     );
 };
 
