@@ -44,6 +44,13 @@ WORKDIR /var/www/html
 # Copy entire application (including composer.json/lock)
 COPY . .
 
+# Set dummy environment variables for the build process (discovery/optimization)
+# This prevents Laravel from crashing when trying to instantiate drivers like Reverb/Pusher without keys
+ENV BROADCAST_CONNECTION=log
+ENV APP_KEY=base64:yH88fXWdAnmP2iC3Zp+f7YF8H9K8v1P2z5W3D4L5E6M=
+ENV DB_CONNECTION=sqlite
+ENV DB_DATABASE=:memory:
+
 # Composer install
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
