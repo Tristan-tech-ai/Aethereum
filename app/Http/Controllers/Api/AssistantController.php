@@ -90,37 +90,52 @@ class AssistantController extends Controller
      */
     public function chat(Request $request): JsonResponse
     {
-        $request->validate([
-            'message'         => 'required|string|max:2000',
-            'conversation_id' => 'nullable|uuid',
-            'context_type'    => 'nullable|string|in:general,session,content,profile',
-            'context_id'      => 'nullable|uuid',
-        ]);
-
-        $user = $request->user();
-
-        // Resolve or create conversation
-        if ($request->conversation_id) {
-            $conversation = AssistantConversation::where('id', $request->conversation_id)
-                ->where('user_id', $user->id)
-                ->firstOrFail();
-        } else {
-            $conversation = AssistantConversation::create([
-                'user_id'       => $user->id,
-                'context_type'  => $request->input('context_type', 'general'),
-                'context_id'    => $request->context_id,
+        try {
+            $request->validate([
+                'message'         => 'required|string|max:2000',
+                'conversation_id' => 'nullable|uuid',
+                'context_type'    => 'nullable|string|in:general,session,content,profile,study_plan',
+                'context_id'      => 'nullable|string', // can be uuid or other ID
             ]);
+
+            $user = $request->user();
+
+            // Resolve or create conversation
+            if ($request->conversation_id) {
+                $conversation = AssistantConversation::where('id', $request->conversation_id)
+                    ->where('user_id', $user->id)
+                    ->firstOrFail();
+            } else {
+                $conversation = AssistantConversation::create([
+                    'user_id'       => $user->id,
+                    'context_type'  => $request->input('context_type', 'general'),
+                    'context_id'    => $request->context_id,
+                ]);
+            }
+
+            $result = $this->orchestrator->chat($conversation, $request->message);
+
+            return $this->success([
+                'conversation_id' => $conversation->id,
+                'title'           => $conversation->fresh()->title ?? 'Conversation',
+                'reply'           => $result['structured'],
+                'latency_ms'      => $result['message']->latency_ms ?? 0,
+                'phase'           => $result['structured']['phase'] ?? 'general',
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Assistant Controller Chat Error: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan internal: ' . $e->getMessage(),
+                'debug' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
         }
-
-        $result = $this->orchestrator->chat($conversation, $request->message);
-
-        return $this->success([
-            'conversation_id' => $conversation->id,
-            'title'           => $conversation->fresh()->title,
-            'reply'           => $result['structured'],
-            'latency_ms'      => $result['message']->latency_ms,
-        ]);
     }
+
 
     // ─── Study Plan ───────────────────────────────────────────────────────
 

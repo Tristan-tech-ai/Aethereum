@@ -69,7 +69,7 @@ class StudyRoomService
 
         $duration = $phase === 'study' ? 1500 : 300; // 25min or 5min
 
-        broadcast(new StudyRoomPomodoro($room->id, $phase, $duration, now()->toISOString()))->toOthers();
+        broadcast(new StudyRoomPomodoro($room->id, $phase, $duration, now()->toIso8601String()))->toOthers();
     }
 
     public function cleanupInactiveMembers(): int
