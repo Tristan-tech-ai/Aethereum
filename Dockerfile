@@ -55,5 +55,5 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 EXPOSE 8000
 
 # At runtime: discover packages, cache config, then serve
-# Note: PORT must be passed as integer to artisan serve
-CMD sh -c "php artisan package:discover --ansi && php artisan config:clear && php artisan serve --host=0.0.0.0 --port=8000"
+# Note: Run queue worker in background to handle content analysis jobs
+CMD sh -c "php artisan package:discover --ansi && php artisan config:clear && php artisan queue:listen --tries=1 --timeout=300 & php artisan serve --host=0.0.0.0 --port=8000"
