@@ -116,7 +116,7 @@ class AssistantOrchestratorService
         $this->stateStore->saveState($conversation, [
             'last_user_message' => $userMessage,
             'last_assistant_message' => $structured['message'],
-            'last_updated_at' => now()->toISOString(),
+            'last_updated_at' => now()->toIso8601String(),
             'conversation_state' => $conversationState,
         ]);
 
@@ -152,16 +152,25 @@ class AssistantOrchestratorService
             'content' => $userMessage,
         ]);
 
-        $flowResponse = match ($statePhase) {
-            'intent'     => $this->configFlow->handleIntent($conversationState, $userMessage, $user->id),
-            'material'   => $this->configFlow->handleMaterial($conversationState, $userMessage, $user->id),
-            'section'    => $this->configFlow->handleSection($conversationState, $userMessage),
-            'count'      => $this->configFlow->handleCount($conversationState, $userMessage),
-            'type'       => $this->configFlow->handleType($conversationState, $userMessage),
-            'difficulty' => $this->configFlow->handleDifficulty($conversationState, $userMessage),
-            'confirm'    => $this->configFlow->handleConfirm($conversationState, $userMessage),
-            default      => ['message' => 'Terjadi kesalahan konfigurasi.', 'next_phase' => 'general', 'ui_type' => 'text', 'options' => null, 'payload_update' => [], 'is_terminal' => true],
-        };
+        try {
+            $flowResponse = match ($statePhase) {
+                'intent'     => $this->configFlow->handleIntent($conversationState, $userMessage, $user->id),
+                'material'   => $this->configFlow->handleMaterial($conversationState, $userMessage, $user->id),
+                'section'    => $this->configFlow->handleSection($conversationState, $userMessage),
+                'count'      => $this->configFlow->handleCount($conversationState, $userMessage),
+                'type'       => $this->configFlow->handleType($conversationState, $userMessage),
+                'difficulty' => $this->configFlow->handleDifficulty($conversationState, $userMessage),
+                'confirm'    => $this->configFlow->handleConfirm($conversationState, $userMessage),
+                default      => ['message' => 'Terjadi kesalahan konfigurasi.', 'next_phase' => 'general', 'ui_type' => 'text', 'options' => null, 'payload_update' => [], 'is_terminal' => true],
+            };
+        } catch (\Exception $e) {
+            Log::error('Quiz Flow Error: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'phase' => $statePhase,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
 
         $newPayload = array_merge($conversationState['payload'] ?? [], $flowResponse['payload_update'] ?? []);
         $newState = [
