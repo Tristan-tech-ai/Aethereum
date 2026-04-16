@@ -44,17 +44,17 @@ WORKDIR /var/www/html
 # Copy entire application
 COPY . .
 
-# Composer install with --no-scripts to skip package:discover during build
-# This avoids needing real env vars at build time
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts \
-    && composer dump-autoload --optimize
+# Composer install without scripts (skip package:discover to avoid needing env vars at build)
+RUN composer install --no-dev --no-interaction --no-scripts
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Expose port (Railway convention)
+# Expose port
 EXPOSE 8000
 
-# At runtime: run package:discover (now env vars from Railway are available), then serve
-CMD php artisan package:discover --ansi && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+# At runtime: discover packages, cache config, then serve
+CMD php artisan package:discover --ansi \
+    && php artisan config:clear \
+    && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
