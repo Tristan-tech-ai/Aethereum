@@ -21,9 +21,15 @@ class QuizConfigurationFlowService
             
             if ($hint) {
                 $contents = $this->materialRecommendation->findByHint($hint, $userId);
+                
+                // Fallback to general relevant materials if hint-based search found nothing
+                if ($contents->isEmpty()) {
+                    $contents = $this->materialRecommendation->findRelevantForUser($userId);
+                }
             } else {
                 $contents = $this->materialRecommendation->findRelevantForUser($userId);
             }
+
 
             if ($contents->isEmpty()) {
                 return [
