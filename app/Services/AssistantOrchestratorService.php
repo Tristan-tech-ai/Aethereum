@@ -165,7 +165,9 @@ class AssistantOrchestratorService
                 'type'       => $this->configFlow->handleType($conversationState, $userMessage),
                 'difficulty' => $this->configFlow->handleDifficulty($conversationState, $userMessage),
                 'confirm'    => $this->configFlow->handleConfirm($conversationState, $userMessage),
-                default      => ['message' => 'Terjadi kesalahan konfigurasi.', 'next_phase' => 'general', 'ui_type' => 'text', 'options' => null, 'payload_update' => [], 'is_terminal' => true],
+                'quiz_active' => $this->configFlow->handleQuizActive($conversationState, $userMessage),
+                default      => ['message' => 'Terjadi kesalahan konfigurasi.', 'next_phase' => 'general', 'ui_type' => 'text', 'cta' => null, 'payload_update' => [], 'is_terminal' => true],
+
             };
         } catch (\Exception $e) {
             Log::error('Quiz Flow Error: ' . $e->getMessage(), [

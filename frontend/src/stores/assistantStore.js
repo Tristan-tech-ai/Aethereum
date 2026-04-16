@@ -98,14 +98,18 @@ export const useAssistantStore = create((set, get) => ({
             }));
 
             // 🚗 Handle Automated Redirections (e.g. Starting a Quiz)
-            if (reply?.phase === 'quiz_active' && reply?.payload?.quiz_id) {
-                set({
-                    quizReady: {
-                        quizId: reply.payload.quiz_id,
-                        materialId: reply.payload.content_id
-                    }
-                });
+            console.log("Assistant Reply Phase:", reply?.phase);
+            if (reply?.phase === 'quiz_active') {
+                const quizId = reply?.payload?.quiz_id;
+                const materialId = reply?.payload?.content_id;
+                
+                if (quizId && materialId) {
+                    set({
+                        quizReady: { quizId, materialId }
+                    });
+                }
             }
+
 
 
             // Update conversation list title if it changed

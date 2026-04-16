@@ -274,6 +274,19 @@ class QuizConfigurationFlowService
 
     }
 
+    public function handleQuizActive(array $state, string $userInput): array
+    {
+        return [
+            'message' => 'Quiz sedang disiapkan. Silakan klik tombol mulai di layar jika belum muncul! 🚀',
+            'ui_type' => 'text',
+            'cta' => null,
+            'next_phase' => 'quiz_active',
+            'payload_update' => [],
+            'is_terminal' => true,
+        ];
+    }
+
+
     public function handleTimeout(array $state): array
     {
         $payload = $state['payload'] ?? [];

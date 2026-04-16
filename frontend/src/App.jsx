@@ -16,6 +16,11 @@ import FriendRequestNotification from "./components/social/FriendRequestNotifica
 import Sidebar from "./components/layout/Sidebar";
 import StreakDisplay from "./components/profile/StreakDisplay";
 import AssistantPanel from "./components/assistant/AssistantPanel";
+import { useAssistantStore } from "./stores/assistantStore";
+import Modal from "./components/ui/Modal";
+import Button from "./components/ui/Button";
+import { Sparkles } from "lucide-react";
+
 
 const routeContext = {
     "/dashboard": {
@@ -104,6 +109,9 @@ function App() {
     const userMenuRef = useRef(null);
     const [streakReminderDismissed, setStreakReminderDismissed] =
         useState(false);
+
+    const { quizReady, clearQuizReady } = useAssistantStore();
+
 
     const showSidebar = !noSidebarPaths.includes(location.pathname);
     const showHeader = !noHeaderPaths.includes(location.pathname);
@@ -385,7 +393,48 @@ function App() {
 
         {/* ── Nexera Assistant Panel (global, right-side drawer) ── */}
         {showSidebar && <AssistantPanel />}
+
+        {/* ── GLOBAL QUIZ READY MODAL ── */}
+        <Modal
+            isOpen={!!quizReady}
+            onClose={clearQuizReady}
+            title="Quiz Sudah Siap! 🚀"
+            size="sm"
+        >
+            <div className="text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                    <Sparkles size={32} className="text-primary-light animate-pulse" />
+                </div>
+                <div>
+                    <p className="text-text-primary font-semibold mb-1">
+                        Latihan Soal Telah Berhasil Dibuat
+                    </p>
+                    <p className="text-text-muted text-xs">
+                        Siapkan dirimu! Kamu akan masuk ke mode kuis interaktif untuk menguji pemahamanmu tentang materi ini.
+                    </p>
+                </div>
+                
+                <div className="flex flex-col gap-2 pt-2">
+                    <Button 
+                        onClick={() => {
+                            const { materialId, quizId } = quizReady;
+                            window.location.href = `/learn/${materialId}?quiz=${quizId}`;
+                            clearQuizReady();
+                        }}
+                    >
+                        Mulai Sekarang
+                    </Button>
+                    <Button 
+                        variant="ghost" 
+                        onClick={clearQuizReady}
+                    >
+                        Nanti Saja
+                    </Button>
+                </div>
+            </div>
+        </Modal>
         </>
+
     );
 }
 
