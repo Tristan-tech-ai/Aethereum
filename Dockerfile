@@ -5,6 +5,8 @@ RUN apk add --no-cache \
     curl \
     libpq-dev \
     libzip-dev \
+    libpng-dev \
+    libxml2-dev \
     zip \
     unzip \
     git \
@@ -12,7 +14,7 @@ RUN apk add --no-cache \
     oniguruma-dev \
     freetype-dev \
     libjpeg-turbo-dev \
-    libpng-dev \
+    zlib-dev \
     linux-headers \
     $PHPIZE_DEPS
 

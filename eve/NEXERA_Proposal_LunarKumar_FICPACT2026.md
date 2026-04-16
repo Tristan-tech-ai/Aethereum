@@ -3,10 +3,11 @@ Nama Website   : Nexera
 Tagline        : Platform Pembelajaran Kolaboratif Berbasis Gamifikasi
 Nama Tim       : Lunar Kumar
 Anggota        :
-  - I Made Tristan Hope Firdaus (Ketua)
+  - I Made Tristan Hope Firdaus 
   - I Made Putra Sanjaya
   - Christian Najuar Luwisandro
   - Abi Hu SyahFarel
+  - I Kadek Galih Murtiobama
 Institusi      : SMK TI Bali Global Badung
 Program        : PPLG (Pengembangan Perangkat Lunak dan Gim)
 Kategori       : Web Development
@@ -14,7 +15,7 @@ Kompetisi      : FICPACT CUP 2026
 Subtema        : Interactive Edutainment
 Penyelenggara  : BEM FIKOM — Universitas Katolik Soegijapranata
 Tahun          : 2026
-Link Website   : https://nexera.fun
+Link Website   : https://nexera.dedyn.io
 ---
 
 # A. LATAR BELAKANG

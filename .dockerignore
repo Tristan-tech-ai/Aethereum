@@ -14,3 +14,5 @@ phpunit.xml
 .phpunit.cache
 .vscode
 eve
+out.txt
+out-utf8.txt
