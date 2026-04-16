@@ -190,10 +190,11 @@ class AssistantOrchestratorService
         $structured = [
             'message' => $flowResponse['message'],
             'ui_type' => $flowResponse['ui_type'],
-            'options' => $flowResponse['options'],
-            'phase' => $flowResponse['next_phase'],
+            'cta'     => $flowResponse['cta'] ?? [],
+            'phase'   => $flowResponse['next_phase'],
             'payload' => $newPayload, // Pass payload to controller so it can create quiz session if terminal
         ];
+
 
         $assistantMessage = AssistantMessage::create([
             'conversation_id' => $conversation->id,
