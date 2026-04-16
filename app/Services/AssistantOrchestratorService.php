@@ -7,7 +7,9 @@ use App\Models\AssistantMessage;
 use App\Models\LearningSession;
 use App\Models\User;
 use App\Services\AssistantConversationStateStoreService;
+use App\Services\QuizAssistantAdapter;
 use Illuminate\Support\Str;
+
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
@@ -23,7 +25,9 @@ class AssistantOrchestratorService
         protected AssistantConversationStateStoreService $stateStore,
         protected QuizConfigurationFlowService $configFlow,
         protected QuizIntentDetectorService $intentDetector,
+        protected QuizAssistantAdapter $quizAdapter,
     ) {}
+
 
     /**
      * Handle a chat message inside a conversation.
@@ -173,6 +177,18 @@ class AssistantOrchestratorService
         }
 
         $newPayload = array_merge($conversationState['payload'] ?? [], $flowResponse['payload_update'] ?? []);
+
+        // 🎯 TERMINAL ACTION: If phase is quiz_active, we create the quiz session
+        if ($flowResponse['next_phase'] === 'quiz_active') {
+             try {
+                 $quizSession = $this->quizAdapter->createSession($newPayload, $user->id);
+                 // Rename session_id to quiz_id for frontend compatibility
+                 $newPayload['quiz_id'] = $quizSession['session_id'];
+             } catch (\Exception $e) {
+                 Log::error('Failed to create quiz session from assistant: ' . $e->getMessage());
+             }
+        }
+
         $newState = [
             'phase' => $flowResponse['next_phase'],
             'payload' => $newPayload,
@@ -192,8 +208,9 @@ class AssistantOrchestratorService
             'ui_type' => $flowResponse['ui_type'],
             'cta'     => $flowResponse['cta'] ?? [],
             'phase'   => $flowResponse['next_phase'],
-            'payload' => $newPayload, // Pass payload to controller so it can create quiz session if terminal
+            'payload' => $newPayload, // Contains quiz_id now
         ];
+
 
 
         $assistantMessage = AssistantMessage::create([

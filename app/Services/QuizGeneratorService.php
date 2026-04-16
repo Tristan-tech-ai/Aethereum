@@ -40,6 +40,20 @@ class QuizGeneratorService
     }
 
     /**
+     * Generate questions specifically (helper for adapter)
+     */
+    public function generateQuestions($contentId, $sectionIndex = null, $count = 10, $type = 'multiple_choice', $difficulty = 'medium'): array
+    {
+        $content = LearningContent::findOrFail($contentId);
+        
+        // Use default generator with parameters
+        $quiz = $this->generateQuiz($content, (int) ($sectionIndex ?? 0));
+        
+        return $quiz->questions ?? [];
+    }
+
+
+    /**
      * Generate a new quiz for a content section using Gemini AI.
      */
     public function generateQuiz(LearningContent $content, int $sectionIndex): Quiz
