@@ -25,6 +25,10 @@ use Illuminate\Support\Facades\Route;
 // Health Check
 Route::get('/health', [HealthController::class, 'check']);
 
+// Dashboard
+Route::middleware(SupabaseAuth::class)->get('v1/dashboard', [\App\Http\Controllers\Api\DashboardController::class, 'index']);
+
+
 // ─── Public Routes ───
 Route::prefix('v1/auth')->group(function () {
     // Password Reset (public — still handled by Laravel)
