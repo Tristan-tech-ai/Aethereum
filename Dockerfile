@@ -41,18 +41,13 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Create app directory
 WORKDIR /var/www/html
 
-# Copy entire application (including composer.json/lock)
+# Copy entire application
 COPY . .
 
-# Set dummy environment variables for the build process (discovery/optimization)
-# This prevents Laravel from crashing when trying to instantiate drivers like Reverb/Pusher without keys
-ENV BROADCAST_CONNECTION=log
-ENV APP_KEY=base64:yH88fXWdAnmP2iC3Zp+f7YF8H9K8v1P2z5W3D4L5E6M=
-ENV DB_CONNECTION=sqlite
-ENV DB_DATABASE=:memory:
-
-# Composer install
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Composer install with --no-scripts to skip package:discover during build
+# This avoids needing real env vars at build time
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts \
+    && composer dump-autoload --optimize
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache \
@@ -61,5 +56,5 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 # Expose port (Railway convention)
 EXPOSE 8000
 
-# Start artisan serve
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# At runtime: run package:discover (now env vars from Railway are available), then serve
+CMD php artisan package:discover --ansi && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
