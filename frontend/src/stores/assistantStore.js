@@ -98,8 +98,8 @@ export const useAssistantStore = create((set, get) => ({
             }));
 
             // 🚗 Handle Automated Redirections (e.g. Starting a Quiz)
-            console.log("Assistant Reply Phase:", reply?.phase);
-            if (reply?.phase === 'quiz_active') {
+            console.log("Assistant Reply Phase:", reply?.phase, "UI Type:", reply?.ui_type);
+            if (reply?.phase === 'quiz_active' || reply?.ui_type === 'quiz_ready') {
                 const quizId = reply?.payload?.quiz_id;
                 const materialId = reply?.payload?.content_id;
                 
@@ -109,6 +109,7 @@ export const useAssistantStore = create((set, get) => ({
                     });
                 }
             }
+
 
 
 

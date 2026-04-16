@@ -100,7 +100,9 @@ const CtaButtons = ({ cta }) => {
 
 // ─── Rich Assistant Bubble ─────────────────────────────────────
 const RichAssistantBubble = ({ structured }) => {
+    const { set: setAssistantStore } = useAssistantStore();
     const data = typeof structured === 'string' ? null : structured;
+
 
     // Fallback to plain markdown if not structured
     if (!data || !data.message) {
@@ -113,8 +115,28 @@ const RichAssistantBubble = ({ structured }) => {
             <div className={PROSE_CLS}><ReactMarkdown>{data.message}</ReactMarkdown></div>
             {data.user_data?.show && <MetricsBar metrics={data.user_data.metrics} />}
             {data.sections?.map((sec, i) => <SectionCard key={i} section={sec} />)}
+            
+            {data.ui_type === 'quiz_ready' && data.payload?.quiz_id && (
+                <button
+                    onClick={() => setAssistantStore({ 
+                        quizReady: { 
+                            quizId: data.payload.quiz_id, 
+                            materialId: data.payload.content_id 
+                        } 
+                    })}
+                    className="w-full mt-3 flex items-center justify-center gap-2 py-3 rounded-xl
+                        bg-gradient-to-r from-primary to-indigo-600 text-white font-bold text-sm
+                        shadow-lg shadow-primary/25 hover:shadow-primary/40 
+                        hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                    <Sparkles size={16} />
+                    Mulai Selesaikan Quiz
+                </button>
+            )}
+
             <CtaButtons cta={data.cta} />
         </div>
+
     );
 };
 

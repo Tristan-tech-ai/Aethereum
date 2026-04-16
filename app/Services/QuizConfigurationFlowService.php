@@ -250,13 +250,14 @@ class QuizConfigurationFlowService
         if ($input === 'confirm' || $input === 'mulai' || $input === 'mulai quiz' || $input === 'ya') {
             return [
                 'message' => 'Quiz dimulai! Kamu akan diarahkan ke halaman quiz dalam sekejap. Semoga berhasil! 🚀',
-                'ui_type' => 'text',
+                'ui_type' => 'quiz_ready',
                 'cta' => null,
                 'next_phase' => 'quiz_active',
                 'payload_update' => [],
                 'is_terminal' => true,
             ];
         }
+
 
 
         // Ubah konfigurasi
