@@ -160,56 +160,25 @@ const PlaceholderNodes = ({ count = 5 }) => (
 const CourseDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { fetchContent } = useContentStore();
+    const { currentContent, loading, fetchContent } = useContentStore();
 
-    const getCachedContentById = (contentId) => {
-        const state = useContentStore.getState();
-        const fromCurrent = state.currentContent && String(state.currentContent.id) === String(contentId)
-            ? state.currentContent
-            : null;
-        if (fromCurrent) return fromCurrent;
-        return state.contents.find((c) => String(c.id) === String(contentId)) || null;
-    };
-
-    // Use page-local loading — never rely on the global `loading` flag which is
-    // shared with fetchContents and can be true/false independently of this page.
-    const [data, setData] = useState(() => getCachedContentById(id));
-    const [pageLoading, setPageLoading] = useState(() => {
-        return !getCachedContentById(id);
+    // Pre-seed from cache synchronously — avoids flashing the skeleton when the
+    // content was already loaded (e.g. navigating from Library card → detail page).
+    const [content, setContent] = useState(() => {
+        const cached = useContentStore.getState().currentContent;
+        return cached && String(cached.id) === String(id) ? cached : null;
     });
-    const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
         if (!id) return;
-        let cancelled = false;
-        const cached = getCachedContentById(id);
-        if (cached) {
-            // Cache-first: render instantly, then refresh quietly in background.
-            setData(cached);
-            setPageLoading(false);
-        } else {
-            // Fresh open without cache: show skeleton.
-            setPageLoading(true);
-        }
-        setNotFound(false);
-        fetchContent(id).then(c => {
-            if (cancelled) return;
-            if (c) {
-                setData(c);
-            } else if (!cached) {
-                setNotFound(true);
-            }
-            setPageLoading(false);
-        }).catch(() => {
-            if (!cancelled) {
-                if (!cached) setNotFound(true);
-                setPageLoading(false);
-            }
-        });
-        return () => { cancelled = true; };
-    }, [id, fetchContent]);
+        // fetchContent is a no-op (returns cache) if IDs already match
+        fetchContent(id).then(c => { if (c) setContent(c); });
+    }, [id]);
 
-    if (pageLoading) {
+    // data is always available instantly on re-visit (from useState initializer above)
+    const data = content || currentContent;
+
+    if (loading && !data) {
         return (
             <div className="px-4 lg:px-8 py-12 max-w-3xl mx-auto flex flex-col items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-primary/10 animate-pulse" />
@@ -222,7 +191,7 @@ const CourseDetailPage = () => {
         );
     }
 
-    if (notFound || !data) {
+    if (!data) {
         return (
             <div className="px-4 lg:px-8 py-12 max-w-3xl mx-auto text-center">
                 <BookOpen size={48} className="text-text-muted mx-auto mb-4" />
@@ -300,7 +269,7 @@ const CourseDetailPage = () => {
                             )}
                         </div>
 
-                        <h1 className="text-h2 font-heading font-bold text-text-primary mb-1 leading-tight text-center">
+                        <h1 className="text-h2 font-heading font-bold text-text-primary mb-1 leading-tight">
                             {data.title}
                         </h1>
 

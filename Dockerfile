@@ -13,14 +13,15 @@ RUN apk add --no-cache \
     freetype-dev \
     libjpeg-turbo-dev \
     libpng-dev \
-    nginx \
-    supervisor
+    linux-headers \
+    $PHPIZE_DEPS
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         pdo \
         pdo_pgsql \
+        pdo_mysql \
         pgsql \
         mbstring \
         zip \
@@ -28,9 +29,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         bcmath \
         opcache \
         gd \
-        pcntl
-
-# Note: Redis extension removed - using database driver for queue/cache
+        pcntl \
+    && pecl install redis \
+    && docker-php-ext-enable redis
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -38,31 +39,18 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Create app directory
 WORKDIR /var/www/html
 
-# Copy composer files first for layer caching
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
-
-# Copy entire application
+# Copy entire application (including composer.json/lock)
 COPY . .
 
-# Complete composer install (--no-scripts: skip package:discover at build time, run at startup instead)
-RUN composer dump-autoload --optimize --no-scripts
-
-# Copy configs and fix CRLF line endings (Windows -> Linux, using sed since dos2unix not in Alpine)
-COPY docker/nginx.conf /etc/nginx/http.d/default.conf
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
-COPY docker/start.sh /start.sh
-RUN sed -i 's/\r$//' /start.sh /etc/nginx/http.d/default.conf /etc/supervisor/conf.d/supervisord.conf /usr/local/etc/php/conf.d/custom.ini \
-    && chmod +x /start.sh
+# Composer install
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Set permissions
-RUN mkdir -p /var/log/supervisor /var/www/html/storage/logs \
-    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-# Expose port 8080 (Railway default)
-EXPOSE 8080
+# Expose port (Railway convention)
+EXPOSE 8000
 
-# Start via entrypoint script
-CMD ["/start.sh"]
+# Start artisan serve
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

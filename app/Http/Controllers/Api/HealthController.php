@@ -3,35 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Traits\ApiResponse;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 
 class HealthController extends Controller
 {
-    use ApiResponse;
-
-    /**
-     * Check the health of the application.
-     *
-     * @return JsonResponse
-     */
     public function check(): JsonResponse
     {
-        $dbStatus = 'disconnected';
+        $databaseStatus = 'connected';
+        $statusCode = 200;
 
         try {
             DB::connection()->getPdo();
-            $dbStatus = 'connected';
         } catch (\Exception $e) {
-            $dbStatus = 'error: ' . $e->getMessage();
+            $databaseStatus = 'error';
+            $statusCode = 503;
         }
 
-        // Always return 200 so Railway healthcheck passes
-        return $this->success([
-            'database' => $dbStatus,
-            'service' => 'Aethereum API',
-            'status' => 'running',
-        ], 'OK');
+        return response()->json([
+            'status' => $statusCode === 200 ? 'ok' : 'degraded',
+            'timestamp' => now()->toIso8601String(),
+            'database' => $databaseStatus,
+            'version' => config('app.version', '1.0.0')
+        ], $statusCode);
     }
 }

@@ -63,7 +63,7 @@ class FocusDuelController extends Controller
         ]);
 
         return $this->success([
-            'duel' => $duel->load(['challenger:id,name,username,avatar_url,level', 'opponent:id,name,username,avatar_url,level']),
+            'duel' => $duel->load(['challenger', 'opponent']),
         ], 'Challenge sent', 201);
     }
 
@@ -80,7 +80,7 @@ class FocusDuelController extends Controller
             'accepted_at' => now(),
         ]);
 
-        return $this->success(['duel' => $duel->fresh()->load(['challenger:id,name,username,avatar_url,level', 'opponent:id,name,username,avatar_url,level'])], 'Challenge accepted');
+        return $this->success(['duel' => $duel->fresh()->load(['challenger', 'opponent'])], 'Challenge accepted');
     }
 
     public function decline(Request $request, string $id): JsonResponse
@@ -111,7 +111,7 @@ class FocusDuelController extends Controller
             'started_at' => now(),
         ]);
 
-        return $this->success(['duel' => $duel->fresh()->load(['challenger:id,name,username,avatar_url,level', 'opponent:id,name,username,avatar_url,level'])], 'Duel started');
+        return $this->success(['duel' => $duel->fresh()->load(['challenger', 'opponent'])], 'Duel started');
     }
 
     public function focusEvent(Request $request, string $id): JsonResponse
@@ -163,7 +163,7 @@ class FocusDuelController extends Controller
         }
 
         return $this->success([
-            'duel' => $duel->load(['challenger:id,name,username,avatar_url,level', 'opponent:id,name,username,avatar_url,level', 'winner:id,name,username,avatar_url,level']),
+            'duel' => $duel->load(['challenger', 'opponent', 'winner']),
         ], 'Score submitted');
     }
 
@@ -176,8 +176,7 @@ class FocusDuelController extends Controller
             })
             ->with(['challenger:id,name,username,avatar_url', 'opponent:id,name,username,avatar_url'])
             ->latest()
-            ->limit(20)
-            ->get();
+            ->paginate(10);
 
         return $this->success(['duels' => $duels]);
     }

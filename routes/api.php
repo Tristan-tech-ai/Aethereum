@@ -1,10 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\AssistantController;
-use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContentController;
-use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ExploreController;
 use App\Http\Controllers\Api\FeedController;
 use App\Http\Controllers\Api\FocusDuelController;
@@ -12,13 +9,10 @@ use App\Http\Controllers\Api\FriendController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\KnowledgeCardController;
 use App\Http\Controllers\Api\LeaderboardController;
-use App\Http\Controllers\Api\LeagueController;
 use App\Http\Controllers\Api\LearningRelayController;
-use App\Http\Controllers\Api\PostController;
-use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\QuizArenaController;
-use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\QuizAssistantController;
 use App\Http\Controllers\Api\MyTaskController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SessionController;
@@ -41,13 +35,6 @@ Route::prefix('v1/auth')->group(function () {
 // ─── Protected Routes (Supabase JWT) ───
 Route::middleware(SupabaseAuth::class)->group(function () {
 
-    Route::prefix('v1/notifications')->group(function () {
-        Route::get('/', [NotificationController::class, 'index']);
-        Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
-        Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']);
-        Route::delete('/{id}', [NotificationController::class, 'destroy']);
-    });
-
     Route::prefix('v1/auth')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -63,10 +50,6 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::patch('/settings', [ProfileController::class, 'updateSettings']);
     });
 
-    // ─── Dashboard (Aggregated) ───
-    Route::get('v1/dashboard', [DashboardController::class, 'index']);
-    Route::get('v1/reports/learning', [ReportController::class, 'learning']);
-
     // ─── Knowledge Profile ───
     Route::prefix('v1/profile')->group(function () {
         Route::get('/me', [ProfileController::class, 'me']);
@@ -78,7 +61,6 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::get('/me/xp-history', [ProfileController::class, 'xpHistory']);
         Route::post('/me/share-card/generate', [ProfileController::class, 'generateShareCard']);
         Route::get('/{username}', [ProfileController::class, 'show']);
-        Route::get('/{username}/heatmap', [ProfileController::class, 'publicHeatmap']);
     });
 
     // ─── Knowledge Cards (Public Interactions) ───
@@ -96,9 +78,6 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::get('/subject/{subject}', [LeaderboardController::class, 'subject']);
     });
 
-    // ─── League ───
-    Route::get('v1/league', [LeagueController::class, 'show']);
-
     // ─── Social Discovery ───
     Route::prefix('v1/explore')->group(function () {
         Route::get('/trending', [ExploreController::class, 'trending']);
@@ -110,18 +89,6 @@ Route::middleware(SupabaseAuth::class)->group(function () {
     Route::prefix('v1/feed')->group(function () {
         Route::get('/', [FeedController::class, 'index']);
         Route::post('/{id}/like', [FeedController::class, 'toggleLike']);
-    });
-
-    // ─── Community Posts (threads) ───
-    Route::prefix('v1/posts')->group(function () {
-        Route::get('/', [PostController::class, 'index']);
-        Route::post('/', [PostController::class, 'store']);
-        Route::delete('/{id}', [PostController::class, 'destroy']);
-        Route::post('/{id}/like', [PostController::class, 'toggleLike']);
-        Route::get('/{id}/comments', [PostController::class, 'comments']);
-        Route::post('/{id}/comments', [PostController::class, 'addComment']);
-        Route::delete('/{postId}/comments/{commentId}', [PostController::class, 'deleteComment']);
-        Route::post('/upload-image', [PostController::class, 'uploadImage']);
     });
 
     Route::prefix('v1/friends')->group(function () {
@@ -142,26 +109,13 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::post('/url', [ContentController::class, 'url']);
         Route::get('/{id}', [ContentController::class, 'show']);
         Route::delete('/{id}', [ContentController::class, 'destroy']);
-        Route::patch('/{id}/visibility', [ContentController::class, 'updateVisibility']);
-    });
-
-    // ─── Course Marketplace ───
-    Route::prefix('v1/marketplace')->group(function () {
-        Route::get('/', [MarketplaceController::class, 'index']);
-        Route::get('/purchased', [MarketplaceController::class, 'purchased']);
-        Route::get('/wallet-balance', [MarketplaceController::class, 'walletBalance']);
-        Route::get('/{id}', [MarketplaceController::class, 'show']);
-        Route::post('/{id}/purchase', [MarketplaceController::class, 'purchase']);
-        Route::post('/{id}/add-to-my-courses', [MarketplaceController::class, 'addToMyCourses']);
     });
 
     // ─── Learning Sessions ───
     Route::prefix('v1/sessions')->group(function () {
         Route::get('/active', [SessionController::class, 'myActiveSessions']);
-        Route::get('/completed', [SessionController::class, 'completedSessions']);
         Route::post('/start', [SessionController::class, 'start']);
         Route::patch('/{id}/progress', [SessionController::class, 'updateProgress']);
-        Route::get('/{id}/quiz', [SessionController::class, 'getQuiz']);
         Route::post('/{id}/quiz-attempt', [SessionController::class, 'submitQuizAttempt']);
         Route::post('/{id}/validate-summary', [SessionController::class, 'validateSummary']);
         Route::post('/{id}/complete', [SessionController::class, 'complete']);
@@ -178,7 +132,6 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::post('/', [StudyRaidController::class, 'create']);
         Route::post('/join', [StudyRaidController::class, 'join']);
         Route::get('/{id}', [StudyRaidController::class, 'show']);
-        Route::post('/{id}/chat', [StudyRaidController::class, 'chat']);
         Route::post('/{id}/start', [StudyRaidController::class, 'start']);
         Route::post('/{id}/progress', [StudyRaidController::class, 'updateProgress']);
         Route::post('/{id}/quiz-complete', [StudyRaidController::class, 'quizComplete']);
@@ -207,6 +160,21 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::get('/{id}/results', [QuizArenaController::class, 'results']);
     });
 
+    // ─── Quiz Assistant ───
+    Route::post('v1/assistant/chat/message', [QuizAssistantController::class, 'chatMessage'])->middleware('throttle:quiz_chat');
+    
+    Route::prefix('v1/assistant/quiz')->group(function () {
+        Route::post('/config/reset', [QuizAssistantController::class, 'resetConfig']);
+        Route::post('/generate', [QuizAssistantController::class, 'generateSession'])->middleware('throttle:quiz_generate');
+        
+        Route::middleware('quiz.session.owner')->group(function () {
+            Route::post('/{sessionId}/submit', [QuizAssistantController::class, 'submitQuiz'])->middleware('throttle:quiz_submit');
+            Route::get('/{sessionId}', [QuizAssistantController::class, 'showQuiz']);
+            Route::post('/{sessionId}/pause', [QuizAssistantController::class, 'pauseQuiz']);
+            Route::post('/{sessionId}/resume', [QuizAssistantController::class, 'resumeQuiz']);
+        });
+    });
+
     // ─── Learning Relay ───
     Route::prefix('v1/relay')->group(function () {
         Route::get('/my', [LearningRelayController::class, 'my']);
@@ -221,12 +189,10 @@ Route::middleware(SupabaseAuth::class)->group(function () {
     // ─── Study Rooms ───
     Route::prefix('v1/rooms')->group(function () {
         Route::get('/public', [StudyRoomController::class, 'publicRooms']);
-        Route::get('/{id}', [StudyRoomController::class, 'show']);
         Route::post('/', [StudyRoomController::class, 'create']);
         Route::post('/join', [StudyRoomController::class, 'join']);
         Route::post('/{id}/presence', [StudyRoomController::class, 'updatePresence']);
         Route::post('/{id}/react', [StudyRoomController::class, 'react']);
-        Route::post('/{id}/pomodoro', [StudyRoomController::class, 'togglePomodoro']);
         Route::post('/{id}/leave', [StudyRoomController::class, 'leave']);
         Route::post('/{id}/close', [StudyRoomController::class, 'close']);
     });
@@ -236,26 +202,5 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         Route::get('/current', [WeeklyChallengeController::class, 'current']);
         Route::get('/history', [WeeklyChallengeController::class, 'history']);
         Route::get('/{id}/progress', [WeeklyChallengeController::class, 'progress']);
-    });
-
-    // ─── Nexera Assistant ───
-    Route::prefix('v1/assistant')->group(function () {
-        // Conversations
-        Route::get('/conversations', [AssistantController::class, 'conversations']);
-        Route::get('/conversations/{id}', [AssistantController::class, 'showConversation']);
-        Route::delete('/conversations/{id}', [AssistantController::class, 'deleteConversation']);
-
-        // Chat
-        Route::post('/chat', [AssistantController::class, 'chat']);
-
-        // Study Plan
-        Route::post('/study-plan/generate', [AssistantController::class, 'generateStudyPlan']);
-
-        // Reflection
-        Route::post('/reflection', [AssistantController::class, 'reflection']);
-
-        // Preferences
-        Route::get('/preferences', [AssistantController::class, 'getPreferences']);
-        Route::patch('/preferences', [AssistantController::class, 'updatePreferences']);
     });
 });

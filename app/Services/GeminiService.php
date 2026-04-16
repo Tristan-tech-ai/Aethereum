@@ -57,9 +57,9 @@ class GeminiService
                 return $response->json();
             }
 
-            if ($response->status() === 429) {
-                Log::warning("Gemini 429 on model {$model}, trying next fallback...");
-                $lastError = "Rate limit on {$model}";
+            if (in_array($response->status(), [429, 502, 503, 504], true)) {
+                Log::warning("Gemini {$response->status()} on model {$model}, trying next fallback...");
+                $lastError = "Temporary service error on {$model} (HTTP {$response->status()})";
                 continue;
             }
 

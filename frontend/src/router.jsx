@@ -1,39 +1,31 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import App from "./App";
-import { lazy, Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
-import AppErrorBoundary from "./components/app/AppErrorBoundary";
-
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const RegisterPage = lazy(() => import("./pages/RegisterPage"));
-const GoogleCallbackPage = lazy(() => import("./pages/GoogleCallbackPage"));
-const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
-const EmailVerificationPage = lazy(() => import("./pages/EmailVerificationPage"));
-const ProfileSettingsPage = lazy(() => import("./pages/ProfileSettingsPage"));
-const LandingPage = lazy(() => import("./pages/LandingPage"));
-const DashboardPage = lazy(() => import("./pages/DashboardPage"));
-const DocumentDungeonPage = lazy(() => import("./pages/DocumentDungeonPage"));
-const KnowledgeProfilePage = lazy(() => import("./pages/KnowledgeProfilePage"));
-const ReportPage = lazy(() => import("./pages/ReportPage"));
-const CommunityHubPage = lazy(() => import("./pages/community/CommunityHubPage"));
-const StudyRaidsPage = lazy(() => import("./pages/community/StudyRaidsPage"));
-const FocusDuelsPage = lazy(() => import("./pages/community/FocusDuelsPage"));
-const QuizArenaPage = lazy(() => import("./pages/community/QuizArenaPage"));
-const StudyRoomsPage = lazy(() => import("./pages/community/StudyRoomsPage"));
-const LearningRelayPage = lazy(() => import("./pages/community/LearningRelayPage"));
-const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
-const ChallengePage = lazy(() => import("./pages/ChallengePage"));
-const ContentLibraryPage = lazy(() => import("./pages/ContentLibraryPage"));
-const ExplorePage = lazy(() => import("./pages/ExplorePage"));
-const CoursesMarketplacePage = lazy(() => import("./pages/CoursesMarketplacePage"));
-const GenerateCoursePage = lazy(() => import("./pages/GenerateCoursePage"));
-const CourseDetailPage = lazy(() => import("./pages/CourseDetailPage"));
-const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
-const LeaguePage = lazy(() => import("./pages/LeaguePage"));
-const EventsPage = lazy(() => import("./pages/EventsPage"));
-const SupportPage = lazy(() => import("./pages/SupportPage"));
-const TasksPage = lazy(() => import("./pages/TasksPage"));
-const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import GoogleCallbackPage from "./pages/GoogleCallbackPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ProfileSettingsPage from "./pages/ProfileSettingsPage";
+import LandingPage from "./pages/LandingPage";
+import DashboardPage from "./pages/DashboardPage";
+import DocumentDungeonPage from "./pages/DocumentDungeonPage";
+import KnowledgeProfilePage from "./pages/KnowledgeProfilePage";
+import ReportPage from "./pages/ReportPage";
+import CommunityHubPage from "./pages/community/CommunityHubPage";
+import StudyRaidsPage from "./pages/community/StudyRaidsPage";
+import FocusDuelsPage from "./pages/community/FocusDuelsPage";
+import QuizArenaPage from "./pages/community/QuizArenaPage";
+import StudyRoomsPage from "./pages/community/StudyRoomsPage";
+import LearningRelayPage from "./pages/community/LearningRelayPage";
+import PublicProfilePage from "./pages/PublicProfilePage";
+import ChallengePage from "./pages/ChallengePage";
+import ContentLibraryPage from "./pages/ContentLibraryPage";
+import ExplorePage from "./pages/ExplorePage";
+import GenerateCoursePage from "./pages/GenerateCoursePage";
+import CourseDetailPage from "./pages/CourseDetailPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
+import EventsPage from "./pages/EventsPage";
+import SupportPage from "./pages/SupportPage";
+import TasksPage from "./pages/TasksPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import GuestRoute from "./components/auth/GuestRoute";
 const NotFound = () => (
@@ -43,19 +35,11 @@ const NotFound = () => (
     </div>
 );
 
-const PageLoader = () => (
-    <div className="flex h-screen w-full items-center justify-center bg-dark-base">
-        <Loader2 className="animate-spin text-primary" size={32} />
-    </div>
-);
-
 const AppRouter = () => {
     return (
         <BrowserRouter>
-            <AppErrorBoundary>
-                <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                    <Route path="/" element={<App />}>
+            <Routes>
+                <Route path="/" element={<App />}>
                     {/* Landing — Guest sees landing, authed redirects to dashboard */}
                     <Route
                         index
@@ -65,31 +49,30 @@ const AppRouter = () => {
                             </GuestRoute>
                         }
                     />
-                    {/* ── Protected Routes ── */}
-                    <Route path="dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-                    <Route path="profile" element={<ProtectedRoute><KnowledgeProfilePage /></ProtectedRoute>} />
-                    <Route path="report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
-                    <Route path="settings" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
-                    <Route path="social" element={<Navigate to="/community" replace />} />
+                    {/* Protected Routes(Aslinya ada ProtectedRoute) */}
+                    <Route path="dashboard" element={<DashboardPage />} />
+                    <Route path="profile" element={<KnowledgeProfilePage />} />
+                    <Route path="report" element={<ReportPage />} />
+                    <Route path="settings" element={<ProfileSettingsPage />} />
+                    <Route path="social" element={<Navigate to="/community" replace />} />{" "}
+                    {/* TODO: re-add ProtectedRoute after testing */}
                     {/* ── Community Routes ── */}
-                    <Route path="community" element={<ProtectedRoute><CommunityHubPage /></ProtectedRoute>} />
-                    <Route path="community/raids" element={<ProtectedRoute><StudyRaidsPage /></ProtectedRoute>} />
-                    <Route path="community/duels" element={<ProtectedRoute><FocusDuelsPage /></ProtectedRoute>} />
-                    <Route path="community/arena" element={<ProtectedRoute><QuizArenaPage /></ProtectedRoute>} />
-                    <Route path="community/rooms" element={<ProtectedRoute><StudyRoomsPage /></ProtectedRoute>} />
-                    <Route path="community/relay" element={<ProtectedRoute><LearningRelayPage /></ProtectedRoute>} />
-                    <Route path="library" element={<ProtectedRoute><ContentLibraryPage /></ProtectedRoute>} />
-                    <Route path="generate" element={<ProtectedRoute><GenerateCoursePage /></ProtectedRoute>} />
-                    <Route path="course/:id" element={<ProtectedRoute><CourseDetailPage /></ProtectedRoute>} />
-                    <Route path="explore" element={<ProtectedRoute><ExplorePage /></ProtectedRoute>} />
-                    <Route path="marketplace" element={<ProtectedRoute><CoursesMarketplacePage /></ProtectedRoute>} />
-                    <Route path="challenge" element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
-                    <Route path="leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
-                    <Route path="league" element={<ProtectedRoute><LeaguePage /></ProtectedRoute>} />
-                    <Route path="events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
-                    <Route path="support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
-                    <Route path="tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
-                    <Route path="notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+                    <Route path="community" element={<CommunityHubPage />} />
+                    <Route path="community/raids" element={<StudyRaidsPage />} />
+                    <Route path="community/duels" element={<FocusDuelsPage />} />
+                    <Route path="community/arena" element={<QuizArenaPage />} />
+                    <Route path="community/rooms" element={<StudyRoomsPage />} />
+                    <Route path="community/relay" element={<LearningRelayPage />} />
+                    <Route path="library" element={<ContentLibraryPage />} />
+                    <Route path="generate" element={<GenerateCoursePage />} />
+                    <Route path="course/:id" element={<CourseDetailPage />} />
+                    <Route path="explore" element={<ExplorePage />} />
+                    <Route path="challenge" element={<ChallengePage />} />{" "}
+                    {/* TODO: re-add ProtectedRoute */}
+                    <Route path="leaderboard" element={<LeaderboardPage />} />
+                    <Route path="events" element={<EventsPage />} />
+                    <Route path="support" element={<SupportPage />} />
+                    <Route path="tasks" element={<TasksPage />} />
                     {/* Public Profile (no auth required) */}
                     <Route path="u/:username" element={<PublicProfilePage />} />
                     {/* Guest Routes */}
@@ -117,34 +100,24 @@ const AppRouter = () => {
                             </GuestRoute>
                         }
                     />
-                    <Route
-                        path="verify-email"
-                        element={
-                            <GuestRoute>
-                                <EmailVerificationPage />
-                            </GuestRoute>
-                        }
-                    />
                     {/* OAuth callback */}
                     <Route
                         path="auth/callback"
                         element={<GoogleCallbackPage />}
                     />
                     <Route path="*" element={<NotFound />} />
-                    </Route>
+                </Route>
 
-                    {/* Document Dungeon — full-screen, outside App layout (aslinya ada protected route)*/}
-                    <Route
-                        path="learn/:materialId"
-                        element={
-                            <ProtectedRoute>
-                                <DocumentDungeonPage />
-                            </ProtectedRoute>
-                        }
-                    />
-                </Routes>
-                </Suspense>
-            </AppErrorBoundary>
+                {/* Document Dungeon — full-screen, outside App layout (aslinya ada protected route)*/}
+                <Route
+                    path="learn/:materialId"
+                    element={
+                        // <ProtectedRoute>
+                        <DocumentDungeonPage />
+                        // </ProtectedRoute>
+                    }
+                />
+            </Routes>
         </BrowserRouter>
     );
 };

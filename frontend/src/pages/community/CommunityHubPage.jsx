@@ -1,333 +1,208 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import {
-    Swords, Timer, Brain, BookOpen, Repeat, Target, Users, Flame,
-    Newspaper, Loader2, ChevronRight, Heart, LayoutList, Rss,
-    TrendingUp, Users2, Clock,
+    Swords,
+    Timer,
+    Brain,
+    BookOpen,
+    Repeat,
+    Target,
+    Users,
+    ArrowRight,
+    Flame,
+    Trophy,
+    Zap,
 } from "lucide-react";
+import Card from "../../components/ui/Card";
+import Badge from "../../components/ui/Badge";
 import Avatar from "../../components/ui/Avatar";
-import PostComposer from "../../components/community/PostComposer";
-import PostCard from "../../components/community/PostCard";
+import CommunityFeed from "../../components/social/CommunityFeed";
 import FriendsList from "../../components/social/FriendsList";
-import { usePostStore } from "../../stores/postStore";
-import { useFeedStore } from "../../stores/feedStore";
 import { useFriendStore } from "../../stores/friendStore";
 import { useSocialStore } from "../../stores/socialStore";
 import { useChallengeStore } from "../../stores/challengeStore";
 import { useAuthStore } from "../../stores/authStore";
 import useNotifications from "../../hooks/useNotifications";
-import useFeedSocket from "../../hooks/useFeedSocket";
 
-const ACTIVITIES = [
-    { key: "raids",     to: "/community/raids",   Icon: Swords,   label: "Study Raids",     accent: "#7C3AED" },
-    { key: "duels",     to: "/community/duels",   Icon: Timer,    label: "Focus Duels",     accent: "#EF4444" },
-    { key: "arena",     to: "/community/arena",   Icon: Brain,    label: "Quiz Arena",      accent: "#06B6D4" },
-    { key: "rooms",     to: "/community/rooms",   Icon: BookOpen, label: "Study Rooms",     accent: "#22C55E" },
-    { key: "relay",     to: "/community/relay",   Icon: Repeat,   label: "Learning Relay",  accent: "#F59E0B" },
-    { key: "challenge", to: "/challenge",         Icon: Target,   label: "Weekly Challenge",accent: "#F59E0B" },
+const activities = [
+    {
+        key: "raids",
+        to: "/community/raids",
+        icon: Swords,
+        label: "Study Raids",
+        desc: "Belajar bareng 2–5 orang secara real-time",
+        accent: "#7C3AED",
+    },
+    {
+        key: "duels",
+        to: "/community/duels",
+        icon: Timer,
+        label: "Focus Duels",
+        desc: "Tantang teman adu fokus belajar",
+        accent: "#EF4444",
+    },
+    {
+        key: "arena",
+        to: "/community/arena",
+        icon: Brain,
+        label: "Quiz Arena",
+        desc: "Quiz kompetitif 2–8 pemain live",
+        accent: "#06B6D4",
+    },
+    {
+        key: "rooms",
+        to: "/community/rooms",
+        icon: BookOpen,
+        label: "Study Rooms",
+        desc: "Ruang belajar virtual bareng teman",
+        accent: "#22C55E",
+    },
+    {
+        key: "relay",
+        to: "/community/relay",
+        icon: Repeat,
+        label: "Learning Relay",
+        desc: "Bagi materi panjang ke beberapa orang",
+        accent: "#F59E0B",
+    },
+    {
+        key: "challenge",
+        to: "/challenge",
+        icon: Target,
+        label: "Weekly Challenge",
+        desc: "Tantangan mingguan untuk seluruh komunitas",
+        accent: "#F59E0B",
+    },
 ];
-
-const EVENT_CONFIG = {
-    rank_up:            { emoji: "\u{1F393}", color: "text-primary-light", template: (d) => `leveled up to Rank ${d.new_rank || "Gold"}!` },
-    achievement:        { emoji: "\u{1F3C5}", color: "text-accent",        template: (d) => `earned badge "${d.badge_name || "Explorer"}"!` },
-    streak_milestone:   { emoji: "\u{1F525}", color: "text-warning",       template: (d) => `hit a ${d.streak_days || d.streak_count || 30}-day streak!` },
-    raid_complete:      { emoji: "\u2694\uFE0F", color: "text-danger",     template: (d) => `finished a Study Raid \u00B7 score ${d.team_score || d.score || 95}%!` },
-    duel_complete:      { emoji: "\u23F1\uFE0F", color: "text-danger",     template: () => "completed a Focus Duel!" },
-    challenge_complete: { emoji: "\u{1F3AF}", color: "text-success",       template: (d) => `completed "${d.challenge_title || d.challenge_name || "Challenge"}"!` },
-    diamond_card:       { emoji: "\u{1F48E}", color: "text-secondary",     template: (d) => `earned a Diamond card in ${d.subject || "a subject"}!` },
-};
-
-const SORT_FILTERS = [
-    { id: "latest",    Icon: Clock,      label: "Latest"    },
-    { id: "top",       Icon: TrendingUp, label: "Top"       },
-    { id: "following", Icon: Users2,     label: "Following" },
-];
-
-function timeAgo(dateStr) {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return "just now";
-    if (m < 60) return `${m}m ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    return `${Math.floor(h / 24)}d ago`;
-}
-
-const FeedEventCard = ({ event, onLike }) => {
-    const cfg = EVENT_CONFIG[event.event_type] || EVENT_CONFIG.achievement;
-    const data = event.event_data || {};
-    const [liked, setLiked] = useState(Boolean(event.liked_by_me));
-    const [likeCount, setLikeCount] = useState(event.likes || 0);
-    const handleLike = () => {
-        const next = !liked;
-        setLiked(next);
-        setLikeCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
-        onLike?.(event.id, next);
-    };
-    return (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
-            <div className="bg-dark-card border border-border/50 rounded-2xl p-4 flex gap-3">
-                <Avatar name={event.user?.name} src={event.user?.avatar_url} size="sm" />
-                <div className="flex-1 min-w-0">
-                    <p className="text-sm text-text-secondary leading-relaxed">
-                        <span className="font-semibold text-text-primary">{event.user?.name || "Someone"}</span>
-                        {" "}<span className={`${cfg.color} text-base`}>{cfg.emoji}</span>{" "}
-                        {cfg.template(data)}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2">
-                        <button
-                            onClick={handleLike}
-                            className={`flex items-center gap-1 text-xs transition-colors ${liked ? "text-red-400" : "text-text-muted hover:text-red-400"}`}
-                        >
-                            <Heart size={13} fill={liked ? "currentColor" : "none"} />
-                            {likeCount > 0 && <span>{likeCount}</span>}
-                        </button>
-                        <span className="text-[11px] text-text-disabled ml-auto">{timeAgo(event.created_at)}</span>
-                    </div>
-                </div>
-            </div>
-        </motion.div>
-    );
-};
-
-const UnifiedFeed = ({ tab, sort }) => {
-    const user = useAuthStore((s) => s.user);
-    const { posts, loading: pL, hasMore: pH, fetchPosts, loadMore: pMore } = usePostStore();
-    const { feedEvents, loading: eL, hasMore: eH, fetchFeed, loadMore: eMore, likeFeedEvent } = useFeedStore();
-    const sentinelRef = useRef(null);
-    useFeedSocket(user?.id);
-
-    useEffect(() => {
-        if (tab === "posts")  fetchPosts(1, sort);
-        if (tab === "events") fetchFeed(1, true);
-    }, [tab, sort]);
-
-    useEffect(() => {
-        if (!sentinelRef.current) return;
-        const obs = new IntersectionObserver(([e]) => {
-            if (!e.isIntersecting) return;
-            if (tab === "posts"  && pH && !pL) pMore();
-            if (tab === "events" && eH && !eL) eMore();
-        }, { threshold: 0.1 });
-        obs.observe(sentinelRef.current);
-        return () => obs.disconnect();
-    }, [tab, pH, eH, pL, eL]);
-
-    if (tab === "posts") {
-        if (pL && posts.length === 0) return (
-            <div className="space-y-3">
-                {[1,2,3].map((i) => <div key={i} className="bg-dark-card border border-border/50 rounded-2xl h-32 animate-pulse" />)}
-            </div>
-        );
-        if (!pL && posts.length === 0) return (
-            <div className="flex flex-col items-center py-16 gap-3 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-dark-card border border-border/50 flex items-center justify-center">
-                    <Newspaper size={28} className="text-text-muted" />
-                </div>
-                <p className="text-sm font-semibold text-text-primary">No posts yet</p>
-                <p className="text-xs text-text-muted">Be the first to share something!</p>
-            </div>
-        );
-        return (
-            <div className="space-y-3">
-                {posts.map((p) => <PostCard key={p.id} post={p} />)}
-                {pH && !pL && <div ref={sentinelRef} className="h-4" />}
-                {pL && posts.length > 0 && <div className="flex justify-center py-4"><Loader2 size={20} className="animate-spin text-primary" /></div>}
-            </div>
-        );
-    }
-
-    if (eL && feedEvents.length === 0) return (
-        <div className="space-y-3">
-            {[1,2,3].map((i) => <div key={i} className="bg-dark-card border border-border/50 rounded-2xl h-20 animate-pulse" />)}
-        </div>
-    );
-    if (!eL && feedEvents.length === 0) return (
-        <div className="flex flex-col items-center py-16 gap-3 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-dark-card border border-border/50 flex items-center justify-center">
-                <Rss size={28} className="text-text-muted" />
-            </div>
-            <p className="text-sm font-semibold text-text-primary">No activity yet</p>
-            <p className="text-xs text-text-muted">Start learning to see activity here!</p>
-        </div>
-    );
-    return (
-        <div className="space-y-3">
-            {feedEvents.map((e) => <FeedEventCard key={e.id} event={e} onLike={likeFeedEvent} />)}
-            {eH && !eL && <div ref={sentinelRef} className="h-4" />}
-            {eL && feedEvents.length > 0 && <div className="flex justify-center py-4"><Loader2 size={20} className="animate-spin text-primary" /></div>}
-        </div>
-    );
-};
 
 const CommunityHubPage = () => {
-    const user = useAuthStore((s) => s.user);
+    const user = useAuthStore(s => s.user);
     const { friends, fetchFriends } = useFriendStore();
     const { myRaids, pendingDuels, fetchMyRaids, fetchMyDuels } = useSocialStore();
     const { currentChallenge, fetchCurrentChallenge } = useChallengeStore();
-    const { fetchPosts } = usePostStore();
-    const { fetchFeed } = useFeedStore();
-    const [feedTab, setFeedTab] = useState("posts");
-    const [postSort, setPostSort] = useState("latest");
+
+    // Subscribe to personal notifications (XP, achievements, etc.)
     useNotifications(user?.id);
 
     useEffect(() => {
-        fetchFriends(); fetchMyRaids(); fetchMyDuels(); fetchCurrentChallenge();
-        fetchPosts(1, "latest"); fetchFeed(1, true);
+        fetchFriends();
+        fetchMyRaids();
+        fetchMyDuels();
+        fetchCurrentChallenge();
     }, []);
 
-    const handleSortChange = (sort) => {
-        setPostSort(sort);
-        fetchPosts(1, sort);
+    const activeRaidCount = myRaids.filter(r => r.status === 'active' || r.status === 'lobby').length;
+    const pendingDuelCount = pendingDuels.length;
+    const onlineFriendsCount = friends.filter(f => f.online || f.is_learning_now).length;
+    const challengeProgress = currentChallenge
+        ? `${currentChallenge.current_value ?? 0} / ${currentChallenge.goal_value ?? '?'}`
+        : '—';
+
+    const activityStats = {
+        raids: activeRaidCount > 0 ? `${activeRaidCount} Active` : "No Active",
+        duels: pendingDuelCount > 0 ? `${pendingDuelCount} Pending` : "No Pending",
+        arena: "Ready",
+        rooms: onlineFriendsCount > 0 ? `${onlineFriendsCount} Online` : "0 Online",
+        relay: "Ready",
+        challenge: challengeProgress,
     };
 
-    const activeRaids   = myRaids.filter((r) => ["active","lobby"].includes(r.status)).length;
-    const pendingDuels_ = pendingDuels.length;
-    const online        = friends.filter((f) => f.online || f.is_learning_now).length;
+    const activityStatColors = {
+        raids: activeRaidCount > 0 ? "text-success" : "text-text-muted",
+        duels: pendingDuelCount > 0 ? "text-accent" : "text-text-muted",
+        arena: "text-text-muted",
+        rooms: onlineFriendsCount > 0 ? "text-success" : "text-text-muted",
+        relay: "text-text-muted",
+        challenge: "text-accent",
+    };
 
-    const stats = [
-        { Icon: Swords,  label: "Active Raids",   value: String(activeRaids),   color: "text-primary-light", bg: "bg-primary/10"     },
-        { Icon: Timer,   label: "Pending Duels",  value: String(pendingDuels_), color: "text-red-400",       bg: "bg-red-500/10"     },
-        { Icon: Users,   label: "Friends Online", value: String(online),        color: "text-emerald-400",   bg: "bg-emerald-400/10" },
-        { Icon: Flame,   label: "Streak",         value: user?.current_streak ? `${user.current_streak}d` : "0d", color: "text-amber-400", bg: "bg-amber-400/10" },
+    const quickStats = [
+        { icon: Swords, label: "Active Raids", value: String(activeRaidCount), color: "text-primary-light" },
+        { icon: Timer, label: "Pending Duels", value: String(pendingDuelCount), color: "text-danger" },
+        { icon: Users, label: "Friends Online", value: String(onlineFriendsCount), color: "text-success" },
+        { icon: Flame, label: "Streak", value: user?.streak_days ? `${user.streak_days}d` : "0d", color: "text-accent" },
     ];
-
-    const activityStat = (key) => {
-        const map = {
-            raids:     activeRaids > 0   ? { label: `${activeRaids} active`,   color: "text-primary-light" } : { label: "No active",  color: "text-text-muted" },
-            duels:     pendingDuels_ > 0 ? { label: `${pendingDuels_} pending`, color: "text-red-400"       } : { label: "No pending", color: "text-text-muted" },
-            arena:     { label: "Ready",  color: "text-text-muted" },
-            rooms:     online > 0        ? { label: `${online} online`,         color: "text-emerald-400"   } : { label: "0 online",  color: "text-text-muted" },
-            relay:     { label: "Ready",  color: "text-text-muted" },
-            challenge: currentChallenge  ? { label: `${currentChallenge.current_value ?? 0}/${currentChallenge.goal_value ?? "?"}`, color: "text-accent" } : { label: "--", color: "text-text-muted" },
-        };
-        return map[key] || { label: "--", color: "text-text-muted" };
-    };
-
     return (
-        <div className="px-4 lg:px-6 py-6 max-w-[1400px] mx-auto">
+        <div className="px-4 lg:px-8 py-6 max-w-page mx-auto">
             {/* Header */}
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                        <Users size={18} className="text-white" />
-                    </div>
-                    Community
-                </h1>
-                <p className="text-sm text-text-secondary mt-1 ml-[46px]">Learn together, grow together</p>
+                <h1 className="text-h2 font-heading text-text-primary">Community</h1>
+                <p className="text-body-sm text-text-secondary">
+                    Learn together, grow together — pilih aktivitas sosial di bawah
+                </p>
             </div>
 
-            {/* Quick stat bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                {stats.map(({ Icon, label, value, color, bg }) => (
-                    <div key={label} className="bg-dark-card border border-border/60 rounded-xl px-4 py-3 flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
-                            <Icon size={16} className={color} />
-                        </div>
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                {quickStats.map((s) => (
+                    <div
+                        key={s.label}
+                        className="bg-dark-card border border-border/60 rounded-xl p-4 flex items-center gap-3"
+                    >
+                        <s.icon size={18} className={s.color} />
                         <div>
-                            <p className={`text-lg font-bold font-heading ${color}`}>{value}</p>
-                            <p className="text-[10px] text-text-muted">{label}</p>
+                            <p className="text-lg font-bold text-text-primary font-heading">{s.value}</p>
+                            <p className="text-[10px] text-text-muted">{s.label}</p>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* 3-column layout */}
-            <div className="flex gap-5 items-start">
-                {/* Left: activity sidebar (xl+) */}
-                <aside className="hidden xl:flex flex-col w-56 shrink-0 gap-1 sticky top-6">
-                    <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider px-2 mb-1">Activities</p>
-                    {ACTIVITIES.map((a) => {
-                        const s = activityStat(a.key);
-                        return (
-                            <Link key={a.key} to={a.to}
-                                className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-dark-card border border-transparent hover:border-border/50 transition-all"
+            {/* Two-column: Activities + Friends sidebar */}
+            <div className="flex gap-6">
+                {/* Main Content */}
+                <div className="flex-1 min-w-0 space-y-6">
+                    {/* Activity Cards Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {activities.map((a) => (
+                            <Link
+                                key={a.key}
+                                to={a.to}
+                                className="group bg-dark-card border border-border/60 rounded-xl p-5
+                                    hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg
+                                    transition-all duration-200"
                             >
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${a.accent}18` }}>
-                                    <a.Icon size={15} style={{ color: a.accent }} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium text-text-primary truncate">{a.label}</p>
-                                    <p className={`text-[10px] ${s.color}`}>{s.label}</p>
-                                </div>
-                                <ChevronRight size={12} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                            </Link>
-                        );
-                    })}
-                </aside>
-
-                {/* Center: feed */}
-                <main className="flex-1 min-w-0 space-y-4">
-                    {/* Mobile activity grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 xl:hidden">
-                        {ACTIVITIES.map((a) => {
-                            const s = activityStat(a.key);
-                            return (
-                                <Link key={a.key} to={a.to}
-                                    className="group bg-dark-card border border-border/60 rounded-xl p-3 hover:border-border-hover hover:-translate-y-0.5 transition-all"
-                                >
-                                    <div className="flex items-center gap-2 mb-1.5">
-                                        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${a.accent}18` }}>
-                                            <a.Icon size={13} style={{ color: a.accent }} />
-                                        </div>
-                                        <span className="text-xs font-semibold text-text-primary truncate">{a.label}</span>
+                                <div className="flex items-start justify-between mb-3">
+                                    <div
+                                        className="w-10 h-10 rounded-lg flex items-center justify-center"
+                                        style={{ background: `${a.accent}18` }}
+                                    >
+                                        <a.icon size={20} style={{ color: a.accent }} />
                                     </div>
-                                    <p className={`text-[10px] ${s.color}`}>{s.label}</p>
-                                </Link>
-                            );
-                        })}
-                    </div>
-
-                    {/* Post Composer */}
-                    <PostComposer onPosted={() => { setFeedTab("posts"); handleSortChange("latest"); }} />
-
-                    {/* Feed tabs */}
-                    <div className="flex gap-1 bg-dark-secondary rounded-xl p-1 border border-border/60">
-                        {[
-                            { id: "posts",  Icon: LayoutList, label: "Posts" },
-                            { id: "events", Icon: Rss,        label: "Activity" },
-                        ].map((t) => (
-                            <button key={t.id} onClick={() => setFeedTab(t.id)}
-                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all ${
-                                    feedTab === t.id ? "bg-primary text-white shadow-sm" : "text-text-muted hover:text-text-primary"
-                                }`}
-                            >
-                                <t.Icon size={13} /> {t.label}
-                            </button>
+                                    <ArrowRight
+                                        size={16}
+                                        className="text-text-muted group-hover:text-primary-light
+                                            group-hover:translate-x-1 transition-all"
+                                    />
+                                </div>
+                                <h3 className="text-sm font-semibold text-text-primary mb-1">
+                                    {a.label}
+                                </h3>
+                                <p className="text-[11px] text-text-muted mb-3 leading-relaxed">
+                                    {a.desc}
+                                </p>
+                                <span className={`text-[11px] font-semibold ${activityStatColors[a.key] || "text-text-muted"}`}>
+                                    {activityStats[a.key] || "—"}
+                                </span>
+                            </Link>
                         ))}
                     </div>
 
-                    {/* Sort/filter bar — posts tab only */}
-                    {feedTab === "posts" && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-[11px] text-text-muted font-medium shrink-0">Sort by:</span>
-                            <div className="flex gap-1.5 flex-wrap">
-                                {SORT_FILTERS.map(({ id, Icon, label }) => (
-                                    <button
-                                        key={id}
-                                        onClick={() => handleSortChange(id)}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                                            postSort === id
-                                                ? "bg-primary/15 border-primary/40 text-primary-light"
-                                                : "bg-dark-card border-border/50 text-text-muted hover:text-text-primary hover:border-border"
-                                        }`}
-                                    >
-                                        <Icon size={12} />
-                                        {label}
-                                    </button>
-                                ))}
-                            </div>
+                    {/* Community Feed */}
+                    <div>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-h3 font-heading text-text-primary">
+                                Community Feed
+                            </h2>
                         </div>
-                    )}
+                        <CommunityFeed />
+                    </div>
+                </div>
 
-                    <UnifiedFeed tab={feedTab} sort={postSort} />
-                </main>
-
-                {/* Right: friends */}
-                <aside className="hidden lg:block w-72 shrink-0 sticky top-6">
+                {/* Friends Sidebar */}
+                <div className="hidden lg:block w-72 shrink-0 overflow-hidden">
                     <FriendsList onAddFriend={() => {}} />
-                </aside>
+                </div>
             </div>
         </div>
     );

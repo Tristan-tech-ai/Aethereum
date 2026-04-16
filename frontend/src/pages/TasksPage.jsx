@@ -354,31 +354,6 @@ const ChallengeCard = ({ challenge }) => {
 };
 
 /* ═══════════════════════════════════════════
-   HELPER COMPONENTS
-   ═══════════════════════════════════════════ */
-
-/** Section label used inside the "All" tab to separate content types */
-const TabSectionLabel = ({ icon: Icon, label, count }) => (
-    <div className="flex items-center gap-2 pt-3 pb-0.5">
-        <Icon size={13} className="text-text-muted/60" />
-        <span className="text-[11px] font-mono font-semibold tracking-widest uppercase text-text-muted/50">
-            {label}
-        </span>
-        <span className="text-[11px] text-text-muted/35">({count})</span>
-        <div className="flex-1 h-px bg-border/25 ml-1" />
-    </div>
-);
-
-/** Empty state shown per-tab when there is no data */
-const EmptyTabState = ({ icon: Icon, title, description }) => (
-    <div className="text-center py-14 bg-dark-card border border-border/50 rounded-xl">
-        <Icon size={34} className="mx-auto text-text-muted/25 mb-3" />
-        <p className="text-sm font-medium text-text-secondary mb-1.5">{title}</p>
-        <p className="text-xs text-text-muted max-w-xs mx-auto leading-relaxed">{description}</p>
-    </div>
-);
-
-/* ═══════════════════════════════════════════
    TASKS PAGE
    ═══════════════════════════════════════════ */
 
@@ -484,123 +459,52 @@ const TasksPage = () => {
                 })}
             </div>
 
-            {/* ── Loading ── */}
+            {/* Loading */}
             {loading && (
-                <div className="flex items-center justify-center gap-2 py-16 bg-dark-card border border-border/50 rounded-xl">
-                    <Loader2 size={22} className="animate-spin text-primary-light" />
-                    <span className="text-sm text-text-muted">Memuat tugas…</span>
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 size={24} className="animate-spin text-primary-light" />
                 </div>
             )}
 
-            {/* ── Content (only after loading finished) ── */}
+            {/* Task Lists */}
             {!loading && (
                 <div className="space-y-3">
+                    {/* Active Learning */}
+                    {(activeTab === "all" || activeTab === "learning") &&
+                        activeSessions.map((s) => <SessionCard key={s.id} session={s} />)}
 
-                    {/* ─── ALL TAB ─── */}
-                    {activeTab === "all" && (
-                        tabCounts.all === 0 ? (
-                            <EmptyTabState
-                                icon={ClipboardCheck}
-                                title="Belum ada tugas aktif"
-                                description="Mulai belajar dari Library untuk melihat sesi aktif, atau tantang teman di Community."
-                            />
-                        ) : (
-                            <>
-                                {activeSessions.length > 0 && (
-                                    <>
-                                        <TabSectionLabel icon={BookOpen} label="Active Learning" count={activeSessions.length} />
-                                        {activeSessions.map((s) => <SessionCard key={s.id} session={s} />)}
-                                    </>
-                                )}
-                                {activeDuels.length > 0 && (
-                                    <>
-                                        <TabSectionLabel icon={Swords} label="Active Duels" count={activeDuels.length} />
-                                        {activeDuels.map((d) => <DuelCard key={d.id} duel={d} userId={userId} />)}
-                                    </>
-                                )}
-                                {(activeRaids.length > 0 || currentChallenge) && (
-                                    <>
-                                        <TabSectionLabel icon={Users} label="My Activities" count={activeRaids.length + (currentChallenge ? 1 : 0)} />
-                                        {activeRaids.map((r) => <RaidCard key={r.id} raid={r} />)}
-                                        {currentChallenge && <ChallengeCard challenge={currentChallenge} />}
-                                    </>
-                                )}
-                            </>
-                        )
+                    {/* Quiz & Review */}
+                    {(activeTab === "all" || activeTab === "quizzes") &&
+                        quizReviewSessions.map((s) => <QuizReviewCard key={`quiz-${s.id}`} session={s} />)}
+
+                    {/* Active Duels */}
+                    {(activeTab === "all" || activeTab === "duels") &&
+                        activeDuels.map((d) => <DuelCard key={d.id} duel={d} userId={userId} />)}
+
+                    {/* My Activities: Raids + Challenge */}
+                    {(activeTab === "all" || activeTab === "activities") && (
+                        <>
+                            {activeRaids.map((r) => <RaidCard key={r.id} raid={r} />)}
+                            {currentChallenge && <ChallengeCard challenge={currentChallenge} />}
+                        </>
                     )}
+                </div>
+            )}
 
-                    {/* ─── LEARNING TAB ─── */}
-                    {activeTab === "learning" && (
-                        activeSessions.length === 0 ? (
-                            <EmptyTabState
-                                icon={BookOpen}
-                                title="Tidak ada sesi aktif"
-                                description={(
-                                    <>
-                                        Buka{" "}
-                                        <Link to="/library" className="text-primary-light hover:underline">Library</Link>
-                                        {" "}dan mulai kursus untuk melihat sesi di sini.
-                                    </>
-                                )}
-                            />
-                        ) : (
-                            activeSessions.map((s) => <SessionCard key={s.id} session={s} />)
-                        )
-                    )}
-
-                    {/* ─── QUIZZES TAB ─── */}
-                    {activeTab === "quizzes" && (
-                        quizReviewSessions.length === 0 ? (
-                            <EmptyTabState
-                                icon={Zap}
-                                title="Tidak ada quiz untuk direview"
-                                description="Selesaikan section dalam sesi aktif untuk membuka review quiz."
-                            />
-                        ) : (
-                            quizReviewSessions.map((s) => <QuizReviewCard key={`quiz-${s.id}`} session={s} />)
-                        )
-                    )}
-
-                    {/* ─── DUELS TAB ─── */}
-                    {activeTab === "duels" && (
-                        activeDuels.length === 0 ? (
-                            <EmptyTabState
-                                icon={Swords}
-                                title="Tidak ada duel aktif"
-                                description={(
-                                    <>
-                                        Tantang teman dari halaman{" "}
-                                        <Link to="/community/duels" className="text-primary-light hover:underline">Focus Duels</Link>.
-                                    </>
-                                )}
-                            />
-                        ) : (
-                            activeDuels.map((d) => <DuelCard key={d.id} duel={d} userId={userId} />)
-                        )
-                    )}
-
-                    {/* ─── ACTIVITIES TAB ─── */}
-                    {activeTab === "activities" && (
-                        (activeRaids.length === 0 && !currentChallenge) ? (
-                            <EmptyTabState
-                                icon={Users}
-                                title="Tidak ada aktivitas aktif"
-                                description={(
-                                    <>
-                                        Bergabung ke{" "}
-                                        <Link to="/community/raids" className="text-primary-light hover:underline">Study Raid</Link>
-                                        {" "}atau ikut weekly challenge dari Community.
-                                    </>
-                                )}
-                            />
-                        ) : (
-                            <>
-                                {activeRaids.map((r) => <RaidCard key={r.id} raid={r} />)}
-                                {currentChallenge && <ChallengeCard challenge={currentChallenge} />}
-                            </>
-                        )
-                    )}
-
+            {/* Empty state */}
+            {!loading && tabCounts[activeTab] === 0 && (
+                <div className="text-center py-12 bg-dark-card border border-border/60 rounded-xl">
+                    <ClipboardCheck size={36} className="mx-auto text-text-muted/30 mb-3" />
+                    <p className="text-sm text-text-secondary mb-1">No tasks in this category</p>
+                    <p className="text-xs text-text-muted">
+                        {activeTab === "learning"
+                            ? "Start a course from your library to begin learning"
+                            : activeTab === "duels"
+                            ? "Challenge a friend to a Focus Duel from Community"
+                            : activeTab === "activities"
+                            ? "Join a Study Raid or Weekly Challenge from Community"
+                            : "Start a course to see your tasks here"}
+                    </p>
                 </div>
             )}
         </div>

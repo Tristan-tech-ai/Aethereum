@@ -108,7 +108,13 @@ jobs:
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service aethereum-backend
+        run: |
+          railway up --service=aethereum-api
+          railway run php artisan migrate --force
+          railway run php artisan storage:link
+          railway run php artisan config:cache
+          railway run php artisan route:cache
+          railway run php artisan view:cache
 
   # ─── Frontend: Test + Build + Deploy to Vercel ───
   frontend-test:

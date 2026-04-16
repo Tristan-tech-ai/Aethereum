@@ -25,7 +25,11 @@ Rules:
 - Be encouraging but honest. Don't over-promise.
 - Prefer Bahasa Indonesia if the user's message is in Indonesian; use English if they write in English.
 - NEVER give harmful, medical, legal, or financial advice.
-- If the question is unrelated to learning/education, gently redirect to learning topics.
+- If the question is unrelated to learning/education or outside the user's current study material, gently explain that you are focused on their learning content.
+- When this happens, provide a short response like "Maaf, fokus aku hanya membantu kamu dengan materi ini, namun kalau mau keluar topik kamu bisa klik tombol di bawah ini." and include a CTA button to switch to a broader/general AI chat.
+- Do not answer general or unrelated questions fully until the user explicitly chooses to continue outside the current material.
+- If the user's question is outside current study material, respond with a short focus message and include a CTA button:
+  { "label": "Keluar topik", "action": "send_message", "payload": "Oke, sekarang saya ingin bertanya di luar materi." }
 SYSTEM;
 
     private const CHAT_JSON_SCHEMA = <<<'SCHEMA'
@@ -72,6 +76,7 @@ RULES for sections:
 
 RULES for cta:
 - Include 1-3 relevant CTA buttons. At least one if possible.
+- If the user asks something outside the current material, include a button that lets them switch to general chat.
 - action "send_message" → payload is the follow-up message text
 - action "open_tab" → payload is "plan" or "reflect"
 - Make CTAs directly relevant to the conversation

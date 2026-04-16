@@ -85,13 +85,7 @@ class StudyRaidController extends Controller
 
     public function show(Request $request, string $id): JsonResponse
     {
-        $user = $request->user();
         $raid = StudyRaid::with(['participants', 'content', 'creator'])->findOrFail($id);
-
-        $isParticipant = $raid->creator_id === $user->id || $raid->participants()->where('user_id', $user->id)->exists();
-        if (!$isParticipant) {
-            return $this->error('You are not a participant of this raid', 403);
-        }
 
         return $this->success(['raid' => $raid]);
     }
@@ -128,11 +122,7 @@ class StudyRaidController extends Controller
         ]);
 
         $user = $request->user();
-        $raid = StudyRaid::findOrFail($id);
-        
-        if ($raid->status === 'lobby') {
-            return $this->error('Raid has not started yet', 400);
-        }
+        $raid = StudyRaid::where('id', $id)->where('status', 'active')->firstOrFail();
 
         $raid->participants()->updateExistingPivot($user->id, [
             'progress_percentage' => $request->progress_percentage,
@@ -150,11 +140,7 @@ class StudyRaidController extends Controller
         ]);
 
         $user = $request->user();
-        $raid = StudyRaid::findOrFail($id);
-        
-        if ($raid->status === 'lobby') {
-            return $this->error('Raid has not started yet', 400);
-        }
+        $raid = StudyRaid::where('id', $id)->where('status', 'active')->firstOrFail();
 
         $raid->participants()->updateExistingPivot($user->id, [
             'quiz_score' => $request->quiz_score,
@@ -166,16 +152,7 @@ class StudyRaidController extends Controller
     public function complete(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
-        $raid = StudyRaid::findOrFail($id);
-        
-        if ($raid->status === 'lobby') {
-            return $this->error('Raid has not started yet', 400);
-        }
-
-        // If already completed, just return success
-        if ($raid->status === 'completed') {
-            return $this->success(['all_completed' => true], 'Raid already completed');
-        }
+        $raid = StudyRaid::where('id', $id)->where('status', 'active')->firstOrFail();
 
         $raid->participants()->updateExistingPivot($user->id, [
             'status' => 'completed',
@@ -190,36 +167,6 @@ class StudyRaidController extends Controller
         }
 
         return $this->success(['all_completed' => $allDone], 'Marked as complete');
-    }
-
-    public function chat(Request $request, string $id): JsonResponse
-    {
-        $request->validate([
-            'message' => 'required|string|max:500',
-        ]);
-
-        $user = $request->user();
-        $raid = StudyRaid::with('participants')->findOrFail($id);
-
-        $isParticipant = $raid->creator_id === $user->id || $raid->participants()->where('user_id', $user->id)->exists();
-        if (!$isParticipant) {
-            return $this->error('You are not a participant of this raid', 403);
-        }
-
-        $message = trim((string) $request->input('message'));
-        if ($message === '') {
-            return $this->error('Message cannot be empty', 422);
-        }
-
-        $this->raidService->broadcastChat($raid->id, $user, $message);
-
-        return $this->success([
-            'message' => [
-                'user_id' => $user->id,
-                'user_name' => $user->name,
-                'message' => $message,
-            ],
-        ], 'Message sent');
     }
 
     public function results(Request $request, string $id): JsonResponse
@@ -248,14 +195,9 @@ class StudyRaidController extends Controller
         $user = $request->user();
 
         $raids = StudyRaid::whereHas('participants', fn ($q) => $q->where('user_id', $user->id))
-            ->with([
-                'content:id,title,subject_category',
-                'creator:id,name,username,avatar_url',
-                'participants:id,name,username,avatar_url',
-            ])
+            ->with(['content:id,title,subject', 'creator:id,name,username,avatar_url'])
             ->latest()
-            ->limit(20)
-            ->get();
+            ->paginate(10);
 
         return $this->success(['raids' => $raids]);
     }

@@ -49,21 +49,15 @@ class FocusDuelService
         $challenger = User::find($duel->challenger_id);
         $opponent = User::find($duel->opponent_id);
 
-        $awardCoins = function (?User $user, int $amount): void {
-            if (!$user || !$user->wallet || $amount <= 0) return;
-            $user->wallet->increment('current_balance', $amount);
-            $user->wallet->increment('total_earned', $amount);
-        };
-
         if ($winnerId === $duel->challenger_id) {
-            $awardCoins($challenger, 30);
-            $awardCoins($opponent, 15);
+            $challenger->wallet?->increment('coins', 30);
+            $opponent->wallet?->increment('coins', 15);
         } elseif ($winnerId === $duel->opponent_id) {
-            $awardCoins($opponent, 30);
-            $awardCoins($challenger, 15);
+            $opponent->wallet?->increment('coins', 30);
+            $challenger->wallet?->increment('coins', 15);
         } else {
-            $awardCoins($challenger, 20);
-            $awardCoins($opponent, 20);
+            $challenger->wallet?->increment('coins', 20);
+            $opponent->wallet?->increment('coins', 20);
         }
 
         // XP to both

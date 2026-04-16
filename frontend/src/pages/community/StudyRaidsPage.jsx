@@ -1,6 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Swords, Plus, ArrowLeft, Users, Clock, Trophy } from "lucide-react";
+import {
+    Swords,
+    Plus,
+    ArrowLeft,
+    Users,
+    Clock,
+    Trophy,
+} from "lucide-react";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
@@ -15,97 +22,30 @@ import useRaidSocket from "../../hooks/useRaidSocket";
 
 const StudyRaidsPage = () => {
     const [showCreateRaid, setShowCreateRaid] = useState(false);
-    const [raidPhase, setRaidPhase] = useState("browse"); // browse | lobby | inProgress | complete
+    const [raidPhase, setRaidPhase] = useState("browse"); // 'browse' | 'lobby' | 'inProgress' | 'complete'
     const [joinCode, setJoinCode] = useState("");
-    const [chatMessages, setChatMessages] = useState([]);
-    const [raidResult, setRaidResult] = useState(null);
-
     const user = useAuthStore((state) => state.user);
 
     const {
-        myRaids,
-        currentRaid,
-        raidLoading,
-        error,
-        fetchMyRaids,
-        createRaid,
-        joinRaid,
-        fetchRaid,
-        startRaid,
-        updateRaidProgress,
-        sendRaidChat,
-        completeRaid,
-        fetchRaidResults,
+        myRaids, currentRaid, raidLoading, error,
+        fetchMyRaids, createRaid, joinRaid, fetchRaid,
+        startRaid, completeRaid, fetchRaidResults,
         setCurrentRaid,
     } = useSocialStore();
 
-    useEffect(() => {
-        fetchMyRaids();
-    }, [fetchMyRaids]);
+    // Fetch raids on mount
+    useEffect(() => { fetchMyRaids(); }, []);
 
-    useEffect(() => {
-        if (!currentRaid) return;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        if (currentRaid.status === "completed") setRaidPhase("complete");
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        else if (currentRaid.status === "active") setRaidPhase("inProgress");
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        else setRaidPhase("lobby");
-    }, [currentRaid]);
-
-    useEffect(() => {
-        if (!currentRaid?.id || raidPhase === "browse") return;
-        const interval = setInterval(() => fetchRaid(currentRaid.id), 12000);
-        return () => clearInterval(interval);
-    }, [currentRaid, raidPhase, fetchRaid]);
-
-    const handleSocketProgress = useCallback((data) => {
-        setCurrentRaid((prev) => {
-            if (!prev?.participants) return prev;
-            const participants = prev.participants.map((participant) => {
-                if (String(participant.id) !== String(data?.participant_id)) return participant;
-                return {
-                    ...participant,
-                    pivot: {
-                        ...(participant.pivot || {}),
-                        progress_percentage: Number(data?.progress_percentage || 0),
-                    },
-                };
-            });
-            return { ...prev, participants };
-        });
-    }, [setCurrentRaid]);
-
-    const handleSocketChat = useCallback((data) => {
-        setChatMessages((prev) => [
-            ...prev,
-            {
-                id: Date.now() + Math.random(),
-                user_id: data?.user_id,
-                user_name: data?.user_name,
-                message: data?.message,
-            },
-        ]);
-    }, []);
-
-    const handleSocketCompleted = useCallback(async () => {
-        if (!currentRaid?.id) return;
-        const results = await fetchRaidResults(currentRaid.id);
-        setRaidResult(results);
-        setRaidPhase("complete");
-    }, [currentRaid, fetchRaidResults]);
-
+    // WebSocket for active raid
     useRaidSocket(
-        currentRaid?.id && (raidPhase === "lobby" || raidPhase === "inProgress") ? currentRaid.id : null,
+        currentRaid?.id && (raidPhase === 'lobby' || raidPhase === 'inProgress') ? currentRaid.id : null,
         {
-            onProgress: handleSocketProgress,
-            onChat: handleSocketChat,
-            onCompleted: handleSocketCompleted,
+            onCompleted: () => setRaidPhase("complete"),
         },
     );
 
-    const activeRaids = myRaids.filter((r) => r.status === "active" || r.status === "lobby");
-    const pastRaids = myRaids.filter((r) => r.status === "completed");
+    const activeRaids = myRaids.filter(r => r.status === 'active' || r.status === 'lobby');
+    const pastRaids = myRaids.filter(r => r.status === 'completed');
 
     const myStats = {
         completed: pastRaids.length,
@@ -113,12 +53,12 @@ const StudyRaidsPage = () => {
             ? Math.round(pastRaids.reduce((acc, r) => acc + (parseFloat(r.team_score) || 0), 0) / pastRaids.length)
             : 0,
         totalXP: pastRaids.reduce((acc, r) => {
-            const p = r.participants?.find((participant) => String(participant.id) === String(user?.id));
+            const p = r.participants?.find((participant) => participant.id === user?.id);
             return acc + (p?.pivot?.xp_earned || 0);
         }, 0),
         bestRaid: pastRaids.length > 0
-            ? pastRaids.reduce((best, r) => (parseFloat(r.team_score) || 0) > (parseFloat(best.team_score) || 0) ? r : best, pastRaids[0])?.content?.title || "—"
-            : "—",
+            ? pastRaids.reduce((best, r) => (parseFloat(r.team_score) || 0) > (parseFloat(best.team_score) || 0) ? r : best, pastRaids[0])?.content?.title || '—'
+            : '—',
     };
 
     const handleJoinRaid = async () => {
@@ -126,21 +66,13 @@ const StudyRaidsPage = () => {
         const raid = await joinRaid(joinCode);
         if (raid) {
             setJoinCode("");
-            setChatMessages([]);
-            setRaidResult(null);
-            setRaidPhase(raid.status === "active" ? "inProgress" : "lobby");
-            fetchMyRaids(true);
+            setRaidPhase("lobby");
         }
-    };
-
-    const handleSendRaidChat = async (message) => {
-        if (!currentRaid?.id) return null;
-        const sent = await sendRaidChat(currentRaid.id, message);
-        return sent;
     };
 
     return (
         <div className="px-4 lg:px-8 py-6 max-w-page mx-auto">
+            {/* Back + Header */}
             <div className="mb-6">
                 <Link
                     to="/community"
@@ -154,7 +86,9 @@ const StudyRaidsPage = () => {
                             <Swords size={24} className="text-primary-light" />
                             Study Raids
                         </h1>
-                        <p className="text-body-sm text-text-secondary">Belajar bareng 2–7 orang secara real-time.</p>
+                        <p className="text-body-sm text-text-secondary">
+                            Belajar bareng 2–5 orang secara real-time, seperti dungeon raid
+                        </p>
                     </div>
                     {raidPhase === "browse" && (
                         <Button onClick={() => setShowCreateRaid(true)}>
@@ -164,12 +98,10 @@ const StudyRaidsPage = () => {
                 </div>
             </div>
 
-            {error && (
-                <Card className="mb-4 border-danger/30 bg-danger/5 text-danger text-sm">{error}</Card>
-            )}
-
+            {/* Browse Phase */}
             {raidPhase === "browse" && (
                 <div className="space-y-6">
+                    {/* My Raid Stats */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         <div className="bg-dark-card border border-border/60 rounded-xl p-4 text-center">
                             <Trophy size={16} className="mx-auto text-primary-light mb-2" />
@@ -193,6 +125,7 @@ const StudyRaidsPage = () => {
                         </div>
                     </div>
 
+                    {/* Active Raids */}
                     <div>
                         <h2 className="text-h3 font-heading text-text-primary mb-3">Active Raids</h2>
                         {activeRaids.length > 0 ? (
@@ -208,27 +141,40 @@ const StudyRaidsPage = () => {
                                         <Card key={raid.id} hover>
                                             <div className="flex items-start justify-between mb-3">
                                                 <div>
-                                                    <h4 className="text-sm font-semibold text-text-primary">{raid.content?.title || "Study Raid"}</h4>
-                                                    <p className="text-caption text-text-muted">by @{raid.creator?.username || "host"} · {raid.content?.subject_category || "General"}</p>
+                                                    <h4 className="text-sm font-semibold text-text-primary">
+                                                        {raid.content?.title || "Study Raid"}
+                                                    </h4>
+                                                    <p className="text-caption text-text-muted">
+                                                        by @{raid.creator?.username || "host"} · {raid.content?.subject_category || "General"}
+                                                    </p>
                                                 </div>
-                                                {isFull ? <Badge variant="danger">FULL</Badge> : <Badge variant="success">OPEN</Badge>}
+                                                {isFull ? (
+                                                    <Badge variant="danger">FULL</Badge>
+                                                ) : (
+                                                    <Badge variant="success">OPEN</Badge>
+                                                )}
                                             </div>
 
                                             <div className="flex items-center gap-1 mb-3">
                                                 {participants.slice(0, 5).map((p) => (
-                                                    <Avatar key={p.id} name={p.name} src={p.avatar_url} size="xs" />
+                                                    <Avatar key={p.id} name={p.name} size="xs" />
                                                 ))}
-                                                <span className="text-caption text-text-muted ml-1">{participantCount}/{maxP}</span>
+                                                <span className="text-caption text-text-muted ml-1">
+                                                    {participantCount}/{maxP}
+                                                </span>
                                             </div>
 
                                             {progress > 0 && (
                                                 <div className="mb-3">
                                                     <div className="flex justify-between text-caption mb-1">
-                                                        <span className="text-text-muted">Team Score</span>
+                                                        <span className="text-text-muted">Team Progress</span>
                                                         <span className="text-text-secondary">{progress}%</span>
                                                     </div>
                                                     <div className="w-full h-2 bg-dark-secondary rounded-full overflow-hidden">
-                                                        <div className="h-full bg-gradient-to-r from-primary to-secondary rounded-full" style={{ width: `${progress}%` }} />
+                                                        <div
+                                                            className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+                                                            style={{ width: `${progress}%` }}
+                                                        />
                                                     </div>
                                                 </div>
                                             )}
@@ -240,12 +186,8 @@ const StudyRaidsPage = () => {
                                                 disabled={isFull}
                                                 onClick={async () => {
                                                     if (!isFull) {
-                                                        const fullRaid = await fetchRaid(raid.id);
-                                                        if (fullRaid) {
-                                                            setChatMessages([]);
-                                                            setRaidResult(null);
-                                                            setRaidPhase((fullRaid.status || raid.status) === "active" ? "inProgress" : "lobby");
-                                                        }
+                                                        await fetchRaid(raid.id);
+                                                        setRaidPhase("lobby");
                                                     }
                                                 }}
                                             >
@@ -264,6 +206,7 @@ const StudyRaidsPage = () => {
                             </Card>
                         )}
 
+                        {/* Join with Code */}
                         <div className="flex gap-2 mt-4">
                             <input
                                 type="text"
@@ -271,71 +214,82 @@ const StudyRaidsPage = () => {
                                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                                 placeholder="Enter invite code…"
                                 maxLength={8}
-                                className="flex-1 bg-dark-secondary border border-border rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary tracking-widest text-center placeholder:text-text-muted focus:outline-none focus:border-primary"
+                                className="flex-1 bg-dark-secondary border border-border rounded-lg px-3 py-2.5
+                                    text-sm font-mono text-text-primary tracking-widest text-center
+                                    placeholder:text-text-muted focus:outline-none focus:border-primary"
                             />
-                            <Button variant="secondary" disabled={joinCode.length < 4 || raidLoading} onClick={handleJoinRaid}>Join</Button>
+                            <Button variant="secondary" disabled={joinCode.length < 4} onClick={handleJoinRaid}>
+                                Join
+                            </Button>
                         </div>
                     </div>
+
+                    {/* Past Raids */}
+                    {pastRaids.length > 0 && (
+                        <div>
+                            <h3 className="text-h4 font-heading text-text-primary mb-3">Past Raids</h3>
+                            <Card>
+                                <div className="space-y-0">
+                                    {pastRaids.map((r) => {
+                                        const score = parseFloat(r.team_score) || 0;
+                                        const date = r.completed_at ? new Date(r.completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                                        return (
+                                            <div
+                                                key={r.id}
+                                                className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0"
+                                            >
+                                                <span className="text-sm text-text-primary">{r.content?.title || "Study Raid"}</span>
+                                                <div className="flex items-center gap-4">
+                                                    <Badge variant={score >= 90 ? "success" : "primary"}>
+                                                        {score}%
+                                                    </Badge>
+                                                    <span className="text-caption text-text-muted">{date}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </Card>
+                        </div>
+                    )}
                 </div>
             )}
 
+            {/* Lobby Phase */}
             {raidPhase === "lobby" && currentRaid && (
                 <RaidLobby
                     raid={currentRaid}
                     isCreator={currentRaid.creator_id === user?.id}
-                    onRefresh={() => fetchRaid(currentRaid.id)}
                     onStart={async () => {
-                        const ok = await startRaid(currentRaid.id);
-                        if (ok) {
-                            const fullRaid = await fetchRaid(currentRaid.id);
-                            if (fullRaid) setRaidPhase("inProgress");
-                        }
+                        await startRaid(currentRaid.id);
+                        setRaidPhase("inProgress");
                     }}
-                    onLeave={() => {
-                        setRaidPhase("browse");
-                        setCurrentRaid(null);
-                        setChatMessages([]);
-                    }}
+                    onLeave={() => { setRaidPhase("browse"); setCurrentRaid(null); }}
                 />
             )}
 
+            {/* In-Progress Phase */}
             {raidPhase === "inProgress" && currentRaid && (
                 <RaidInProgress
                     raid={currentRaid}
-                    participants={currentRaid.participants || []}
-                    chatMessages={chatMessages}
-                    onProgressUpdate={(progress) => updateRaidProgress(currentRaid.id, progress)}
-                    onSendChat={handleSendRaidChat}
-                    onComplete={async (data) => {
-                        try {
-                            // Pass quiz score and focus integrity to completeRaid
-                            await completeRaid(currentRaid.id, data?.quizScore, data?.focusIntegrity);
-                        } catch (err) {
-                            console.error("Failed to complete raid:", err);
-                        }
-                        const results = await fetchRaidResults(currentRaid.id);
-                        setRaidResult(results);
+                    onComplete={async () => {
+                        await completeRaid(currentRaid.id);
+                        await fetchRaidResults(currentRaid.id);
                         setRaidPhase("complete");
                     }}
                 />
             )}
 
+            {/* Complete Phase */}
             {raidPhase === "complete" && (
                 <RaidComplete
                     contentTitle={currentRaid?.content?.title || "Study Raid"}
-                    results={raidResult}
-                    teamScore={raidResult?.team_score || currentRaid?.team_score}
-                    onClose={() => {
-                        setRaidPhase("browse");
-                        setCurrentRaid(null);
-                        setRaidResult(null);
-                        setChatMessages([]);
-                        fetchMyRaids(true);
-                    }}
-                    onPlayAgain={() => setRaidPhase("browse")}
+                    onClose={() => { setRaidPhase("browse"); setCurrentRaid(null); fetchMyRaids(); }}
+                    onPlayAgain={() => setRaidPhase("lobby")}
                 />
             )}
 
+            {/* Create Raid Modal */}
             <CreateRaidModal
                 isOpen={showCreateRaid}
                 onClose={() => setShowCreateRaid(false)}
@@ -347,10 +301,7 @@ const StudyRaidsPage = () => {
                     });
                     if (raid) {
                         setShowCreateRaid(false);
-                        setRaidResult(null);
-                        setChatMessages([]);
                         setRaidPhase("lobby");
-                        fetchMyRaids(true);
                     }
                 }}
             />

@@ -2,10 +2,8 @@
 
 namespace App\Services;
 
-use App\Events\NewFeedEvent;
 use App\Models\FeedEvent;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class FeedEventService
@@ -21,35 +19,11 @@ class FeedEventService
     public function logEvent(User $user, string $eventType, string $message, array $metadata = []): void
     {
         try {
-            $event = FeedEvent::create([
+            FeedEvent::create([
                 'user_id' => $user->id,
                 'event_type' => $eventType,
                 'event_data' => array_merge($metadata, ['message' => $message]),
             ]);
-
-            $event->load('user:id,name,username,avatar_url,level');
-
-            $recipientIds = DB::table('friendships')
-                ->where('status', 'accepted')
-                ->where(function ($q) use ($user) {
-                    $q->where('requester_id', $user->id)
-                        ->orWhere('addressee_id', $user->id);
-                })
-                ->get()
-                ->map(function ($friendship) use ($user) {
-                    return $friendship->requester_id === $user->id
-                        ? $friendship->addressee_id
-                        : $friendship->requester_id;
-                })
-                ->push($user->id)
-                ->unique()
-                ->values();
-
-            foreach ($recipientIds as $recipientId) {
-                $payload = $event->toArray();
-                $payload['liked_by_me'] = false;
-                broadcast(new NewFeedEvent((string) $recipientId, $payload));
-            }
         } catch (\Throwable $e) {
             Log::error("Failed to log feed event for user {$user->id}: " . $e->getMessage());
         }

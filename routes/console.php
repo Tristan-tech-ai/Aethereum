@@ -14,3 +14,4 @@ Artisan::command('inspire', function () {
 Schedule::job(new ExpirePendingDuelsJob)->hourly();
 Schedule::job(new WeeklyChallengeResetJob)->weeklyOn(1, '00:00');
 Schedule::job(new CleanupInactiveRoomMembersJob)->everyFiveMinutes();
+Schedule::command('assistant:cleanup-sessions')->hourly();
