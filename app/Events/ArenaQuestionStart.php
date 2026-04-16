@@ -28,7 +28,7 @@ class ArenaQuestionStart implements ShouldBroadcast
         return [
             'question' => $this->question,
             'question_index' => $this->questionIndex,
-            'timer_start' => now()->toISOString(),
+            'timer_start' => now()->toIso8601String(),
         ];
     }
 }

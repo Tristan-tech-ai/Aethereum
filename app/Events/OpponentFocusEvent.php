@@ -28,7 +28,7 @@ class OpponentFocusEvent implements ShouldBroadcast
         return [
             'event_type' => $this->eventType,
             'distraction_count' => $this->distractionCount,
-            'timestamp' => now()->toISOString(),
+            'timestamp' => now()->toIso8601String(),
         ];
     }
 }

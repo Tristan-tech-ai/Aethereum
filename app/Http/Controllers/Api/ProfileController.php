@@ -421,7 +421,7 @@ class ProfileController extends Controller
             'total_knowledge_cards' => $user->total_knowledge_cards,
             'total_learning_hours'  => $user->total_learning_hours,
             'total_sessions'        => $user->total_sessions,
-            'created_at'            => optional($user->created_at)?->toISOString(),
+            'created_at'            => optional($user->created_at)?->toIso8601String(),
             'is_profile_public'     => $user->is_profile_public,
             'show_on_leaderboard'   => $user->show_on_leaderboard,
             'email_verified_at'     => $user->email_verified_at,
