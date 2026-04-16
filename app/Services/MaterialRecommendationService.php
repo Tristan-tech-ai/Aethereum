@@ -97,6 +97,10 @@ class MaterialRecommendationService
      */
     public function validateContentId($contentId): ?LearningContent
     {
+        if (!is_string($contentId) || !\Illuminate\Support\Str::isUuid($contentId)) {
+            return null;
+        }
         return LearningContent::find($contentId);
     }
+
 }
