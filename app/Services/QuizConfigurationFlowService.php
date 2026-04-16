@@ -42,15 +42,16 @@ class QuizConfigurationFlowService
                 ];
             }
 
-            $options = $contents->map(fn ($content) => [
+            $cta = $contents->map(fn ($content) => [
                 'label' => $content->title,
-                'value' => $content->id,
+                'action' => 'send_message',
+                'payload' => $content->id,
             ])->toArray();
 
             return [
                 'message' => 'Sip, mau latihan soal! Pilih materi yang ingin dipelajari:',
-                'ui_type' => 'chips',
-                'options' => $options,
+                'ui_type' => 'text',
+                'cta' => $cta,
                 'next_phase' => 'material',
                 'payload_update' => [],
                 'is_terminal' => false,
@@ -76,21 +77,22 @@ class QuizConfigurationFlowService
         if ($content && $content->user_id === $userId) { // Secure check
             $sections = $this->materialRecommendation->getSectionsFromContent($content);
 
-            $options = [
-                ['label' => 'Semua Bagian', 'value' => 'semua']
+            $cta = [
+                ['label' => 'Semua Bagian', 'action' => 'send_message', 'payload' => 'semua']
             ];
 
             foreach ($sections as $section) {
-                $options[] = [
+                $cta[] = [
                     'label' => $section['title'],
-                    'value' => (string) $section['index'],
+                    'action' => 'send_message',
+                    'payload' => (string) $section['index'],
                 ];
             }
 
             return [
                 'message' => 'Mantap! Mau bahas bagian mana dari materi ini?',
-                'ui_type' => 'chips',
-                'options' => $options,
+                'ui_type' => 'text',
+                'cta' => $cta,
                 'next_phase' => 'section',
                 'payload_update' => [
                     'content_id' => $content->id,
@@ -138,13 +140,13 @@ class QuizConfigurationFlowService
 
         return [
             'message' => 'Berapa jumlah soal yang ingin kamu kerjakan?',
-            'ui_type' => 'chips',
-            'options' => [
-                ['label' => '5', 'value' => '5'],
-                ['label' => '10', 'value' => '10'],
-                ['label' => '15', 'value' => '15'],
-                ['label' => '20', 'value' => '20'],
-                ['label' => 'Custom', 'value' => 'custom'],
+            'ui_type' => 'text',
+            'cta' => [
+                ['label' => '5 Soal', 'action' => 'send_message', 'payload' => '5'],
+                ['label' => '10 Soal', 'action' => 'send_message', 'payload' => '10'],
+                ['label' => '15 Soal', 'action' => 'send_message', 'payload' => '15'],
+                ['label' => '20 Soal', 'action' => 'send_message', 'payload' => '20'],
+                ['label' => 'Custom', 'action' => 'send_message', 'payload' => 'custom'],
             ],
             'next_phase' => 'count',
             'payload_update' => [
@@ -181,11 +183,11 @@ class QuizConfigurationFlowService
 
         return [
             'message' => 'Pilih tipe soal yang kamu suka:',
-            'ui_type' => 'chips',
-            'options' => [
-                ['label' => 'Pilihan Ganda', 'value' => 'multiple_choice'],
-                ['label' => 'Benar/Salah', 'value' => 'true_false'],
-                ['label' => 'Campuran', 'value' => 'mixed'],
+            'ui_type' => 'text',
+            'cta' => [
+                ['label' => 'Pilihan Ganda', 'action' => 'send_message', 'payload' => 'multiple_choice'],
+                ['label' => 'Benar/Salah', 'action' => 'send_message', 'payload' => 'true_false'],
+                ['label' => 'Campuran', 'action' => 'send_message', 'payload' => 'mixed'],
             ],
             'next_phase' => 'type',
             'payload_update' => [
@@ -201,12 +203,12 @@ class QuizConfigurationFlowService
 
         return [
             'message' => 'Terakhir, pilih tingkat kesulitan quiz:',
-            'ui_type' => 'chips',
-            'options' => [
-                ['label' => 'Mudah', 'value' => 'easy'],
-                ['label' => 'Sedang', 'value' => 'medium'],
-                ['label' => 'Sulit', 'value' => 'hard'],
-                ['label' => 'Adaptif', 'value' => 'adaptive'],
+            'ui_type' => 'text',
+            'cta' => [
+                ['label' => 'Mudah', 'action' => 'send_message', 'payload' => 'easy'],
+                ['label' => 'Sedang', 'action' => 'send_message', 'payload' => 'medium'],
+                ['label' => 'Sulit', 'action' => 'send_message', 'payload' => 'hard'],
+                ['label' => 'Adaptif', 'action' => 'send_message', 'payload' => 'adaptive'],
             ],
             'next_phase' => 'difficulty',
             'payload_update' => [
@@ -225,10 +227,10 @@ class QuizConfigurationFlowService
 
         return [
             'message' => "Sip! Konfigurasi quiz sudah siap.\n\n{$summary}\n\nSudah pas belum?",
-            'ui_type' => 'buttons',
-            'options' => [
-                ['label' => 'Mulai Quiz', 'value' => 'confirm'],
-                ['label' => 'Ubah Konfigurasi', 'value' => 'ubah'],
+            'ui_type' => 'text',
+            'cta' => [
+                ['label' => 'Mulai Quiz 🚀', 'action' => 'send_message', 'payload' => 'confirm'],
+                ['label' => 'Ubah Konfigurasi 🔄', 'action' => 'send_message', 'payload' => 'ubah'],
             ],
             'next_phase' => 'confirm',
             'payload_update' => [
