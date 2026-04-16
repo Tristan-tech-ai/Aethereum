@@ -242,7 +242,8 @@ class SessionController extends Controller
     public function getQuiz(Request $request, string $id): JsonResponse
     {
         $request->validate([
-            'section' => ['required', 'integer', 'min:0'],
+            'section' => ['nullable', 'integer', 'min:0'],
+            'quiz_id' => ['nullable', 'uuid'],
         ]);
 
         $user    = $request->user();
@@ -252,7 +253,15 @@ class SessionController extends Controller
             ->firstOrFail();
 
         $content = $session->content;
-        $quiz    = $this->quizGenerator->getOrGenerateQuiz($content, $request->input('section'));
+        
+        if ($request->has('quiz_id')) {
+            $quiz = \App\Models\Quiz::where('id', $request->input('quiz_id'))
+                ->where('content_id', $content->id)
+                ->firstOrFail();
+        } else {
+            $quiz = $this->quizGenerator->getOrGenerateQuiz($content, $request->input('section', 0));
+        }
+
 
         return response()->json([
             'data' => [

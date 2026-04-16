@@ -109,26 +109,29 @@ class QuizConfigurationFlowService
             return [
                 'message' => 'Maaf, materi tidak ditemukan. Coba ketik judul yang lain?',
                 'ui_type' => 'text',
-                'options' => null,
+                'cta' => null,
                 'next_phase' => 'material',
                 'payload_update' => [],
                 'is_terminal' => false,
+
             ];
         }
 
-        $options = $contents->map(fn ($content) => [
+        $cta = $contents->map(fn ($content) => [
             'label' => $content->title,
-            'value' => $content->id,
+            'action' => 'send_message',
+            'payload' => $content->id,
         ])->toArray();
 
         return [
             'message' => 'Mungkin materi ini yang kamu maksud?',
-            'ui_type' => 'chips',
-            'options' => $options,
+            'ui_type' => 'text',
+            'cta' => $cta,
             'next_phase' => 'material',
             'payload_update' => [],
             'is_terminal' => false,
         ];
+
     }
 
     public function handleSection(array $state, string $userInput): array
@@ -246,27 +249,29 @@ class QuizConfigurationFlowService
 
         if ($input === 'confirm' || $input === 'mulai' || $input === 'mulai quiz' || $input === 'ya') {
             return [
-                'message' => 'Quiz dimulai! Semoga berhasil! 🚀',
+                'message' => 'Quiz dimulai! Kamu akan diarahkan ke halaman quiz dalam sekejap. Semoga berhasil! 🚀',
                 'ui_type' => 'text',
-                'options' => null,
+                'cta' => null,
                 'next_phase' => 'quiz_active',
                 'payload_update' => [],
                 'is_terminal' => true,
             ];
         }
 
+
         // Ubah konfigurasi
         return [
             'message' => 'Oke, kita sesuaikan lagi ya. Mau bahas bagian mana dari materi ini?',
-            'ui_type' => 'chips',
-            'options' => [
-                ['label' => 'Semua Bagian', 'value' => 'semua'],
-                ['label' => 'Bagian Lain', 'value' => 'pilih_ulang'],
+            'ui_type' => 'text',
+            'cta' => [
+                ['label' => 'Semua Bagian', 'action' => 'send_message', 'payload' => 'semua'],
+                ['label' => 'Bagian Lain', 'action' => 'send_message', 'payload' => 'pilih_ulang'],
             ],
             'next_phase' => 'section',
             'payload_update' => [],
             'is_terminal' => false,
         ];
+
     }
 
     public function handleTimeout(array $state): array

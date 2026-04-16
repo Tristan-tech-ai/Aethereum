@@ -68,20 +68,18 @@ export const useSessionStore = create((set, get) => ({
 
     // ─── Actions ───────────────────────────────
 
-    /** Start a new session for a given content ID */
-    startSession: async (contentId) => {
-        // ── Optimistic load: use content already in store (from CourseDetailPage) ──
+    startSession: async (contentId, quizId = null) => {
+        // ── Optimistic load ──
         const cachedContent = useContentStore.getState().currentContent;
         if (cachedContent?.id === contentId && cachedContent?.structured_sections?.length > 0) {
             const sections = cachedContent.structured_sections;
-            // Start fresh optimistically; background call will restore real state
             set({
                 session: { id: `pending-${Date.now()}`, status: "active", content_id: contentId },
                 content: cachedContent,
                 sections,
                 currentSectionIndex: 0,
                 sectionStates: sections.map((_, i) => i === 0 ? "current" : "locked"),
-                view: "quest-map",
+                view: quizId ? "quiz" : "quest-map", // Skip to quiz if quizId is provided
                 loading: false,
                 focusTimer: 0, totalFocusTime: 0, lives: 3,
                 tabSwitches: 0, distractionCount: 0, focusIntegrity: 100,
@@ -90,7 +88,12 @@ export const useSessionStore = create((set, get) => ({
                 summaryText: "", summaryScore: null, summaryFeedback: null,
                 summaryApproved: false, rewards: null, knowledgeCard: null, readingDone: false,
             });
-            // Create/resume real session in background — restore full state when ready
+            
+            // If quizId is provided, fetch it specifically
+            if (quizId) {
+                setTimeout(() => get().fetchQuiz(quizId), 500);
+            }
+
             api.post("/v1/sessions/start", { content_id: contentId })
                 .then((res) => {
                     const data = res.data.data ?? res.data;
@@ -106,31 +109,24 @@ export const useSessionStore = create((set, get) => ({
                             tabSwitches: s.tab_switches ?? 0,
                         });
                     }
-                })
-                .catch(() => { /* keep using local session id — non-critical */ });
+                });
             return;
         }
 
         set({ loading: true, error: null });
         try {
-            const res = await api.post("/v1/sessions/start", {
-                content_id: contentId,
-            });
+            const res = await api.post("/v1/sessions/start", { content_id: contentId });
             const data = res.data.data ?? res.data;
-
-            const sections =
-                data.content?.structured_sections || data.sections || [];
+            const sections = data.content?.structured_sections || data.sections || [];
             const s = data.session || { id: data.session_id, status: "active" };
-            const currentSectionIndex = s.current_section ?? 0;
-            const sectionStates = buildSectionStates(sections, s);
-
+            
             set({
                 session: s,
                 content: data.content || null,
                 sections,
-                currentSectionIndex,
-                sectionStates,
-                view: "quest-map",
+                currentSectionIndex: s.current_section ?? 0,
+                sectionStates: buildSectionStates(sections, s),
+                view: quizId ? "quiz" : "quest-map",
                 loading: false,
                 focusTimer: 0,
                 totalFocusTime: s.total_focus_time ?? 0,
@@ -151,47 +147,12 @@ export const useSessionStore = create((set, get) => ({
                 knowledgeCard: null,
                 readingDone: false,
             });
-        } catch (err) {
-            // Fallback: load content directly
-            try {
-                const contentRes = await api.get(`/v1/content/${contentId}`);
-                const contentData = contentRes.data.data ?? contentRes.data;
-                const sections = contentData.structured_sections || [];
 
-                set({
-                    session: {
-                        id: `local-${Date.now()}`,
-                        status: "active",
-                        content_id: contentId,
-                    },
-                    content: contentData,
-                    sections,
-                    currentSectionIndex: 0,
-                    sectionStates: sections.map((_, i) => i === 0 ? "current" : "locked"),
-                    view: "quest-map",
-                    loading: false,
-                    focusTimer: 0,
-                    totalFocusTime: 0,
-                    lives: 3,
-                    tabSwitches: 0,
-                    distractionCount: 0,
-                    focusIntegrity: 100,
-                    quizQuestions: [],
-                    quizAttempts: 0,
-                    quizScore: null,
-                    quizPassed: false,
-                    quizCooldownUntil: null,
-                    summaryText: "",
-                    summaryScore: null,
-                    summaryFeedback: null,
-                    summaryApproved: false,
-                    rewards: null,
-                    knowledgeCard: null,
-                    readingDone: false,
-                });
-            } catch (fallbackErr) {
-                set({ error: parseError(err), loading: false });
+            if (quizId) {
+                get().fetchQuiz(quizId);
             }
+        } catch (err) {
+            set({ error: parseError(err), loading: false });
         }
     },
 
@@ -279,8 +240,20 @@ export const useSessionStore = create((set, get) => ({
     },
 
     /** Fetch quiz questions for current section */
-    fetchQuiz: async () => {
+    fetchQuiz: async (quizId = null) => {
         const { session, currentSectionIndex, sections } = get();
+
+        // Try fetching specifically by quizId if provided
+        if (quizId && session?.id && !session.id.startsWith("local-") && !session.id.startsWith("pending-")) {
+            try {
+                const res = await api.get(`/v1/sessions/${session.id}/quiz`, {
+                    params: { quiz_id: quizId },
+                });
+                const data = res.data.data ?? res.data;
+                set({ quizQuestions: data.questions || data });
+                return;
+            } catch { /* fallback to section base */ }
+        }
 
         // If section has embedded quiz questions, use them
         const section = sections[currentSectionIndex];

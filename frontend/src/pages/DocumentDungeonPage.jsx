@@ -87,12 +87,15 @@ const DocumentDungeonPage = () => {
     // ── Start session on mount ──
     useEffect(() => {
         if (materialId) {
-            startSession(materialId);
+            const params = new URLSearchParams(window.location.search);
+            const quizId = params.get("quiz");
+            startSession(materialId, quizId);
         }
         return () => {
             resetSession();
         };
     }, [materialId]);
+
 
     // ── Save progress on browser close/refresh ──
     useEffect(() => {

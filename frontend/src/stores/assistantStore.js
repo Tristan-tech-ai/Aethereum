@@ -96,6 +96,19 @@ export const useAssistantStore = create((set, get) => ({
                 sending: false,
             }));
 
+            // 🚗 Handle Automated Redirections (e.g. Starting a Quiz)
+            if (reply?.phase === 'quiz_active' && reply?.payload?.quiz_id) {
+                // If we are starting a quiz, we redirect to the document dungeon with mode=quiz
+                const quizId = reply.payload.quiz_id;
+                const materialId = reply.payload.content_id;
+                
+                // We use materialId in URL because /learn/:materialId is the route
+                // But we pass quizId in state or query
+                setTimeout(() => {
+                    window.location.href = `/learn/${materialId}?quiz=${quizId}`;
+                }, 1500); 
+            }
+
             // Update conversation list title if it changed
             if (title) {
                 set((s) => ({
@@ -111,6 +124,7 @@ export const useAssistantStore = create((set, get) => ({
                     conversations: [{ id: conversation_id, title, context_type: contextType, updated_at: new Date().toISOString() }, ...s.conversations],
                 }));
             }
+
         } catch (err) {
             set({ sending: false, error: parseError(err) });
         }
