@@ -175,6 +175,20 @@ Route::middleware(SupabaseAuth::class)->group(function () {
         });
     });
 
+    // ─── Nexera Assistant (General) ───
+    Route::prefix('v1/assistant')->group(function () {
+        Route::get('/conversations', [\App\Http\Controllers\Api\AssistantController::class, 'conversations']);
+        Route::get('/conversations/{id}', [\App\Http\Controllers\Api\AssistantController::class, 'showConversation']);
+        Route::delete('/conversations/{id}', [\App\Http\Controllers\Api\AssistantController::class, 'deleteConversation']);
+        
+        Route::post('/chat', [\App\Http\Controllers\Api\AssistantController::class, 'chat'])->middleware('throttle:quiz_chat'); // Use same throttle for now
+        Route::post('/study-plan/generate', [\App\Http\Controllers\Api\AssistantController::class, 'generateStudyPlan']);
+        Route::post('/reflection', [\App\Http\Controllers\Api\AssistantController::class, 'reflection']);
+        
+        Route::get('/preferences', [\App\Http\Controllers\Api\AssistantController::class, 'getPreferences']);
+        Route::patch('/preferences', [\App\Http\Controllers\Api\AssistantController::class, 'updatePreferences']);
+    });
+
     // ─── Learning Relay ───
     Route::prefix('v1/relay')->group(function () {
         Route::get('/my', [LearningRelayController::class, 'my']);
