@@ -21,8 +21,10 @@ class MaterialRecommendationService
         return LearningContent::where('user_id', $userId)
             ->where(function ($query) use ($hint) {
                 $query->where('title', 'LIKE', "%{$hint}%")
-                      ->orWhere('description', 'LIKE', "%{$hint}%");
+                      ->orWhere('subject_category', 'LIKE', "%{$hint}%")
+                      ->orWhere('original_filename', 'LIKE', "%{$hint}%");
             })
+
             ->orderByRaw("CASE 
                 WHEN title = ? THEN 1 
                 WHEN title LIKE ? THEN 2 
